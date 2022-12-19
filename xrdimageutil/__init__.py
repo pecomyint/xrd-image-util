@@ -5,15 +5,15 @@ class Project:
     
     :param project_path: A path (relative or absolute) to the project directory
     :type project_path: str
-    :param mode: Type of project being created. The current acceptable modes 
-        are for (1) the Beamline 6-ID-B SPEC setup and (2) databroker.
+    :param mode: Type of project being created. The only current acceptable 
+        mode is "databroker".
     :type mode: str
     """
 
     def __init__(
         self, 
         project_path, 
-        mode
+        mode="databroker"
     ) -> None:
         
         if type(project_path) != str:
