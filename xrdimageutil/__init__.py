@@ -21,7 +21,8 @@ class Project:
         if not os.path.exists(project_path):
             raise ValueError(f"Path '{project_path}' does not exist.")
 
-        self.path = project_path
+        # Converted to absolute path
+        self.path = os.path.abspath(project_path)
 
         if type(mode) != str:
             raise TypeError(f"Mode '{mode}' is not an accepted mode.")
