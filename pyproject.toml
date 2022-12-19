@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xrd-image-util"
+version = "0.0.1"
+authors = [
+    {name = "Henry Smith", email = "henryjsmith12@outlook.com"},
+]
+description = "Utility package for handling XRD image data."
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: See LICENSE.txt",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+
+[project.license]
+file = "LICENSE.txt"
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-cov",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/henryjsmith12/xrd-image-util"
+"Bug Tracker" = "https://github.com/henryjsmith12/xrd-image-util/issues"
