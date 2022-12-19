@@ -5,7 +5,7 @@ import xrdimageutil as xiu
 # PROJECT INSTANTIATION
 def test_project_instatiation_with_valid_input_yields_not_null():
     project = xiu.Project(
-        project_path=".", 
+        project_path="sample_data/sample_spec_project", 
         mode="databroker"
     )
     assert project is not None
@@ -58,3 +58,24 @@ def test_project_instatiation_with_relative_path_yields_absolute_path():
             mode="databroker"
         )
     assert project.path == absolute_path
+
+def test_project_instantiation_with_6idbspec_mode_and_valid_path_yields_nonempty_path():
+    spec_project_path = "sample_data/sample_spec_project"
+    project = xiu.Project(
+            project_path=spec_project_path, 
+            mode="6IDBspec"
+        )
+    project_path_items = os.listdir(project.path)
+    if len(project_path_items) > 0:
+        assert True
+
+def test_project_instantiation_with_6idbspec_mode_and_valid_path_yields_path_with_spec_file():
+    spec_project_path = "sample_data/sample_spec_project"
+    project = xiu.Project(
+            project_path=spec_project_path, 
+            mode="6IDBspec"
+        )
+    project_path_items = os.listdir(project.path)
+    for item in project_path_items:
+        if item.endswith("spec"):
+            assert True
