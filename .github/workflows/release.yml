@@ -19,7 +19,7 @@ jobs:
     - name: Build
       run: python -m build .
     - name: Publish
-      uses: pypa/gh-action-pypi-publish@release/v1
+      uses: pypa/gh-action-pypi-publish@release/v2
       with:
         password: ${{ secrets.PYPI_TOKEN }}
         skip_existing: true
