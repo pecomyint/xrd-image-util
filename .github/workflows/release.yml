@@ -18,5 +18,6 @@ jobs:
       run: python -m build .
     - name: Publish
       with:
-        password: ${{ secrets.pypi_password }}
+        password: ${{ secrets.PYPI_PASSWORD }}
+        uses: pypa/gh-action-pypi-publish@release/v1
         skip_existing: true
