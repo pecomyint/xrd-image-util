@@ -20,4 +20,5 @@ class Project:
             raise TypeError(f"Mode '{mode}' is not an accepted mode.")
         if mode not in ["6IDBspec", "databroker"]:
             raise ValueError(f"Mode '{mode}' is not an accepted mode.")
+            
         self.mode = mode
