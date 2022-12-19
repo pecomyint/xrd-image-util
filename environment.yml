@@ -1,0 +1,10 @@
+name: xiu-env
+dependencies:
+  - python=3.10.8
+  - pip
+  - tox
+  pip:
+    - flake8
+    - pytest
+    - pytest-cov
+    - tox-conda
