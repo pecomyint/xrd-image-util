@@ -29,3 +29,4 @@ def read_from_databroker(path: str) -> dict:
     source_data = catalog
 
     return source_data
+    

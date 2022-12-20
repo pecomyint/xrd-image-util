@@ -1,5 +1,6 @@
 import os
 
+from xrdimageutil import Project
 from xrdimageutil.io import read_from_databroker
 
 def test_read_from_databroker_with_valid_input_yields_no_errors():
@@ -71,3 +72,11 @@ def test_read_from_databroker_with_valid_input_yields_1_catalog():
 
     if len(list(source_data.keys())) == 1:
         assert True
+
+def test_read_from_databroker_in_project_instantiation_with_valid_input():
+    path = os.path.abspath("data/singh")
+    project = Project(path)
+    rfd_data = read_from_databroker(path)
+
+    assert project.data == rfd_data
+    
