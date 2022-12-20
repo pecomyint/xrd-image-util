@@ -84,6 +84,12 @@ class Catalog:
         self.scans = {}
         for scan_id in list(self.data):
             scan = Scan(catalog=self, scan_id=scan_id)
+            self.scans.update({scan_id: scan})
+
+    def scan_count(self) -> int:
+        """Returns number of scans in catalog."""
+
+        return len(list(self.scans.keys()))
 
 
 class Scan:
@@ -94,6 +100,8 @@ class Scan:
     :param scan_id:
     :type scan_id: str
     """
+
+    
 
     def __init__(self, catalog: Catalog, scan_id: str) -> None:
         pass
