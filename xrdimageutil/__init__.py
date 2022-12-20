@@ -7,10 +7,7 @@ class Project:
     :type project_path: str
     """
 
-    def __init__(
-        self, 
-        project_path
-    ) -> None:
+    def __init__(self, project_path: str) -> None:
         
         if type(project_path) != str:
             raise TypeError(f"Path '{project_path}' is an invalid path.")
