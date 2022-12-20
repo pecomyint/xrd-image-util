@@ -87,7 +87,13 @@ class Catalog:
 
 
 class Scan:
-    """Houses data and metadata for a single scan."""
+    """Houses data and metadata for a single scan.
+    
+    :param catalog:
+    :type catalog: Catalog
+    :param scan_id:
+    :type scan_id: str
+    """
 
-    def __init__(self) -> None:
+    def __init__(self, catalog: Catalog, scan_id: str) -> None:
         pass
