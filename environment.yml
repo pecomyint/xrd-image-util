@@ -4,6 +4,7 @@ dependencies:
   - pip
   - tox
   pip:
+    - databroker
     - flake8
     - pytest
     - pytest-cov
