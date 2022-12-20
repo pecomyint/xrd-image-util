@@ -1,1 +1,5 @@
+area-detector-handlers
 databroker
+databroker-pack
+dask
+hdf5plugin
