@@ -35,7 +35,6 @@ class Project:
             cat = Catalog(project=self, name=cat_name)
             self.catalogs.update({cat_name: cat})
             
-
     def list_catalogs(self) -> list:
         """Returns a list of Catalog names for a Project
         
@@ -85,6 +84,11 @@ class Catalog:
         for scan_id in list(self.data):
             scan = Scan(catalog=self, scan_id=scan_id)
             self.scans.update({scan_id: scan})
+
+    def list_scans(self) -> list:
+        """Returns list of scan ID's in catalog."""
+
+        return list(self.scans.keys())
 
     def scan_count(self) -> int:
         """Returns number of scans in catalog."""
