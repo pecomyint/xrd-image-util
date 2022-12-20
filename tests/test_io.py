@@ -3,6 +3,7 @@ import os
 from xrdimageutil import Project
 from xrdimageutil.io import read_from_databroker
 
+
 def test_read_from_databroker_with_valid_input_yields_no_errors():
     path = os.path.abspath("data/singh")
     try:

@@ -1,6 +1,7 @@
 from databroker import catalog
 import os
 
+
 def read_from_databroker(path: str) -> dict:
     '''Reads source data from a databroker file path.
     

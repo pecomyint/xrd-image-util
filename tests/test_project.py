@@ -2,6 +2,7 @@ import os
 
 import xrdimageutil as xiu
 
+
 # PROJECT INSTANTIATION
 def test_project_instatiation_with_valid_input_yields_not_null():
     project = xiu.Project(
