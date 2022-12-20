@@ -66,9 +66,9 @@ class Catalog:
     :type name: str
     """
     
+    data = None # Databroker source data for catalog
+    scans = None # List of Scan objects in catalog
+
     def __init__(self, project: Project, name: str) -> None:
-        pass
-
-
-
-
+        
+        self.data = project.data[name]
