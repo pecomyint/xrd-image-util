@@ -1,0 +1,11 @@
+name: bluesky-test
+dependencies:
+  - python=3.8
+  - pip
+  - pip:
+    - apstools
+    - databroker==1.2.5
+    - hdf5plugin
+    - area-detector-handlers
+    - dask
+    - polartools

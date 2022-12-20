@@ -1,0 +1,14 @@
+sources:
+  packed_catalog:
+    args:
+      paths:
+      - /home/beams18/USER6IDB/bluesky/singh/documents/*.msgpack
+      root_map:
+        5d35d367ea165a3d37d438ede63a2edb: external_files/5d35d367ea165a3d37d438ede63a2edb
+    driver: bluesky-msgpack-catalog
+    metadata:
+      generated_by:
+        library: databroker_pack
+        version: 0.3.0
+      relative_paths:
+      - ./documents/*.msgpack
