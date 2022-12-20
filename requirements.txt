@@ -1,5 +1,13 @@
-area-detector-handlers
-databroker
+apstools
+databroker==1.2.5
 databroker-pack
+bluesky
+bluesky-live
 dask
+h5py
 hdf5plugin
+ophyd
+polartools
+pyqt5
+pyqtwebengine
+area-detector-handlers
