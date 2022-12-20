@@ -81,3 +81,13 @@ class Catalog:
 
         self.data = catalog_data
 
+        self.scans = {}
+        for scan_id in list(self.data):
+            scan = Scan(catalog=self, scan_id=scan_id)
+
+
+class Scan:
+    """Houses data and metadata for a single scan."""
+
+    def __init__(self) -> None:
+        pass
