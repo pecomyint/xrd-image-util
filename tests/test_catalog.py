@@ -3,6 +3,11 @@ import pytest
 
 import xrdimageutil as xiu
 
-@pytest.fixture
-def valid_project():
-    return xiu.Project(project_path="data/singh")
+def test_catalog_instantiation_with_valid_input():
+    project = xiu.Project(project_path="data/singh")
+    catalog = project.get_catalog("henry")
+    
+    scan_count = len(list(catalog.data))
+    assert scan_count == 19
+
+    
