@@ -1,6 +1,7 @@
 import os
 
 from xrdimageutil.io import read_from_databroker
+from xrdimageutil.utils import _prepare_catalog
 
 class Project:
     """Houses databroker source data and a list of Catalog objects.
@@ -33,6 +34,7 @@ class Project:
         for cat_name in self.data.keys():
             cat = Catalog(project=self, name=cat_name)
             self.catalogs.update({cat_name: cat})
+            
 
     def list_catalogs(self) -> list:
         """Returns a list of Catalog names for a Project
@@ -71,4 +73,11 @@ class Catalog:
 
     def __init__(self, project: Project, name: str) -> None:
         
-        self.data = project.data[name]
+        catalog_data = project.data[name]
+
+        # Crucial step
+        # Currently only set up for 6IDBs
+        _prepare_catalog(catalog_data)
+
+        self.data = catalog_data
+
