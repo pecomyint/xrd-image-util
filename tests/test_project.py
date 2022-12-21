@@ -5,7 +5,8 @@ import xrdimageutil as xiu
 
 # PROJECT INSTANTIATION
 def test_project_instatiation_with_valid_input_yields_not_null():
-    project = xiu.Project(project_path="data/singh")
+    path = os.path.abspath("data/singh")
+    project = xiu.Project(project_path=path)
     assert project is not None
 
 def test_project_instatiation_with_nonexisting_path_yields_error():
@@ -34,17 +35,15 @@ def test_project_instatiation_with_empty_path_yields_value_error():
         assert True
          
 def test_list_catalogs_with_valid_input():
-    project = xiu.Project(
-        project_path="data/singh"
-    )
+    path = os.path.abspath("data/singh")
+    project = xiu.Project(project_path=path)
     pr_cat_list = project.list_catalogs()
 
     assert pr_cat_list == ["henry"]
 
 def test_get_catalog_with_invalid_input_yields_key_error():
-    project = xiu.Project(
-        project_path="data/singh"
-    )
+    path = os.path.abspath("data/singh")
+    project = xiu.Project(project_path=path)
     try:
         cat = project.get_catalog(47)
         assert False
