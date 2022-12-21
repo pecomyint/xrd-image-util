@@ -5,7 +5,7 @@ from xrdimageutil.io import read_from_databroker
 
 
 def test_read_from_databroker_with_valid_input_yields_no_errors():
-    path = os.path.abspath("data/singh")
+    path = os.path.abspath("tests/data/singh")
     try:
         source_data = read_from_databroker(path)
         assert True
@@ -38,9 +38,9 @@ def test_read_from_databroker_with_empty_path_yields_value_error():
         assert True
 
 def test_read_from_databroker_with_invalid_input_yields_documents_folder_does_not_exist():
-    path = os.path.abspath("data/fake_data")
+    path = os.path.abspath("tests/data/fake_data")
     os.mkdir(path)
-    ef_path = os.path.abspath("data/fake_data/external_files")
+    ef_path = os.path.abspath("tests/data/fake_data/external_files")
     os.mkdir(ef_path)
     try:
         source_data = read_from_databroker(path)
@@ -53,9 +53,9 @@ def test_read_from_databroker_with_invalid_input_yields_documents_folder_does_no
         assert True
 
 def test_read_from_databroker_with_invalid_input_yields_external_files_folder_does_not_exist():
-    path = os.path.abspath("data/fake_data")
+    path = os.path.abspath("tests/data/fake_data")
     os.mkdir(path)
-    d_path = os.path.abspath("data/fake_data/documents")
+    d_path = os.path.abspath("tests/data/fake_data/documents")
     os.mkdir(d_path)
     try:
         source_data = read_from_databroker(path)
@@ -68,7 +68,7 @@ def test_read_from_databroker_with_invalid_input_yields_external_files_folder_do
         assert True
 
 def test_read_from_databroker_with_valid_input_yields_1_catalog():
-    path = os.path.abspath("data/singh")
+    path = os.path.abspath("tests/data/singh")
     source_data = read_from_databroker(path)
 
     if len(list(source_data.keys())) == 1:
