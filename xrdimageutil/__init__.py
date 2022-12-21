@@ -86,12 +86,18 @@ class Catalog:
             self.scans.update({scan_id: scan})
 
     def list_scans(self) -> list:
-        """Returns list of scan ID's in catalog."""
+        """Returns list of scan ID's in catalog.
+        
+        :rtype: list
+        """
 
         return list(self.scans.keys())
 
     def get_scan(self, scan_id: str):
-        """Returns scan from given scan ID."""
+        """Returns scan from given scan ID.
+        
+        :rtype: Scan
+        """
 
         if scan_id not in list(self.data.keys()):
             raise KeyError(f"Scan ID '{scan_id}' does not exist.")
@@ -99,12 +105,14 @@ class Catalog:
         return self.scans[scan_id]
 
     def scan_count(self) -> int:
-        """Returns number of scans in catalog."""
+        """Returns number of scans in catalog.
+        
+        :rtype: int
+        """
 
         return len(list(self.scans.keys()))
 
     
-
 
 class Scan:
     """Houses data and metadata for a single scan.
