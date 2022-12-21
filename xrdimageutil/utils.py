@@ -13,10 +13,14 @@ def _unpack_project(project) -> None:
         shell=True
     )
     cat_list_str = cat_list_bytes.decode("utf-8")
-    cat_list = cat_list_str.split("/n")
+    cat_list_str = cat_list_str.strip("\n")
+    cat_list = cat_list_str.split("\n")
 
     for cat in cat_list:
-        os.system(f"databroker-unpack inplace {path} {cat}")
+        try:
+            os.system(f"databroker-unpack inplace {path} {cat}")
+        except ValueError:
+            pass
 
 def _prepare_catalog(raw_catalog) -> None:
     """Registers specific area detector handler."""
