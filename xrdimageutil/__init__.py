@@ -43,7 +43,7 @@ class Project:
 
         return list(self.data.keys())
 
-    def get_catalog(self, cat_name: str) -> None:
+    def get_catalog(self, cat_name: str):
         """Returns a Catalog from a given name.
         
         :param cat_name: Catalog name
@@ -90,10 +90,20 @@ class Catalog:
 
         return list(self.scans.keys())
 
+    def get_scan(self, scan_id: str):
+        """Returns scan from given scan ID."""
+
+        if scan_id not in list(self.data.keys()):
+            raise KeyError(f"Scan ID '{scan_id}' does not exist.")
+
+        return self.scans[scan_id]
+
     def scan_count(self) -> int:
         """Returns number of scans in catalog."""
 
         return len(list(self.scans.keys()))
+
+    
 
 
 class Scan:
@@ -104,8 +114,6 @@ class Scan:
     :param scan_id:
     :type scan_id: str
     """
-
-    
 
     def __init__(self, catalog: Catalog, scan_id: str) -> None:
         pass
