@@ -1,10 +1,7 @@
-"""
-Handler for the Pilatus detector HDF5 files.
-"""
+"""Handler for the Pilatus detector HDF5 files."""
 
 from area_detector_handlers.handlers import AreaDetectorHDF5SingleHandler
 from dask.array import from_array
-
 
 class PilatusHDF5Handler(AreaDetectorHDF5SingleHandler):
     specs = (
