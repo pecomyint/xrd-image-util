@@ -24,9 +24,10 @@ class Project:
             raise ValueError(f"Path '{project_path}' is empty.")
 
         self.path = os.path.abspath(project_path)
-        self.data = read_from_databroker(project_path)
-
+        
         _unpack_project(self)
+
+        self.data = read_from_databroker(project_path)
 
         # Creates Catalog objects
         self.catalogs = {}
