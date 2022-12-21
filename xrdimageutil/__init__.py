@@ -1,87 +1,28 @@
+import databroker as db
 import os
 
-from xrdimageutil.io import read_from_databroker
-from xrdimageutil.utils import _prepare_catalog, _unpack_project
+import xrdimageutil as xiu
+from xrdimageutil import io, utils
 
-class Project:
-    """Houses databroker source data and a list of Catalog objects.
-    
-    :param project_path: A path (relative or absolute) to the project directory
-    :type project_path: str
-    """
-
-    path = None # Absolute path of project directory
-    data = None # Databroker source data for project
-    catalogs = None # Dict of Catalog objects for project
-
-    def __init__(self, project_path: str) -> None:
-        
-        if type(project_path) != str:
-            raise TypeError(f"Path '{project_path}' is an invalid path.")
-        if not os.path.exists(project_path):
-            raise NotADirectoryError(f"Path '{project_path}' does not exist.")
-        if len(os.listdir(project_path)) == 0:
-            raise ValueError(f"Path '{project_path}' is empty.")
-
-        self.path = os.path.abspath(project_path)
-        
-        _unpack_project(self)
-
-        self.data = read_from_databroker(project_path)
-
-        # Creates Catalog objects
-        self.catalogs = {}
-        for cat_name in self.data.keys():
-            cat = Catalog(project=self, name=cat_name)
-            self.catalogs.update({cat_name: cat})
-            
-    def list_catalogs(self) -> list:
-        """Returns a list of Catalog names for a Project
-        
-        :rtype: list
-        """
-
-        return list(self.data.keys())
-
-    def get_catalog(self, cat_name: str):
-        """Returns a Catalog from a given name.
-        
-        :param cat_name: Catalog name
-        :type cat_name: str
-
-        :rtype: Catalog
-        """
-        
-        if cat_name not in list(self.data.keys()):
-            raise KeyError(f"Catalog name '{cat_name}' does not exist.")
-
-        return self.catalogs[cat_name]
-
+def unpack_catalog(path: str, name: str):
+    ...
 
 class Catalog:
-    """Houses a collection of scans and metadata.
     
-    :param project:
-    :type project: xrdimageutil.Project
-    :param name:
-    :type name: str
-    """
-    
-    data = None # Databroker source data for catalog
-    scans = None # List of Scan objects in catalog
+    db_catalog = None
+    name = None
+    scans = None
 
-    def __init__(self, project: Project, name: str) -> None:
-        
-        catalog_data = project.data[name]
+    def __init__(self, name) -> None:
 
-        # Crucial step
-        # Currently only set up for 6IDBs
-        _prepare_catalog(catalog_data)
+        self.name = str(name)
+        self.db_catalog = db.catalog[self.name]
 
-        self.data = catalog_data
+        utils._add_catalog_handler(catalog=self)
 
+        # Creates Scan objects
         self.scans = {}
-        for scan_id in list(self.data):
+        for scan_id in list(self.db_catalog):
             scan = Scan(catalog=self, scan_id=scan_id)
             self.scans.update({scan_id: scan})
 
@@ -99,7 +40,7 @@ class Catalog:
         :rtype: Scan
         """
 
-        if scan_id not in list(self.data.keys()):
+        if scan_id not in self.list_scans():
             raise KeyError(f"Scan ID '{scan_id}' does not exist.")
 
         return self.scans[scan_id]
@@ -113,7 +54,6 @@ class Catalog:
         return len(list(self.scans.keys()))
 
     
-
 class Scan:
     """Houses data and metadata for a single scan.
     
@@ -122,6 +62,9 @@ class Scan:
     :param scan_id:
     :type scan_id: str
     """
+
+    db_run = None
+    
 
     def __init__(self, catalog: Catalog, scan_id: str) -> None:
         pass
