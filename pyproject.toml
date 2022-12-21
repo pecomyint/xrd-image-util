@@ -32,3 +32,6 @@ test = [
 [project.urls]
 "Homepage" = "https://github.com/henryjsmith12/xrd-image-util"
 "Bug Tracker" = "https://github.com/henryjsmith12/xrd-image-util/issues"
+
+[tool.setuptools]
+packages = ["xrdimageutil"] 
