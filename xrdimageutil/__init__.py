@@ -26,9 +26,6 @@ class Project:
         self.path = os.path.abspath(project_path)
         self.data = read_from_databroker(project_path)
 
-        if len(list(self.data.keys())) == 0:
-            raise AttributeError(f"Path {self.path} has no catalogs available.")
-
         # Creates Catalog objects
         self.catalogs = {}
         for cat_name in self.data.keys():
