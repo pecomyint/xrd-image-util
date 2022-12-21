@@ -1,7 +1,7 @@
 import os
 
 from xrdimageutil.io import read_from_databroker
-from xrdimageutil.utils import _prepare_catalog
+from xrdimageutil.utils import _prepare_catalog, _unpack_project
 
 class Project:
     """Houses databroker source data and a list of Catalog objects.
@@ -25,6 +25,8 @@ class Project:
 
         self.path = os.path.abspath(project_path)
         self.data = read_from_databroker(project_path)
+
+        _unpack_project(self)
 
         # Creates Catalog objects
         self.catalogs = {}
