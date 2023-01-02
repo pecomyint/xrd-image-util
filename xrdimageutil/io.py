@@ -11,8 +11,10 @@ def read_from_databroker(path: str) -> dict:
     :return: Dictionary of databroker catalogs
     :rtype: dict
     '''
-    path = os.path.abspath(path)
 
+    # Validate parameter
+    path = os.path.abspath(path)
+    
     if type(path) != str:
         raise TypeError(f"Path '{path}' is an invalid path.")
     if not os.path.exists(path):
@@ -27,7 +29,5 @@ def read_from_databroker(path: str) -> dict:
     if "external_files" not in path_items:
         raise ValueError(f"'external_files' subdirectory not found in path '{path}'.")
 
-    source_data = catalog
-
-    return source_data
+    return catalog
     
