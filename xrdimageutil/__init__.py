@@ -51,14 +51,29 @@ class Catalog:
 
         return len(list(self.scans.keys()))
 
-    def filter_scans_by_sample(sample: str) -> list:
-        ...
+    def filter_scans_by_sample(self, sample: str) -> list:
+        filtered_id_list = []
+        for id in self.list_scans():
+            scan = self.get_scan(id)
+            if scan.sample == sample:
+                filtered_id_list.append(id)
+        return filtered_id_list
 
-    def filter_scans_by_proposal_id(proposal_id: str) -> list:
-        ...
+    def filter_scans_by_proposal_id(self, proposal_id: str) -> list:
+        filtered_id_list = []
+        for id in self.list_scans():
+            scan = self.get_scan(id)
+            if scan.proposal_id == proposal_id:
+                filtered_id_list.append(id)
+        return filtered_id_list
 
-    def filter_scans_by_user(user: str) -> list:
-        ...
+    def filter_scans_by_user(self, user: str) -> list:
+        filtered_id_list = []
+        for id in self.list_scans():
+            scan = self.get_scan(id)
+            if scan.user == user:
+                filtered_id_list.append(id)
+        return filtered_id_list
 
     
 class Scan:
