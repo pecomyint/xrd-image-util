@@ -140,7 +140,7 @@ class Catalog:
             scan = self.get_scan(id)
             if scan.user == user:
                 filtered_id_list.append(id)
-                
+
         return filtered_id_list
 
     
@@ -159,7 +159,6 @@ class Scan:
     sample = None
     proposal_id = None
     user = None
-    time = None
 
     def __init__(self, catalog: Catalog, scan_id: str) -> None:
 
@@ -170,4 +169,3 @@ class Scan:
         self.sample = self.db_run.metadata["start"]["sample"]
         self.proposal_id = self.db_run.metadata["start"]["proposal_id"]
         self.user = self.db_run.metadata["start"]["user"]
-        self.time = self.db_run.metadata["start"]["time"]
