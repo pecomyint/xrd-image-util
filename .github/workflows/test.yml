@@ -18,5 +18,7 @@ jobs:
         python-version: ${{ matrix.python }}
     - name: Install test dependencies
       run: python -m pip install -U tox
+    -name: Unpack catalog
+      run: databroker-unpack inplace data/singh test-catalog
     - name: Test
       run: python -m tox -e py
