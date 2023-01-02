@@ -10,7 +10,7 @@ class TestInstantiation:
 
     @classmethod
     def setup_class(self):
-        os.system(f"databroker-unpack inplace {self.absolute_path} {self.catalog_key}")
+        os.system(f"databroker-unpack inplace {self.relative_path} {self.catalog_key}")
 
     def test_instantiation_with_valid_key_expects_not_none_type(self):
         catalog = Catalog(self.catalog_key)
