@@ -61,8 +61,19 @@ class Scan:
     :type scan_id: str
     """
 
+    catalog = None
+    id = None
     db_run = None
-    
+    sample = None
+    proposal_id = None
+    user = None
 
     def __init__(self, catalog: Catalog, scan_id: str) -> None:
-        pass
+
+        self.catalog = catalog
+        self.id = scan_id
+        self.db_run = catalog.db_catalog[scan_id]
+
+        self.sample = self.db_run.metadata["start"]["sample"]
+        self.proposal_id = self.db_run.metadata["start"]["proposal_id"]
+        self.user = self.db_run.metadata["start"]["user"]
