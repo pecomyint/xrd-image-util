@@ -51,6 +51,15 @@ class Catalog:
 
         return len(list(self.scans.keys()))
 
+    def filter_scans_by_sample(sample: str) -> list:
+        ...
+
+    def filter_scans_by_proposal_id(proposal_id: str) -> list:
+        ...
+
+    def filter_scans_by_user(user: str) -> list:
+        ...
+
     
 class Scan:
     """Houses data and metadata for a single scan.
@@ -67,6 +76,7 @@ class Scan:
     sample = None
     proposal_id = None
     user = None
+    time = None
 
     def __init__(self, catalog: Catalog, scan_id: str) -> None:
 
@@ -77,3 +87,4 @@ class Scan:
         self.sample = self.db_run.metadata["start"]["sample"]
         self.proposal_id = self.db_run.metadata["start"]["proposal_id"]
         self.user = self.db_run.metadata["start"]["user"]
+        self.time = self.db_run.metadata["start"]["time"]
