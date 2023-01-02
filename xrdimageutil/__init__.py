@@ -1,8 +1,6 @@
 import databroker as db
-import os
 
-import xrdimageutil as xiu
-from xrdimageutil import io, utils
+from xrdimageutil import utils
 
 def unpack_catalog(path: str, name: str):
     ...
