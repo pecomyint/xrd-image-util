@@ -2,9 +2,6 @@ import databroker as db
 
 from xrdimageutil import utils
 
-def unpack_catalog(path: str, name: str):
-    ...
-
 class Catalog:
     
     db_catalog = None
