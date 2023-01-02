@@ -1,6 +1,3 @@
-import databroker as db
-import os
-
 from xrdimageutil.pilatus_handler import PilatusHDF5Handler
 
 '''
