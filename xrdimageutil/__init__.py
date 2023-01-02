@@ -51,6 +51,30 @@ class Catalog:
 
         return len(list(self.scans.keys()))
 
+    def list_samples(self):
+        sample_list = []
+        for id in self.list_scans():
+            scan = self.get_scan(id)
+            if scan.sample not in sample_list:
+                sample_list.append(scan.sample)
+        return sample_list
+
+    def list_proposal_ids(self):
+        proposal_id_list = []
+        for id in self.list_scans():
+            scan = self.get_scan(id)
+            if scan.proposal_id not in proposal_id_list:
+                proposal_id_list.append(scan.proposal_id)
+        return proposal_id_list
+
+    def list_users(self):
+        user_list = []
+        for id in self.list_scans():
+            scan = self.get_scan(id)
+            if scan.user not in user_list:
+                user_list.append(scan.user)
+        return user_list
+
     def filter_scans_by_sample(self, sample: str) -> list:
         filtered_id_list = []
         for id in self.list_scans():
