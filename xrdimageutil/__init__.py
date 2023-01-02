@@ -2,6 +2,7 @@ import databroker
 
 from xrdimageutil import utils
 
+
 class Catalog:
     """Houses (i) a databroker catalog, already unpacked and (ii) a 
     dictionary of Scan objects, which can be filtered and returned.
