@@ -27,7 +27,7 @@ class Catalog:
         # Creates a Scan object for every run in the catalog
         # Adds Scans to a dictionary
         self.scans = {}
-        for scan_id in list(self.db_catalog):
+        for scan_id in sorted(list(self.db_catalog)):
             scan = Scan(catalog=self, scan_id=scan_id)
             self.scans.update({scan_id: scan})
 
