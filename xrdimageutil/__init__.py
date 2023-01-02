@@ -1,3 +1,7 @@
+"""Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+"""
+
 import databroker
 
 from xrdimageutil import utils

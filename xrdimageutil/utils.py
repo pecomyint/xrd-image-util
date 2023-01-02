@@ -1,3 +1,7 @@
+"""Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+"""
+
 import area_detector_handlers.handlers as adh
 from dask.array import from_array
 
