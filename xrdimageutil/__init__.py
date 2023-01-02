@@ -1,21 +1,26 @@
-import databroker as db
+import databroker
 
 from xrdimageutil import utils
 
 class Catalog:
+    """Houses (i) a databroker catalog, already unpacked and (ii) a 
+    dictionary of Scan objects, which can be filtered and returned.
+    """
     
-    db_catalog = None
-    name = None
-    scans = None
+    db_catalog = None # Databroker dictionary-like catalog
+    name = None # Local name for catalog
+    scans = None # Dictionary of scans in catalog
 
     def __init__(self, name) -> None:
 
         self.name = str(name)
-        self.db_catalog = db.catalog[self.name]
+        self.db_catalog = databroker.catalog[self.name]
 
+        # Currently only configured for beamline 6-ID-B
         utils._add_catalog_handler(catalog=self)
 
-        # Creates Scan objects
+        # Creates a Scan object for every run in the catalog
+        # Adds Scans to a dictionary
         self.scans = {}
         for scan_id in list(self.db_catalog):
             scan = Scan(catalog=self, scan_id=scan_id)
@@ -48,52 +53,94 @@ class Catalog:
 
         return len(list(self.scans.keys()))
 
-    def list_samples(self):
+    def list_samples(self) -> list:
+        """Returns a list of unqiue samples from Scans in catalog.
+        
+        :rtype: list
+        """
+
         sample_list = []
+
         for id in self.list_scans():
             scan = self.get_scan(id)
             if scan.sample not in sample_list:
                 sample_list.append(scan.sample)
+
         return sample_list
 
     def list_proposal_ids(self):
+        """Returns a list of unqiue proposal ID's from Scans in catalog.
+        
+        :rtype: list
+        """
+
         proposal_id_list = []
+
         for id in self.list_scans():
             scan = self.get_scan(id)
             if scan.proposal_id not in proposal_id_list:
                 proposal_id_list.append(scan.proposal_id)
+
         return proposal_id_list
 
     def list_users(self):
+        """Returns a list of unqiue user names from Scans in catalog.
+        
+        :rtype: list
+        """
+
         user_list = []
+
         for id in self.list_scans():
             scan = self.get_scan(id)
             if scan.user not in user_list:
                 user_list.append(scan.user)
+
         return user_list
 
     def filter_scans_by_sample(self, sample: str) -> list:
+        """Returns a list of ID's for Scans that use the given sample.
+        
+        :rtype: list
+        """
+
         filtered_id_list = []
+
         for id in self.list_scans():
             scan = self.get_scan(id)
             if scan.sample == sample:
                 filtered_id_list.append(id)
+
         return filtered_id_list
 
     def filter_scans_by_proposal_id(self, proposal_id: str) -> list:
+        """Returns a list of ID's for Scans that use the given proposal ID.
+        
+        :rtype: list
+        """
+
         filtered_id_list = []
+
         for id in self.list_scans():
             scan = self.get_scan(id)
             if scan.proposal_id == proposal_id:
                 filtered_id_list.append(id)
+
         return filtered_id_list
 
     def filter_scans_by_user(self, user: str) -> list:
+        """Returns a list of ID's for Scans that use the given proposal ID.
+        
+        :rtype: list
+        """
+
         filtered_id_list = []
+
         for id in self.list_scans():
             scan = self.get_scan(id)
             if scan.user == user:
                 filtered_id_list.append(id)
+                
         return filtered_id_list
 
     
