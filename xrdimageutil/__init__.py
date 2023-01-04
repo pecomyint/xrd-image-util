@@ -8,18 +8,18 @@ from xrdimageutil import utils
 
 
 class Catalog:
-    """Houses (i) a databroker catalog, already unpacked and (ii) a 
+    """Houses (i) a Bluesky catalog, already unpacked and (ii) a 
     dictionary of Scan objects, which can be filtered and returned.
     """
     
-    db_catalog = None # Databroker dictionary-like catalog
+    bs_catalog = None # Bluesky dictionary-like catalog
     name = None # Local name for catalog
     scans = None # Dictionary of scans in catalog
 
     def __init__(self, name) -> None:
 
         self.name = str(name)
-        self.db_catalog = databroker.catalog[self.name]
+        self.bs_catalog = databroker.catalog[self.name]
 
         # Currently only configured for beamline 6-ID-B
         utils._add_catalog_handler(catalog=self)
@@ -27,7 +27,7 @@ class Catalog:
         # Creates a Scan object for every run in the catalog
         # Adds Scans to a dictionary
         self.scans = {}
-        for scan_id in sorted(list(self.db_catalog)):
+        for scan_id in sorted(list(self.bs_catalog)):
             scan = Scan(catalog=self, scan_id=scan_id)
             self.scans.update({scan_id: scan})
 
@@ -158,12 +158,12 @@ class Scan:
     :type scan_id: str
     """
 
-    catalog = None
-    id = None
-    db_run = None
-    sample = None
-    proposal_id = None
-    user = None
+    catalog = None # Parent Catalog
+    id = None # UID for scan; given by bluesky
+    bs_run = None # Raw Bluesky run for scan
+    sample = None # Experimental sample
+    proposal_id = None # Manually provided Proposal ID
+    user = None # Experimental user
 
     def __init__(self, catalog: Catalog, scan_id: str) -> None:
 
