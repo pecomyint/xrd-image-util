@@ -73,7 +73,7 @@ class Catalog:
 
         return sample_list
 
-    def list_proposal_ids(self):
+    def list_proposal_ids(self) -> list:
         """Returns a list of unqiue proposal ID's from Scans in catalog.
         
         :rtype: list
@@ -88,7 +88,7 @@ class Catalog:
 
         return proposal_id_list
 
-    def list_users(self):
+    def list_users(self) -> list:
         """Returns a list of unqiue user names from Scans in catalog.
         
         :rtype: list
@@ -169,8 +169,8 @@ class Scan:
 
         self.catalog = catalog
         self.id = scan_id
-        self.db_run = catalog.db_catalog[scan_id]
+        self.bs_run = catalog.bs_catalog[scan_id]
 
-        self.sample = self.db_run.metadata["start"]["sample"]
-        self.proposal_id = self.db_run.metadata["start"]["proposal_id"]
-        self.user = self.db_run.metadata["start"]["user"]
+        self.sample = self.bs_run.metadata["start"]["sample"]
+        self.proposal_id = self.bs_run.metadata["start"]["proposal_id"]
+        self.user = self.bs_run.metadata["start"]["user"]
