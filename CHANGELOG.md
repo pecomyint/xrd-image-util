@@ -1,4 +1,7 @@
-# Change Log
+# CHANGELOG
+
+## [0.2.0] - 2023-01
+Basic mapping and gridding.
 
 ## [0.1.0] - 2023-01-04
 First functional release. Provides users with a basic interface for accessing scans from a local catalog.
