@@ -165,6 +165,11 @@ class Scan:
     proposal_id = None # Manually provided Proposal ID
     user = None # Experimental user
 
+    raw_data = None
+    gridded_data = None
+    gridded_data_coords = None
+    rs_map = None
+
     def __init__(self, catalog: Catalog, scan_id: str) -> None:
 
         self.catalog = catalog
@@ -174,3 +179,15 @@ class Scan:
         self.sample = self.bs_run.metadata["start"]["sample"]
         self.proposal_id = self.bs_run.metadata["start"]["proposal_id"]
         self.user = self.bs_run.metadata["start"]["user"]
+
+    def map_data(self) -> None:
+        """Constructs reciprocal space map (RSM) of raw data."""
+        ...
+
+    def grid_data(self,
+        h_min: float, h_max: float, h_count: int, 
+        k_min: float, k_max: float, k_count: int,
+        l_min: float, l_max: float, l_count: int
+    ) -> None:
+        """Constructs gridded 3D image from RSM coordinates."""
+        ...
