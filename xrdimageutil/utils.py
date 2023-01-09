@@ -28,3 +28,9 @@ def _add_catalog_handler(catalog) -> None:
         PilatusHDF5Handler, 
         overwrite=True
     )
+
+def _get_scan_rs_map(scan):
+    ...
+
+def _get_point_rs_map(scan, point: int):
+    ...
