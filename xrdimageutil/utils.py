@@ -29,8 +29,12 @@ def _add_catalog_handler(catalog) -> None:
         overwrite=True
     )
 
-def _get_scan_rs_map(scan):
-    ...
+def _get_rsm_for_scan(scan):
+    """Returns a reciprocal space map for a given scan."""
 
-def _get_point_rs_map(scan, point: int):
+    run = scan.bs_run
+    run_conifg = sorted(run.primary.config)
+
+    # Retrieve scan circle angle values with this:
+    # run.primary.read()["fourc_omega"].values
     ...
