@@ -1,4 +1,5 @@
 apstools
+area-detector-handlers
 databroker==1.2.5
 databroker-pack
 bluesky
@@ -10,4 +11,4 @@ ophyd
 polartools
 pyqt5
 pyqtwebengine
-area-detector-handlers
+xrayutilities
