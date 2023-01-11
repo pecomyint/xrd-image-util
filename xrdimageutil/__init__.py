@@ -180,6 +180,11 @@ class Scan:
         self.proposal_id = self.bs_run.metadata["start"]["proposal_id"]
         self.user = self.bs_run.metadata["start"]["user"]
 
+    def point_count(self) -> int:
+        """Returns number of points in scan."""
+
+        return self.bs_run.primary.metadata["dims"]["time"]
+
     def map_data(self) -> None:
         """Constructs reciprocal space map (RSM) of raw data."""
         ...
