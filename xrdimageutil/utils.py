@@ -4,6 +4,8 @@ See LICENSE file.
 
 import area_detector_handlers.handlers as adh
 from dask.array import from_array
+import numpy as np
+import xrayutilities as xu
 
 
 class PilatusHDF5Handler(adh.AreaDetectorHDF5SingleHandler):
@@ -30,11 +32,80 @@ def _add_catalog_handler(catalog) -> None:
     )
 
 def _get_rsm_for_scan(scan):
-    """Returns a reciprocal space map for a given scan."""
+    """Returns a reciprocal space map for a given scan.
+    
+    Currently restricted to four circle geometries
+    """
 
     run = scan.bs_run
-    run_conifg = sorted(run.primary.config)
 
-    # Retrieve scan circle angle values with this:
-    # run.primary.read()["fourc_omega"].values
+    # Instrument config values
+    omega_values = run.primary.read()["fourc_omega"].values
+    chi_values = run.primary.read()["fourc_chi"].values
+    phi_values = run.primary.read()["fourc_phi"].values
+    tth_values = run.primary.read()["fourc_tth"].values
+    sample_circle_values = [omega_values, chi_values, phi_values]
+    instrument_circle_values = [tth_values]
+    circle_values = sample_circle_values + instrument_circle_values
+
+    energy_values = run.primary.config["fourc"].read()["fourc_energy"].values * 1000
+    ub_matrix = run.primary.config["fourc"].read()["fourc_UB"].values[0]
+    sample_circle_directions = ["z-", "y+", "z-"]
+    detector_circle_directions = ["z-"]
+    primary_beam_direction = [0, 1, 0]
+    inplane_reference_direction = [0, 1, 0]
+    sample_normal_direction = [0, 0, 1]
+
+    # Detector config values
+    pixel_directions = ["z-", "x-"]
+    center_channel_pixels = [252, 107]
+    pixel_count = [
+        run.primary.metadata["dims"]["dim_2"], 
+        run.primary.metadata["dims"]["dim_1"]
+    ]
+    detector_size = [83.764, 33.54]
+    pixel_size = [
+        detector_size[0] / pixel_count[0],
+        detector_size[1] / pixel_count[1]
+    ]
+    detector_distance = 900.644 # mm
+    roi = [0, pixel_count[0], 0, pixel_count[1]]
+
+    q_conversion = xu.experiment.QConversion(
+        sampleAxis=sample_circle_directions,
+        detectorAxis=detector_circle_directions,
+        r_i=primary_beam_direction
+    )
+
+    point_rsm_list = []
+    for i in range(scan.point_count()):
+        
+        hxrd = xu.HXRD(
+            idir=inplane_reference_direction,
+            ndir=sample_normal_direction,
+            en=energy_values[i],
+            qconv=q_conversion
+        )
+
+        hxrd.Ang2Q.init_area(
+            pixel_directions[0], pixel_directions[1],
+            cch1=center_channel_pixels[0], cch2=center_channel_pixels[1],
+            Nch1=pixel_count[0], Nch2=pixel_count[1],
+            pwidth1=pixel_size[0], pwidth2=pixel_size[1],
+            distance=detector_distance, roi=roi
+        )
+
+        point_circle_values = [circle[i] for circle in circle_values]
+        qx, qy, qz = hxrd.Ang2Q.area(*point_circle_values, UB=ub_matrix)
+
+        # Converts list to array
+        point_rsm = np.array([qx, qy, qz])
+        point_rsm_list.append(point_rsm)
+    
+    # Converts to ndarray and reorders dimensions
+    rsm = np.array(point_rsm_list)
+    rsm = rsm.swapaxes(1, 3)
+    rsm = rsm.swapaxes(1, 2)
+
+    return rsm
     ...
