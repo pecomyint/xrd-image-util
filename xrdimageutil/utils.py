@@ -24,8 +24,8 @@ class PilatusHDF5Handler(adh.AreaDetectorHDF5SingleHandler):
 
 
 def _add_catalog_handler(catalog) -> None:
-    bs_catalog = catalog.bs_catalog
-    bs_catalog.register_handler(
+    bluesky_catalog = catalog.bluesky_catalog
+    bluesky_catalog.register_handler(
         "AD_HDF5_Pilatus_6idb", 
         PilatusHDF5Handler, 
         overwrite=True
@@ -37,7 +37,14 @@ def _get_rsm_for_scan(scan):
     Currently restricted to four circle geometries
     """
 
-    run = scan.bs_run
+    run = scan.bluesky_run
+
+    print(sorted(run.keys()))
+
+    # Checks if scan includes a "primary" category,
+    # where data is traditionally stored
+    if "primary" not in run.keys():
+        return None
 
     # Instrument config values
     omega_values = run.primary.read()["fourc_omega"].values
@@ -98,7 +105,6 @@ def _get_rsm_for_scan(scan):
         point_circle_values = [circle[i] for circle in circle_values]
         qx, qy, qz = hxrd.Ang2Q.area(*point_circle_values, UB=ub_matrix)
 
-        # Converts list to array
         point_rsm = np.array([qx, qy, qz])
         point_rsm_list.append(point_rsm)
     
@@ -109,3 +115,20 @@ def _get_rsm_for_scan(scan):
 
     return rsm
     ...
+
+def _get_rsm_bounds(scan):
+
+    if scan.rsm is None:
+        return None
+
+    rsm = scan.rsm
+    rsm_bounds = {}
+
+    rsm_bounds.update({"h_min": np.amin(rsm[:, :, :, 0])})
+    rsm_bounds.update({"h_max": np.amax(rsm[:, :, :, 0])})
+    rsm_bounds.update({"k_min": np.amin(rsm[:, :, :, 1])})
+    rsm_bounds.update({"k_max": np.amax(rsm[:, :, :, 1])})
+    rsm_bounds.update({"l_min": np.amin(rsm[:, :, :, 2])})
+    rsm_bounds.update({"l_max": np.amax(rsm[:, :, :, 2])})
+    
+    return rsm_bounds

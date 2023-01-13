@@ -12,14 +12,14 @@ class Catalog:
     dictionary of Scan objects, which can be filtered and returned.
     """
     
-    bs_catalog = None # Bluesky dictionary-like catalog
+    bluesky_catalog = None # Bluesky dictionary-like catalog
     name = None # Local name for catalog
     scans = None # Dictionary of scans in catalog
 
     def __init__(self, name) -> None:
 
         self.name = str(name)
-        self.bs_catalog = databroker.catalog[self.name]
+        self.bluesky_catalog = databroker.catalog[self.name]
 
         # Currently only configured for beamline 6-ID-B
         utils._add_catalog_handler(catalog=self)
@@ -27,7 +27,7 @@ class Catalog:
         # Creates a Scan object for every run in the catalog
         # Adds Scans to a dictionary
         self.scans = {}
-        for scan_id in sorted(list(self.bs_catalog)):
+        for scan_id in sorted(list(self.bluesky_catalog)):
             scan = Scan(catalog=self, scan_id=scan_id)
             self.scans.update({scan_id: scan})
 
@@ -160,34 +160,36 @@ class Scan:
 
     catalog = None # Parent Catalog
     id = None # UID for scan; given by bluesky
-    bs_run = None # Raw Bluesky run for scan
+    bluesky_run = None # Raw Bluesky run for scan
     sample = None # Experimental sample
     proposal_id = None # Manually provided Proposal ID
     user = None # Experimental user
 
+    rsm = None
+    rsm_bounds = None
+
     raw_data = None
     gridded_data = None
     gridded_data_coords = None
-    rs_map = None
+    
 
     def __init__(self, catalog: Catalog, scan_id: str) -> None:
 
         self.catalog = catalog
         self.id = scan_id
-        self.bs_run = catalog.bs_catalog[scan_id]
+        self.bluesky_run = catalog.bluesky_catalog[scan_id]
 
-        self.sample = self.bs_run.metadata["start"]["sample"]
-        self.proposal_id = self.bs_run.metadata["start"]["proposal_id"]
-        self.user = self.bs_run.metadata["start"]["user"]
+        self.sample = self.bluesky_run.metadata["start"]["sample"]
+        self.proposal_id = self.bluesky_run.metadata["start"]["proposal_id"]
+        self.user = self.bluesky_run.metadata["start"]["user"]
+
+        self.rsm = utils._get_rsm_for_scan(self)
+        self.rsm_bounds = utils._get_rsm_bounds(self)
 
     def point_count(self) -> int:
         """Returns number of points in scan."""
 
-        return self.bs_run.primary.metadata["dims"]["time"]
-
-    def map_data(self) -> None:
-        """Constructs reciprocal space map (RSM) of raw data."""
-        ...
+        return self.bluesky_run.primary.metadata["dims"]["time"]
 
     def grid_data(self,
         h_min: float, h_max: float, h_count: int, 
