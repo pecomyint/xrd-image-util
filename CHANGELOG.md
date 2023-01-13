@@ -2,6 +2,10 @@
 
 ## [0.2.0] - 2023-01
 Basic mapping and gridding.
+### Added
+- The ability to create reciprocal space maps for 4-circle geometries. This step is completed automatically when a `Catalog` object is created. 
+### Changed
+- Variables `bs_catalog` and `bs_run` have been renamed to `bluesky_catalog` and `bluesky_run`, respectively.
 
 ## [0.1.0] - 2023-01-04
 First functional release. Provides users with a basic interface for accessing scans from a local catalog.
