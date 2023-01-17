@@ -115,19 +115,24 @@ def _get_rsm_for_scan(scan):
 def _get_rsm_bounds(scan):
     """Returns the minimum and maximum values for H, K, and L with an RSM."""
 
-    if scan.rsm is None:
-        return None
-
     rsm = scan.rsm
     rsm_bounds = {}
 
-    rsm_bounds.update({"h_min": np.amin(rsm[:, :, :, 0])})
-    rsm_bounds.update({"h_max": np.amax(rsm[:, :, :, 0])})
-    rsm_bounds.update({"k_min": np.amin(rsm[:, :, :, 1])})
-    rsm_bounds.update({"k_max": np.amax(rsm[:, :, :, 1])})
-    rsm_bounds.update({"l_min": np.amin(rsm[:, :, :, 2])})
-    rsm_bounds.update({"l_max": np.amax(rsm[:, :, :, 2])})
-    
+    if scan.rsm is None:
+        rsm_bounds.update({"h_min": None})
+        rsm_bounds.update({"h_max": None})
+        rsm_bounds.update({"k_min": None})
+        rsm_bounds.update({"k_max": None})
+        rsm_bounds.update({"l_min": None})
+        rsm_bounds.update({"l_max": None})
+    else:
+        rsm_bounds.update({"h_min": np.amin(rsm[:, :, :, 0])})
+        rsm_bounds.update({"h_max": np.amax(rsm[:, :, :, 0])})
+        rsm_bounds.update({"k_min": np.amin(rsm[:, :, :, 1])})
+        rsm_bounds.update({"k_max": np.amax(rsm[:, :, :, 1])})
+        rsm_bounds.update({"l_min": np.amin(rsm[:, :, :, 2])})
+        rsm_bounds.update({"l_max": np.amax(rsm[:, :, :, 2])})
+        
     return rsm_bounds
 
 def _get_motor_bounds(scan) -> tuple:
