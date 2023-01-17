@@ -54,7 +54,6 @@ def _get_rsm_for_scan(scan):
     sample_circle_values = [omega_values, chi_values, phi_values]
     instrument_circle_values = [tth_values]
     circle_values = sample_circle_values + instrument_circle_values
-
     energy_values = run.primary.config["fourc"].read()["fourc_energy"].values * 1000
     ub_matrix = run.primary.config["fourc"].read()["fourc_UB"].values[0]
     sample_circle_directions = ["z-", "y+", "z-"]
@@ -114,9 +113,9 @@ def _get_rsm_for_scan(scan):
     rsm = rsm.swapaxes(1, 2)
 
     return rsm
-    ...
 
 def _get_rsm_bounds(scan):
+    """Returns the minimum and maximum values for H, K, and L with an RSM."""
 
     if scan.rsm is None:
         return None
