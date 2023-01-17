@@ -91,6 +91,7 @@ class Catalog:
 
         return scan_list
     
+
 class Scan:
     """Houses data and metadata for a single scan.
     
@@ -140,12 +141,10 @@ class Scan:
     def point_count(self) -> int:
         """Returns number of points in scan."""
 
-        try:
-            n_pts = self.bluesky_run.primary.metadata["dims"]["time"]
-        except:
-            n_pts = 0
-
-        return n_pts
+        if "primary" not in self.bluesky_run.keys():
+            return 0
+        else:
+            return self.bluesky_run.primary.metadata["dims"]["time"]
 
     def grid_data(self,
         h_min: float, h_max: float, h_count: int, 
