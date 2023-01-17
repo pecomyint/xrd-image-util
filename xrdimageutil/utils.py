@@ -39,8 +39,6 @@ def _get_rsm_for_scan(scan):
 
     run = scan.bluesky_run
 
-    print(sorted(run.keys()))
-
     # Checks if scan includes a "primary" category,
     # where data is traditionally stored
     if "primary" not in run.keys():
@@ -131,3 +129,22 @@ def _get_rsm_bounds(scan):
     rsm_bounds.update({"l_max": np.amax(rsm[:, :, :, 2])})
     
     return rsm_bounds
+
+def _get_motor_bounds(scan) -> tuple:
+    run = scan.bluesky_run
+
+    if "primary" not in run.keys():
+        return (None, None)
+
+    motors = scan.motors
+    m_start = []
+    m_stop = []
+    start, stop = 0, 0
+    for motor in motors:
+        start = run.primary.read()[motor].values[0]
+        stop = run.primary.read()[motor].values[-1]
+
+        m_start.append(round(start, 5))
+        m_stop.append(round(stop, 5))
+
+    return (m_start, m_stop)
