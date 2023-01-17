@@ -3,6 +3,7 @@ See LICENSE file.
 """
 
 import databroker
+from prettytable import PrettyTable
 
 from xrdimageutil import utils
 
@@ -14,7 +15,8 @@ class Catalog:
     
     bluesky_catalog = None # Bluesky dictionary-like catalog
     name = None # Local name for catalog
-    scans = None # Dictionary of scans in catalog
+    scan_uid_dict = None # Dictionary of scans in catalog with UID as key
+    scan_id_dict = None # Dictionary of scans in catalog with scan ID as key
 
     def __init__(self, name) -> None:
 
@@ -26,128 +28,68 @@ class Catalog:
 
         # Creates a Scan object for every run in the catalog
         # Adds Scans to a dictionary
-        self.scans = {}
-        for scan_id in sorted(list(self.bluesky_catalog)):
-            scan = Scan(catalog=self, scan_id=scan_id)
-            self.scans.update({scan_id: scan})
+        self.scan_uid_dict, self.scan_id_dict = {}, {}
+        for scan_uid in sorted(list(self.bluesky_catalog)):
+            scan = Scan(catalog=self, uid=scan_uid)
+            self.scan_uid_dict.update({scan_uid: scan})
+            try:
+                self.scan_id_dict.update({scan.scan_id: scan})
+            except:
+                pass
 
-    def list_scans(self) -> list:
-        """Returns list of scan ID's in catalog.
-        
-        :rtype: list
-        """
+        # Checks if all scan ID's are unique
+        # If not, then search by scan ID is not allowed in catalog
+        if len(self.scan_id_dict.keys()) != len(self.scan_uid_dict.keys()):
+            self.scan_id_dict = None
 
-        return list(self.scans.keys())
+    def list_scans(self) -> None:
+        """Prints formatted string table listing scans in catalog."""
 
-    def get_scan(self, scan_id: str):
-        """Returns scan from given scan ID.
+        headers = [
+            "scan_id", "motors", 
+            "motor_start", "motor_stop", 
+            "n_pts", "sample", "user"
+        ]
+        table = PrettyTable(headers)
+
+        scan_uids = list(self.scan_uid_dict.keys())
+        scans = [self.scan_uid_dict[uid] for uid in scan_uids]
+
+        for scan in scans:
+            row = [
+                scan.scan_id, scan.motors, 
+                scan.motor_bounds[0], scan.motor_bounds[1],
+                scan.point_count(), scan.sample, scan.user
+            ]
+            table.add_row(row)
+
+        table.sortby = "scan_id"
+        print(table)
+
+    def get_scan(self, scan_id: int):
+        """Returns scan from given numerical scan ID.
         
         :rtype: Scan
         """
 
-        if scan_id not in self.list_scans():
-            raise KeyError(f"Scan ID '{scan_id}' does not exist.")
+        # Checks if scan ID exists
+        if scan_id not in self.scan_id_dict:
+            raise KeyError(f"Scan ID {scan_id} does not exist.")
 
-        return self.scans[scan_id]
+        return self.scan_id_dict[scan_id]
 
-    def scan_count(self) -> int:
-        """Returns number of scans in catalog.
-        
-        :rtype: int
-        """
-
-        return len(list(self.scans.keys()))
-
-    def list_samples(self) -> list:
-        """Returns a list of unqiue samples from Scans in catalog.
+    def get_scans(self, scan_ids: list) -> list:
+        """Returns list of scans from given numerical scan ID's.
         
         :rtype: list
         """
 
-        sample_list = []
+        scan_list = []
+        for scan_id in scan_ids:
+            scan = self.get_scan(scan_id=scan_id)
+            scan_list.append(scan)
 
-        for id in self.list_scans():
-            scan = self.get_scan(id)
-            if scan.sample not in sample_list:
-                sample_list.append(scan.sample)
-
-        return sample_list
-
-    def list_proposal_ids(self) -> list:
-        """Returns a list of unqiue proposal ID's from Scans in catalog.
-        
-        :rtype: list
-        """
-
-        proposal_id_list = []
-
-        for id in self.list_scans():
-            scan = self.get_scan(id)
-            if scan.proposal_id not in proposal_id_list:
-                proposal_id_list.append(scan.proposal_id)
-
-        return proposal_id_list
-
-    def list_users(self) -> list:
-        """Returns a list of unqiue user names from Scans in catalog.
-        
-        :rtype: list
-        """
-
-        user_list = []
-
-        for id in self.list_scans():
-            scan = self.get_scan(id)
-            if scan.user not in user_list:
-                user_list.append(scan.user)
-
-        return user_list
-
-    def filter_scans_by_sample(self, sample: str) -> list:
-        """Returns a list of ID's for Scans that use the given sample.
-        
-        :rtype: list
-        """
-
-        filtered_id_list = []
-
-        for id in self.list_scans():
-            scan = self.get_scan(id)
-            if scan.sample == sample:
-                filtered_id_list.append(id)
-
-        return filtered_id_list
-
-    def filter_scans_by_proposal_id(self, proposal_id: str) -> list:
-        """Returns a list of ID's for Scans that use the given proposal ID.
-        
-        :rtype: list
-        """
-
-        filtered_id_list = []
-
-        for id in self.list_scans():
-            scan = self.get_scan(id)
-            if scan.proposal_id == proposal_id:
-                filtered_id_list.append(id)
-
-        return filtered_id_list
-
-    def filter_scans_by_user(self, user: str) -> list:
-        """Returns a list of ID's for Scans that use the given proposal ID.
-        
-        :rtype: list
-        """
-
-        filtered_id_list = []
-
-        for id in self.list_scans():
-            scan = self.get_scan(id)
-            if scan.user == user:
-                filtered_id_list.append(id)
-
-        return filtered_id_list
-
+        return scan_list
     
 class Scan:
     """Houses data and metadata for a single scan.
@@ -159,12 +101,17 @@ class Scan:
     """
 
     catalog = None # Parent Catalog
-    id = None # UID for scan; given by bluesky
+
     bluesky_run = None # Raw Bluesky run for scan
+
+    uid = None # UID for scan; given by bluesky
+    scan_id = None # Simple ID given to scan by user -- not always unique
     sample = None # Experimental sample
     proposal_id = None # Manually provided Proposal ID
     user = None # Experimental user
-
+    motors = None # List of variable motors for scan
+    motor_bounds = None
+    
     rsm = None
     rsm_bounds = None
 
@@ -173,15 +120,19 @@ class Scan:
     gridded_data_coords = None
     
 
-    def __init__(self, catalog: Catalog, scan_id: str) -> None:
+    def __init__(self, catalog: Catalog, uid: str) -> None:
 
         self.catalog = catalog
-        self.id = scan_id
-        self.bluesky_run = catalog.bluesky_catalog[scan_id]
 
+        self.uid = uid
+        self.bluesky_run = catalog.bluesky_catalog[uid]
+
+        self.scan_id = self.bluesky_run.metadata["start"]["scan_id"]
         self.sample = self.bluesky_run.metadata["start"]["sample"]
         self.proposal_id = self.bluesky_run.metadata["start"]["proposal_id"]
         self.user = self.bluesky_run.metadata["start"]["user"]
+        self.motors = self.bluesky_run.metadata["start"]["motors"]
+        self.motor_bounds = utils._get_motor_bounds(self)
 
         self.rsm = utils._get_rsm_for_scan(self)
         self.rsm_bounds = utils._get_rsm_bounds(self)
@@ -189,7 +140,12 @@ class Scan:
     def point_count(self) -> int:
         """Returns number of points in scan."""
 
-        return self.bluesky_run.primary.metadata["dims"]["time"]
+        try:
+            n_pts = self.bluesky_run.primary.metadata["dims"]["time"]
+        except:
+            n_pts = 0
+
+        return n_pts
 
     def grid_data(self,
         h_min: float, h_max: float, h_count: int, 
