@@ -1,6 +1,7 @@
 import os
 
-from xrdimageutil import Catalog, Scan
+from xrdimageutil import Catalog, Scan, utils
 
-class TestUtils:
+class TestRSMCreation:
+    
     ...
