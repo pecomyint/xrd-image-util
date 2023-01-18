@@ -153,3 +153,15 @@ def _get_motor_bounds(scan) -> tuple:
         m_stop.append(round(stop, 5))
 
     return (m_start, m_stop)
+
+def _get_raw_data(scan) -> np.ndarray:
+    run = scan.bluesky_run
+
+    if "primary" not in run.keys():
+        return None
+    
+    raw_data_unordered = run.primary.read()["pilatus100k_image"].values
+    raw_data_unordered = np.squeeze(raw_data_unordered)
+    raw_data = np.swapaxes(raw_data_unordered, 1, 2)
+
+    return raw_data
