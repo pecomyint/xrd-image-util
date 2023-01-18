@@ -4,13 +4,16 @@ See LICENSE file.
 
 import databroker
 from prettytable import PrettyTable
+import numpy as np
+import xrayutilities as xu
 
+import xrdimageutil as xiu
 from xrdimageutil import utils
 
 
 class Catalog:
     """Houses (i) a Bluesky catalog, already unpacked and (ii) a 
-    dictionary of Scan objects, which can be filtered and returned.
+    dictionary of Scan objects that can be accessed.
     """
     
     bluesky_catalog = None # Bluesky dictionary-like catalog
@@ -42,30 +45,6 @@ class Catalog:
         if len(self.scan_id_dict.keys()) != len(self.scan_uid_dict.keys()):
             self.scan_id_dict = None
 
-    def list_scans(self) -> None:
-        """Prints formatted string table listing scans in catalog."""
-
-        headers = [
-            "scan_id", "motors", 
-            "motor_start", "motor_stop", 
-            "n_pts", "sample", "user"
-        ]
-        table = PrettyTable(headers)
-
-        scan_uids = list(self.scan_uid_dict.keys())
-        scans = [self.scan_uid_dict[uid] for uid in scan_uids]
-
-        for scan in scans:
-            row = [
-                scan.scan_id, scan.motors, 
-                scan.motor_bounds[0], scan.motor_bounds[1],
-                scan.point_count(), scan.sample, scan.user
-            ]
-            table.add_row(row)
-
-        table.sortby = "scan_id"
-        print(table)
-
     def get_scan(self, scan_id: int):
         """Returns scan from given numerical scan ID.
         
@@ -91,6 +70,35 @@ class Catalog:
 
         return scan_list
     
+    def scan_count(self) -> int:
+        """Returns the number of scans in catalog."""
+        
+        return len(self.scan_uid_dict.keys())
+
+    def list_scans(self) -> None:
+        """Prints formatted string table listing scans in catalog."""
+
+        headers = [
+            "scan_id", "motors", 
+            "motor_start", "motor_stop", "n_pts",
+            "sample", "proposal_id", "user"
+        ]
+        table = PrettyTable(headers)
+
+        scan_uids = list(self.scan_uid_dict.keys())
+        scans = [self.scan_uid_dict[uid] for uid in scan_uids]
+
+        for scan in scans:
+            row = [
+                scan.scan_id, scan.motors, 
+                scan.motor_bounds[0], scan.motor_bounds[1], scan.point_count(), 
+                scan.sample, scan.proposal_id, scan.user
+            ]
+            table.add_row(row)
+
+        table.sortby = "scan_id"
+        print(table)
+
 
 class Scan:
     """Houses data and metadata for a single scan.
@@ -102,32 +110,26 @@ class Scan:
     """
 
     catalog = None # Parent Catalog
-
-    bluesky_run = None # Raw Bluesky run for scan
-
     uid = None # UID for scan; given by bluesky
+    bluesky_run = None # Raw Bluesky run for scan
     scan_id = None # Simple ID given to scan by user -- not always unique
     sample = None # Experimental sample
     proposal_id = None # Manually provided Proposal ID
     user = None # Experimental user
     motors = None # List of variable motors for scan
-    motor_bounds = None
+    motor_bounds = None # The starting and ending values for each variable motor
     
-    rsm = None
-    rsm_bounds = None
-
-    raw_data = None
-    gridded_data = None
-    gridded_data_coords = None
-    
+    rsm = None # Reciprocal space map for every point within a scan
+    rsm_bounds = None # Min/max HKL values for RSM
+    raw_data = None # 3D numpy array of scan data
+    gridded_data = None # Interpolated and transformed scan data
+    gridded_data_coords = None # HKL coordinates for gridded data
 
     def __init__(self, catalog: Catalog, uid: str) -> None:
 
         self.catalog = catalog
-
         self.uid = uid
         self.bluesky_run = catalog.bluesky_catalog[uid]
-
         self.scan_id = self.bluesky_run.metadata["start"]["scan_id"]
         self.sample = self.bluesky_run.metadata["start"]["sample"]
         self.proposal_id = self.bluesky_run.metadata["start"]["proposal_id"]
@@ -137,6 +139,7 @@ class Scan:
 
         self.rsm = utils._get_rsm_for_scan(self)
         self.rsm_bounds = utils._get_rsm_bounds(self)
+        self.raw_data = utils._get_raw_data(self)
 
     def point_count(self) -> int:
         """Returns number of points in scan."""
@@ -146,10 +149,56 @@ class Scan:
         else:
             return self.bluesky_run.primary.metadata["dims"]["time"]
 
-    def grid_data(self,
-        h_min: float, h_max: float, h_count: int, 
-        k_min: float, k_max: float, k_count: int,
-        l_min: float, l_max: float, l_count: int
+    def grid_data(
+        self,
+        h_count: int=250, 
+        k_count: int=250,
+        l_count: int=250,
+        h_min: float=None, 
+        h_max: float=None, 
+        k_min: float=None, 
+        k_max: float=None,
+        l_min: float=None, 
+        l_max: float=None
     ) -> None:
         """Constructs gridded 3D image from RSM coordinates."""
-        ...
+
+        # Provided bounds for gridding
+        grid_bounds = [
+            h_min, h_max, 
+            k_min, k_max, 
+            l_min, l_max
+        ]
+        # Bounds in reciprocal space map, reshaped to a list
+        rsm_bounds = [self.rsm_bounds[b] for b in list(self.rsm_bounds.keys())]
+        
+        for i in range(len(grid_bounds)):
+            if grid_bounds[i] is None:
+                grid_bounds[i] = rsm_bounds[i]
+
+        h_map = self.rsm[:, :, :, 0]
+        k_map = self.rsm[:, :, :, 1]
+        l_map = self.rsm[:, :, :, 2]
+
+        # Prepares gridder bounds/interpolation
+        gridder = xu.Gridder3D(
+            nx=h_count, 
+            ny=k_count, 
+            nz=l_count
+        )
+        gridder.KeepData(True)
+        gridder.dataRange(
+            xmin=grid_bounds[0], xmax=grid_bounds[1],
+            ymin=grid_bounds[2], ymax=grid_bounds[3],
+            zmin=grid_bounds[4], zmax=grid_bounds[5],
+            fixed=True
+        )
+
+        # Grids raw data with bounds
+        gridder(h_map, k_map, l_map, self.raw_data)
+        self.gridded_data = gridder.data
+
+        # Retrieves HKL coordinates for gridded data
+        self.gridded_data_coords = np.array(
+            [gridder.xaxis, gridder.yaxis, gridder.zaxis]
+        )
