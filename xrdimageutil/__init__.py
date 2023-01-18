@@ -51,6 +51,9 @@ class Catalog:
         :rtype: Scan
         """
 
+        if type(scan_id) != int:
+            raise TypeError(f"Scan ID {scan_id} does not exist.")
+
         # Checks if scan ID exists
         if scan_id not in self.scan_id_dict:
             raise KeyError(f"Scan ID {scan_id} does not exist.")
@@ -62,6 +65,9 @@ class Catalog:
         
         :rtype: list
         """
+
+        if type(scan_ids) != list:
+            raise TypeError("Input needs to be a list.")
 
         scan_list = []
         for scan_id in scan_ids:
