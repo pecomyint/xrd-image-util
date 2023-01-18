@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [0.2.0] - 2023-01
+## [0.2.0] - 2023-01-18
 Basic Scan mapping and gridding.
 ### Added
 - Catalog.list_scans(): A print function that returns metadata about every scan in a catalog
