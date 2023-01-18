@@ -1,6 +1,6 @@
 import os
 
-from xrdimageutil import Catalog, Scan
+from xrdimageutil import Catalog
 
 class TestCatalog:
 
@@ -18,6 +18,54 @@ class TestCatalog:
         except KeyError:
             assert True
 
-    def test_scan_count_expects_19(self):
+    def test_get_scan_with_valid_number(self):
         catalog = Catalog(name=self.catalog_name)
-        assert catalog.scan_count() == 19
+        try:
+            scan = catalog.get_scan(scan_id=61)
+            assert True
+        except:
+            assert False
+
+    def test_get_scan_with_invalid_number(self):
+        catalog = Catalog(name=self.catalog_name)
+        try:
+            scan = catalog.get_scan(scan_id=0)
+        except KeyError:
+            assert True
+
+    def test_get_scan_with_noninteger_key(self):
+        catalog = Catalog(name=self.catalog_name)
+        try:
+            scan = catalog.get_scan(scan_id="invalid-id")
+        except TypeError:
+            assert True
+
+    def test_get_scans_with_valid_list(self):
+        catalog = Catalog(name=self.catalog_name)
+        try:
+            scans = catalog.get_scans(
+                scan_ids=[61, 62, 63]
+            )
+            assert True
+        except:
+            assert False
+
+    def test_get_scans_with_invalid_list(self):
+        catalog = Catalog(name=self.catalog_name)
+        try:
+            scans = catalog.get_scans(
+                scan_ids=[61, 62, 63, 0]
+            )
+            assert False
+        except KeyError:
+            assert True
+
+    def test_get_scans_with_nonlist_input(self):
+        catalog = Catalog(name=self.catalog_name)
+        try:
+            scans = catalog.get_scans(
+                scan_ids=61
+            )
+            assert False
+        except TypeError:
+            assert True
