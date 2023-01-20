@@ -147,10 +147,10 @@ class Scan:
         self.motor_bounds = utils._get_motor_bounds(self)
         self.h, self.k, self.l = utils._get_hkl_centers(self)
 
+        # TODO: Figure out where to put these steps
         self.rsm = utils._get_rsm_for_scan(self)
         self.rsm_bounds = utils._get_rsm_bounds(self)
         self.raw_data = utils._get_raw_data(self)
-        
 
     def point_count(self) -> int:
         """Returns number of points in scan."""
@@ -213,3 +213,11 @@ class Scan:
         self.gridded_data_coords = np.array(
             [gridder.xaxis, gridder.yaxis, gridder.zaxis]
         )
+
+    def view_line_data(self):
+        """Displays GUI with 1D data variables."""
+        ...
+
+    def view_image_data(self):
+        """Displays GUI with raw and gridded image data."""
+        ...
