@@ -11,5 +11,6 @@ ophyd
 polartools
 prettytable
 pyqt5
+pyqtgraph
 pyqtwebengine
 xrayutilities
