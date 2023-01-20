@@ -23,6 +23,23 @@ class ScanDataViewWidget(QtWidgets.QWidget):
         self.setMinimumSize(600, 400)
         self.setWindowTitle(f"Scan #{scan.scan_id}")
 
+        """
+        Plans for this GUI:
+
+        - Basic colormapping options
+        - Slicing direction (x/y/t) (h/k/l)
+        - Keep pg slider
+        """
+
+        self.raw_data_widget = pg.ImageView()
+        self.raw_data_widget.setImage(scan.raw_data)
+        self.gridded_data_widget = pg.ImageView()
+        self.gridded_data_widget.setImage(scan.gridded_data)
+
+        self.tab_widget = QtWidgets.QTabWidget()
+        self.tab_widget.addTab(self.raw_data_widget, "Raw")
+        self.tab_widget.addTab(self.gridded_data_widget, "Gridded")
+
         self.layout = QtWidgets.QGridLayout()
         self.setLayout(self.layout)
-        self.layout.addWidget(pg.ImageView())
+        self.layout.addWidget(self.tab_widget)
