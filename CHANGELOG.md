@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## [0.3.0] - 2023-02
+GUI functions.
+
 ## [0.2.0] - 2023-01-18
 Basic Scan mapping and gridding.
 ### Added
