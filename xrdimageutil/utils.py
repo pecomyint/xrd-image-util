@@ -165,3 +165,17 @@ def _get_raw_data(scan) -> np.ndarray:
     raw_data = np.swapaxes(raw_data_unordered, 1, 2)
 
     return raw_data
+
+def _get_hkl_centers(scan) -> tuple:
+    """Returns lists of H, K, and L center values."""
+
+    run = scan.bluesky_run
+
+    if "primary" not in run.keys():
+        return (None, None, None)
+    
+    h = run.primary.read()["fourc_h"].values
+    k = run.primary.read()["fourc_k"].values
+    l = run.primary.read()["fourc_l"].values
+
+    return (h, k, l)

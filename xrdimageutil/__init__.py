@@ -124,6 +124,9 @@ class Scan:
     user = None # Experimental user
     motors = None # List of variable motors for scan
     motor_bounds = None # The starting and ending values for each variable motor
+    h = None # List of H center values throughout scan
+    k = None # List of K center values throughout scan
+    l = None # List of L center values throughout scan
     
     rsm = None # Reciprocal space map for every point within a scan
     rsm_bounds = None # Min/max HKL values for RSM
@@ -142,10 +145,12 @@ class Scan:
         self.user = self.bluesky_run.metadata["start"]["user"]
         self.motors = self.bluesky_run.metadata["start"]["motors"]
         self.motor_bounds = utils._get_motor_bounds(self)
+        self.h, self.k, self.l = utils._get_hkl_centers(self)
 
         self.rsm = utils._get_rsm_for_scan(self)
         self.rsm_bounds = utils._get_rsm_bounds(self)
         self.raw_data = utils._get_raw_data(self)
+        
 
     def point_count(self) -> int:
         """Returns number of points in scan."""
