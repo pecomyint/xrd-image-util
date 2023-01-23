@@ -13,4 +13,5 @@ prettytable
 pyqt5
 pyqtgraph
 pyqtwebengine
+scikit-learn
 xrayutilities
