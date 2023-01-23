@@ -209,9 +209,7 @@ class Scan:
         self.gridded_data = gridder.data
 
         # Retrieves HKL coordinates for gridded data
-        self.gridded_data_coords = np.array(
-            [gridder.xaxis, gridder.yaxis, gridder.zaxis]
-        )
+        self.gridded_data_coords = [gridder.xaxis, gridder.yaxis, gridder.zaxis]
 
     def view_line_data(self):
         """Displays GUI with 1D data variables."""
