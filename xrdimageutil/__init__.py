@@ -212,10 +212,6 @@ class Scan:
         # Retrieves HKL coordinates for gridded data
         self.gridded_data_coords = [gridder.xaxis, gridder.yaxis, gridder.zaxis]
 
-    def view_line_data(self):
-        """Displays GUI with 1D data variables."""
-        ...
-
     def view_image_data(self):
         """Displays GUI with raw and gridded image data."""
         
