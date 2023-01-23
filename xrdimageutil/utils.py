@@ -5,6 +5,8 @@ See LICENSE file.
 import area_detector_handlers.handlers as adh
 from dask.array import from_array
 import numpy as np
+import pyqtgraph as pg
+from sklearn import preprocessing
 import xrayutilities as xu
 
 
@@ -179,3 +181,53 @@ def _get_hkl_centers(scan) -> tuple:
     l = run.primary.read()["fourc_l"].values
 
     return (h, k, l)
+
+def _create_colormap(
+    name: str,
+    scale: str,
+    min: float=0.0,
+    max: float=1.0,
+    n_pts: int=16,
+    base: float=1.75,
+    gamma: float=2
+) -> pg.ColorMap:
+    """Returns a color map object created from given parameters."""
+
+    if name in pg.colormap.listMaps(source="matplotlib"):
+        colors = pg.colormap.getFromMatplotlib(name).getLookupTable(nPts=n_pts)
+    elif name in pg.colormap.listMaps(source="colorcet"):
+        colors = pg.colormap.getFromColorcet(name).getLookupTable(nPts=n_pts)
+    elif name in pg.colormap.listMaps():
+        colors = pg.get(name).getLookupTable(nPts=n_pts)
+    else:
+        raise KeyError("Color map not found.")
+
+    if scale == "linear":
+        stops = np.linspace(start=min, stop=max, num=n_pts)
+        stops = np.array([list(stops)])
+        stops = preprocessing.normalize(stops, norm="max")
+        stops = list(stops[0])
+    elif scale == "log":
+        stops = np.logspace(
+            start=0,
+            stop=7.5,
+            endpoint=True,
+            num=n_pts,
+            base=base
+        )
+        stops = np.array([list(stops)])
+        stops = preprocessing.normalize(stops, norm="max")
+        stops = list(stops[0])
+    elif scale == "power":
+        stops = np.linspace(start=min, stop=max, num=n_pts)
+        stops -= min
+        stops[stops < 0] = 0
+        np.power(stops, gamma, stops)
+        stops /= (max - min) ** gamma
+        stops = np.array([list(stops)])
+        stops = preprocessing.normalize(stops, norm="max")
+        stops = list(stops[0])
+    else:
+        raise ValueError("Scale type not valid.")
+
+    return pg.ColorMap(pos=stops, color=colors)
