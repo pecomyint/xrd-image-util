@@ -26,7 +26,7 @@ class ScanImageDataWidget(QtWidgets.QWidget):
         self.scan = scan
 
         # Window settings
-        self.setMinimumSize(800, 600)
+        self.setMinimumSize(900, 750)
         self.setWindowTitle(f"Scan #{scan.scan_id}")
 
         """
@@ -67,15 +67,14 @@ class RawDataWidget(DockArea):
         self.image_widget.ui.menuBtn.hide()
         self.image_widget.getView().setAspectLocked(False)
         self.image_widget.getView().ctrlMenu = None
-        self.image_widget.setImage(scan.raw_data)
+        self.image_widget.setImage(img=scan.raw_data)
         self.colormap = utils._create_colormap(
             name="turbo",
             scale="log",
             max=np.amax(scan.raw_data)
         )
         self.image_widget.setColorMap(colormap=self.colormap)
-
-        '''self.options_widget = QtWidgets.QWidget()'''
+        self.image_widget.ui.roiPlot.getAxis("bottom").setLabel("t")
 
         # DockArea setup
         self.image_dock = Dock(
@@ -84,14 +83,7 @@ class RawDataWidget(DockArea):
             widget=self.image_widget,
             hideTitle=True
         )
-        '''self.options_dock = Dock(
-            name="Options", 
-            size=(100, 300), 
-            widget=self.options_widget,
-            hideTitle=True
-        )'''
         self.addDock(self.image_dock)
-        '''self.addDock(self.options_dock, "right", self.image_dock)'''
 
 class GriddedDataWidget(DockArea):
 
@@ -116,8 +108,9 @@ class GriddedDataWidget(DockArea):
             max=np.amax(scan.gridded_data)
         )
         self.image_widget.setColorMap(colormap=self.colormap)
-
-        '''self.options_widget = QtWidgets.QWidget()'''
+        self.image_widget.ui.roiPlot.getAxis("bottom").setLabel("H")
+        self.image_widget.getView().setLabel("bottom", "K")
+        self.image_widget.getView().setLabel("left", "L")
 
         # DockArea setup
         self.image_dock = Dock(
@@ -126,11 +119,4 @@ class GriddedDataWidget(DockArea):
             widget=self.image_widget,
             hideTitle=True
         )
-        '''self.options_dock = Dock(
-            name="Options", 
-            size=(100, 300), 
-            widget=self.options_widget,
-            hideTitle=True
-        )'''
         self.addDock(self.image_dock)
-        '''self.addDock(self.options_dock, "right", self.image_dock)'''
