@@ -9,15 +9,6 @@ from pyqtgraph.dockarea import Dock, DockArea
 
 from xrdimageutil import utils
 
-def _display_scan_image_data(scan):
-    """Creates a Qt app that displays scan image data."""
-
-    app = pg.mkQApp()
-    window = ScanImageDataWidget(scan=scan)
-    window.raise_()
-    window.show()
-    app.exec_()
-
 
 class ScanImageDataWidget(QtWidgets.QWidget):
     
@@ -82,6 +73,7 @@ class RawDataWidget(DockArea):
             hideTitle=True
         )
         self.addDock(self.image_dock)
+
 
 class GriddedDataWidget(DockArea):
 
