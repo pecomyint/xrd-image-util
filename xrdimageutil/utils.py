@@ -10,6 +10,8 @@ from sklearn import preprocessing
 import xrayutilities as xu
 
 
+# TODO: Document everything
+
 class PilatusHDF5Handler(adh.AreaDetectorHDF5SingleHandler):
     """Handler for the Pilatus detector HDF5 files. This version is
     geared specifically towards beamline 6-ID-B.

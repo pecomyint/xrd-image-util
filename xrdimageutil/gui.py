@@ -10,6 +10,11 @@ from pyqtgraph.dockarea import Dock, DockArea
 from xrdimageutil import utils
 
 
+# TODO: Document classes
+# TODO: Add slice direction controls
+# TODO: Add colorbar
+# TODO: Add colormap controls
+
 class ScanImageDataWidget(QtWidgets.QWidget):
     
     def __init__(self, scan) -> None:

@@ -16,6 +16,8 @@ class Catalog:
     dictionary of Scan objects that can be accessed.
     """
     
+    # TODO: Add basic scan filtering
+
     bluesky_catalog = None # Bluesky dictionary-like catalog
     name = None # Local name for catalog
     scan_uid_dict = None # Dictionary of scans in catalog with UID as key
@@ -115,6 +117,8 @@ class Scan:
     :type scan_id: str
     """
 
+    # TODO: Add full list of 1D variables from bluesky
+
     catalog = None # Parent Catalog
     uid = None # UID for scan; given by bluesky
     bluesky_run = None # Raw Bluesky run for scan
@@ -160,6 +164,7 @@ class Scan:
         else:
             return self.bluesky_run.primary.metadata["dims"]["time"]
 
+    # TODO: Somehow make this kwargs list more user-friendly
     def grid_data(
         self,
         h_count: int=250, 
