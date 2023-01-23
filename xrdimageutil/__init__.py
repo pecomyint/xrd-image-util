@@ -5,6 +5,7 @@ See LICENSE file.
 import databroker
 from prettytable import PrettyTable
 import numpy as np
+import pyqtgraph as pg
 import xrayutilities as xu
 
 from xrdimageutil import gui, utils
@@ -218,4 +219,9 @@ class Scan:
     def view_image_data(self):
         """Displays GUI with raw and gridded image data."""
         
-        gui._display_scan_image_data(self)
+        self.app = pg.mkQApp()
+        self.window = gui.ScanImageDataWidget(scan=self)
+        self.window.raise_()
+        self.window.show()
+        self.window.raise_()
+        self.app.exec_()

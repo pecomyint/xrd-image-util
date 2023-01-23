@@ -18,6 +18,7 @@ def _display_scan_image_data(scan):
     window.show()
     app.exec_()
 
+
 class ScanImageDataWidget(QtWidgets.QWidget):
     
     def __init__(self, scan) -> None:
@@ -59,9 +60,7 @@ class RawDataWidget(DockArea):
         self.scan = scan
 
         # Image widget setup
-        self.image_widget = pg.ImageView( 
-            view=pg.PlotItem()
-        )
+        self.image_widget = pg.ImageView(view=pg.PlotItem())
         self.image_widget.ui.histogram.hide()
         self.image_widget.ui.roiBtn.hide()
         self.image_widget.ui.menuBtn.hide()
@@ -90,7 +89,7 @@ class GriddedDataWidget(DockArea):
         super(GriddedDataWidget, self).__init__()
 
         self.scan = scan
-        
+
         # Image widget setup
         self.image_widget = pg.ImageView( 
             view=pg.PlotItem()
