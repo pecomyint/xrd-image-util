@@ -3,7 +3,7 @@ See LICENSE file.
 """
 
 import numpy as np
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 from pyqtgraph.dockarea import Dock, DockArea
 
@@ -63,12 +63,26 @@ class RawDataWidget(DockArea):
         self.image_widget.getView().setAspectLocked(False)
         self.image_widget.getView().ctrlMenu = None
         self.image_widget.setImage(img=scan.raw_data)
+        self.image_widget.getView().setLabel("bottom", "x")
+        self.image_widget.getView().setLabel("left", "y")
         self.colormap = utils._create_colormap(
             name="turbo",
             scale="log",
             max=np.amax(scan.raw_data)
         )
         self.image_widget.setColorMap(colormap=self.colormap)
+
+        # Options widget setup
+        self.options_widget = QtWidgets.QWidget()
+        self.slice_lbl = QtWidgets.QLabel("Slicing Direction: ")
+        self.slice_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        self.slice_cbx = QtWidgets.QComboBox()
+        self.slice_cbx.addItems(["t", "x", "y"])
+        self.slice_cbx.setCurrentIndex(0)
+        self.options_layout = QtWidgets.QGridLayout()
+        self.options_widget.setLayout(self.options_layout)
+        self.options_layout.addWidget(self.slice_lbl, 0, 0, 1, 1)
+        self.options_layout.addWidget(self.slice_cbx, 0, 1, 1, 5)
 
         # DockArea setup
         self.image_dock = Dock(
@@ -77,7 +91,34 @@ class RawDataWidget(DockArea):
             widget=self.image_widget,
             hideTitle=True
         )
+        self.options_dock = Dock(
+            name="Options", 
+            size=(300, 10), 
+            widget=self.options_widget,
+            hideTitle=True
+        )
         self.addDock(self.image_dock)
+        self.addDock(self.options_dock, "bottom", self.image_dock)
+
+        # Signals
+        self.slice_cbx.currentIndexChanged.connect(self.load_data)
+
+    def load_data(self):
+        """Displays image data."""
+        
+        axis_labels = ["t", "x", "y"]
+        data = self.scan.raw_data
+        slice_dir = self.slice_cbx.currentIndex()
+        
+        # Swap axes
+        axis_labels[0], axis_labels[slice_dir] = axis_labels[slice_dir], axis_labels[0]
+        data = np.swapaxes(data, 0, slice_dir)
+
+        # Display new data
+        self.image_widget.setImage(img=data)
+        self.image_widget.getView().setLabel("bottom", axis_labels[1])
+        self.image_widget.getView().setLabel("left", axis_labels[2])
+        self.image_widget.setCurrentIndex(0)
 
 
 class GriddedDataWidget(DockArea):
@@ -120,6 +161,19 @@ class GriddedDataWidget(DockArea):
         )
         self.image_widget.setCurrentIndex(0)
 
+        # Options widget setup
+        self.options_widget = QtWidgets.QWidget()
+        self.slice_lbl = QtWidgets.QLabel("Slicing Direction: ")
+        self.slice_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        self.slice_cbx = QtWidgets.QComboBox()
+        self.slice_cbx.addItems(["H", "K", "L"])
+        self.slice_cbx.setCurrentIndex(0)
+        self.slice_dir = 0
+        self.options_layout = QtWidgets.QGridLayout()
+        self.options_widget.setLayout(self.options_layout)
+        self.options_layout.addWidget(self.slice_lbl, 0, 0, 1, 1)
+        self.options_layout.addWidget(self.slice_cbx, 0, 1, 1, 5)
+
         # DockArea setup
         self.image_dock = Dock(
             name="Image", 
@@ -127,4 +181,51 @@ class GriddedDataWidget(DockArea):
             widget=self.image_widget,
             hideTitle=True
         )
+        self.options_dock = Dock(
+            name="Options", 
+            size=(300, 10), 
+            widget=self.options_widget,
+            hideTitle=True
+        )
         self.addDock(self.image_dock)
+        self.addDock(self.options_dock, "bottom", self.image_dock)
+
+        # Signals
+        self.slice_cbx.currentIndexChanged.connect(self.load_data)
+
+    def load_data(self):
+        """Displays image data."""
+
+        axis_labels = ["H", "K", "L"]
+        data = self.scan.gridded_data
+        coords = self.scan.gridded_data_coords
+        prev_slice_dir = self.slice_dir
+        slice_dir = self.slice_cbx.currentIndex()
+        self.slice_dir = slice_dir
+
+        # Swap axes
+        axis_labels[0], axis_labels[slice_dir] = axis_labels[slice_dir], axis_labels[0]
+        data = np.swapaxes(data, 0, slice_dir)
+        if slice_dir != 0:
+            coords[0], coords[slice_dir] = coords[slice_dir], coords[0]
+        else:
+            coords[prev_slice_dir], coords[slice_dir] = coords[slice_dir], coords[prev_slice_dir]
+
+        # Display new data
+        scale = (
+            coords[1][1] - coords[1][0],
+            coords[2][1] - coords[2][0]
+        )
+        pos = [coords[1][0], coords[2][0]]
+        self.transform.reset()
+        self.transform.translate(*pos)
+        self.transform.scale(*scale)
+        self.image_widget.setImage(
+            img=data,
+            transform=self.transform,
+            xvals=coords[0]
+        )
+
+        self.image_widget.getView().setLabel("bottom", axis_labels[1])
+        self.image_widget.getView().setLabel("left", axis_labels[2])
+        self.image_widget.setCurrentIndex(0)
