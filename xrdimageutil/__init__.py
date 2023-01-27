@@ -11,6 +11,8 @@ import xrayutilities as xu
 from xrdimageutil import gui, utils
 
 
+# TODO: Update basic documentation
+
 class Catalog:
     """Houses (i) a Bluesky catalog, already unpacked and (ii) a 
     dictionary of Scan objects that can be accessed.
@@ -83,6 +85,7 @@ class Catalog:
         
         return len(self.scan_uid_dict.keys())
 
+    # Add gridded data info (if available) -- maybe shape
     def list_scans(self) -> None:
         """Prints formatted string table listing scans in catalog."""
 
@@ -109,13 +112,7 @@ class Catalog:
 
 
 class Scan:
-    """Houses data and metadata for a single scan.
-    
-    :param catalog:
-    :type catalog: Catalog
-    :param scan_id:
-    :type scan_id: str
-    """
+    """Houses data and metadata for a single scan."""
 
     # TODO: Add full list of 1D variables from bluesky
 
@@ -131,6 +128,10 @@ class Scan:
     h = None # List of H center values throughout scan
     k = None # List of K center values throughout scan
     l = None # List of L center values throughout scan
+    omega = None
+    chi = None
+    phi = None
+    tth = None
     
     rsm = None # Reciprocal space map for every point within a scan
     rsm_bounds = None # Min/max HKL values for RSM
@@ -164,27 +165,18 @@ class Scan:
         else:
             return self.bluesky_run.primary.metadata["dims"]["time"]
 
-    # TODO: Somehow make this kwargs list more user-friendly
     def grid_data(
         self,
-        h_count: int=250, 
-        k_count: int=250,
-        l_count: int=250,
-        h_min: float=None, 
-        h_max: float=None, 
-        k_min: float=None, 
-        k_max: float=None,
-        l_min: float=None, 
-        l_max: float=None
+        h_count: int=250, k_count: int=250, l_count: int=250,
+        h_min: float=None, h_max: float=None, 
+        k_min: float=None, k_max: float=None,
+        l_min: float=None, l_max: float=None
     ) -> None:
         """Constructs gridded 3D image from RSM coordinates."""
 
         # Provided bounds for gridding
-        grid_bounds = [
-            h_min, h_max, 
-            k_min, k_max, 
-            l_min, l_max
-        ]
+        grid_bounds = [h_min, h_max, k_min, k_max, l_min, l_max]
+
         # Bounds in reciprocal space map, reshaped to a list
         rsm_bounds = [self.rsm_bounds[b] for b in list(self.rsm_bounds.keys())]
         
@@ -217,7 +209,8 @@ class Scan:
         # Retrieves HKL coordinates for gridded data
         self.gridded_data_coords = [gridder.xaxis, gridder.yaxis, gridder.zaxis]
 
-    def view_image_data(self):
+    # TODO: Function to determine if code is being ran in a jupyter notebook
+    def view_image_data(self) -> None:
         """Displays GUI with raw and gridded image data."""
         
         self.app = pg.mkQApp()
