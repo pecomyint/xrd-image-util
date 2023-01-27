@@ -62,16 +62,30 @@ class RawDataWidget(DockArea):
         self.image_widget.ui.menuBtn.hide()
         self.image_widget.getView().setAspectLocked(False)
         self.image_widget.getView().ctrlMenu = None
-        self.image_widget.setImage(img=scan.raw_data)
         self.image_widget.getView().setLabel("bottom", "x")
         self.image_widget.getView().setLabel("left", "y")
+
         self.colormap = utils._create_colormap(
             name="turbo",
             scale="log",
             max=np.amax(scan.raw_data)
         )
         self.image_widget.setColorMap(colormap=self.colormap)
+        self.image_widget.setImage(img=scan.raw_data)
 
+        self.colorbar = pg.ColorBarItem(
+            values=(0, np.amax(scan.raw_data)),
+            cmap=self.colormap, 
+            interactive=False,
+            width=15,
+            orientation="v"
+        )
+        self.colorbar.setColorMap(self.colormap)
+        self.colorbar.setImageItem(
+            img=self.image_widget.getImageItem(),
+            insert_in=self.image_widget.getView()
+        )
+        
         # Options widget setup
         self.options_widget = QtWidgets.QWidget()
         self.slice_lbl = QtWidgets.QLabel("Slicing Direction: ")
@@ -105,7 +119,7 @@ class RawDataWidget(DockArea):
 
     def load_data(self):
         """Displays image data."""
-        
+
         axis_labels = ["t", "x", "y"]
         data = self.scan.raw_data
         slice_dir = self.slice_cbx.currentIndex()
@@ -137,12 +151,27 @@ class GriddedDataWidget(DockArea):
         self.image_widget.ui.menuBtn.hide()
         self.image_widget.getView().setAspectLocked(False)
         self.image_widget.getView().ctrlMenu = None
+        
         self.colormap = utils._create_colormap(
             name="turbo",
             scale="log",
-            max=np.amax(scan.gridded_data)
+            max=np.amax(scan.raw_data)
         )
         self.image_widget.setColorMap(colormap=self.colormap)
+
+        self.colorbar = pg.ColorBarItem(
+            values=(0, np.amax(scan.raw_data)),
+            cmap=self.colormap, 
+            interactive=False,
+            width=15,
+            orientation="v"
+        )
+        self.colorbar.setColorMap(self.colormap)
+        self.colorbar.setImageItem(
+            img=self.image_widget.getImageItem(),
+            insert_in=self.image_widget.getView()
+        )
+
         self.image_widget.getView().setLabel("bottom", "K")
         self.image_widget.getView().setLabel("left", "L")
         self.transform = QtGui.QTransform()
