@@ -91,7 +91,8 @@ class RawDataWidget(DockArea):
         self.options_layout = QtWidgets.QGridLayout()
         self.options_widget.setLayout(self.options_layout)
         self.options_layout.addWidget(self.slice_lbl, 0, 0, 1, 1)
-        self.options_layout.addWidget(self.slice_cbx, 0, 1, 1, 5)
+        self.options_layout.addWidget(self.slice_cbx, 0, 1, 1, 1)
+        self.options_layout.setColumnStretch(2, 5)
 
         # DockArea setup
         self.image_dock = Dock(
@@ -201,7 +202,8 @@ class GriddedDataWidget(DockArea):
         self.options_layout = QtWidgets.QGridLayout()
         self.options_widget.setLayout(self.options_layout)
         self.options_layout.addWidget(self.slice_lbl, 0, 0, 1, 1)
-        self.options_layout.addWidget(self.slice_cbx, 0, 1, 1, 5)
+        self.options_layout.addWidget(self.slice_cbx, 0, 1, 1, 1)
+        self.options_layout.setColumnStretch(2, 5)
 
         # DockArea setup
         self.image_dock = Dock(
