@@ -140,6 +140,8 @@ def _get_rsm_bounds(scan):
     return rsm_bounds
 
 def _get_motor_bounds(scan) -> tuple:
+    """Returns minimum and maximum values for each instrument motor."""
+
     run = scan.bluesky_run
 
     if "primary" not in run.keys():
@@ -159,6 +161,7 @@ def _get_motor_bounds(scan) -> tuple:
     return (m_start, m_stop)
 
 def _get_raw_data(scan) -> np.ndarray:
+    """Returns raw detector images for a Scan."""
     run = scan.bluesky_run
 
     if "primary" not in run.keys():

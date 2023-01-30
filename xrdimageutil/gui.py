@@ -16,6 +16,7 @@ from xrdimageutil import utils
 # TODO: Add colormap controls
 
 class ScanImageDataWidget(QtWidgets.QWidget):
+    """Custom QtWidget for viewing raw and gridded Scan images."""
     
     def __init__(self, scan) -> None:
         super(ScanImageDataWidget, self).__init__()
@@ -26,15 +27,7 @@ class ScanImageDataWidget(QtWidgets.QWidget):
         self.setMinimumSize(900, 750)
         self.setWindowTitle(f"Scan #{scan.scan_id}")
 
-        """
-        Plans for this GUI:
-
-        - Basic colormapping options
-        - Slicing direction (x/y/t) (h/k/l)
-        - Keep pg slider
-        """
-
-        
+        # Add respective tabs
         self.tab_widget = QtWidgets.QTabWidget()
         if scan.raw_data is not None:
             self.raw_data_widget = RawDataWidget(scan=scan)
@@ -43,12 +36,14 @@ class ScanImageDataWidget(QtWidgets.QWidget):
             self.gridded_data_widget = GriddedDataWidget(scan=scan)
             self.tab_widget.addTab(self.gridded_data_widget, "Gridded")
 
+        # Layout
         self.layout = QtWidgets.QGridLayout()
         self.setLayout(self.layout)
         self.layout.addWidget(self.tab_widget)
 
 
 class RawDataWidget(DockArea):
+    """Widget for viewing raw Scan image data."""
 
     def __init__(self, scan) -> None:
         super(RawDataWidget, self).__init__()
@@ -65,6 +60,7 @@ class RawDataWidget(DockArea):
         self.image_widget.getView().setLabel("bottom", "x")
         self.image_widget.getView().setLabel("left", "y")
 
+        # Initial image and colormap setup
         self.colormap = utils._create_colormap(
             name="turbo",
             scale="log",
@@ -72,7 +68,6 @@ class RawDataWidget(DockArea):
         )
         self.image_widget.setColorMap(colormap=self.colormap)
         self.image_widget.setImage(img=scan.raw_data)
-
         self.colorbar = pg.ColorBarItem(
             values=(0, np.amax(scan.raw_data)),
             cmap=self.colormap, 
@@ -115,9 +110,9 @@ class RawDataWidget(DockArea):
         self.addDock(self.options_dock, "bottom", self.image_dock)
 
         # Signals
-        self.slice_cbx.currentIndexChanged.connect(self.load_data)
+        self.slice_cbx.currentIndexChanged.connect(self._load_data)
 
-    def load_data(self):
+    def _load_data(self) -> None:
         """Displays image data."""
 
         axis_labels = ["t", "x", "y"]
@@ -136,6 +131,10 @@ class RawDataWidget(DockArea):
 
 
 class GriddedDataWidget(DockArea):
+    """Widget for viewing gridded Scan image data.
+    
+    Will only appear if a gridded data object has been created for a scan.
+    """
 
     def __init__(self, scan) -> None:
         super(GriddedDataWidget, self).__init__()
@@ -152,13 +151,13 @@ class GriddedDataWidget(DockArea):
         self.image_widget.getView().setAspectLocked(False)
         self.image_widget.getView().ctrlMenu = None
         
+        # Initial colormap setup
         self.colormap = utils._create_colormap(
             name="turbo",
             scale="log",
             max=np.amax(scan.raw_data)
         )
         self.image_widget.setColorMap(colormap=self.colormap)
-
         self.colorbar = pg.ColorBarItem(
             values=(0, np.amax(scan.raw_data)),
             cmap=self.colormap, 
@@ -172,6 +171,7 @@ class GriddedDataWidget(DockArea):
             insert_in=self.image_widget.getView()
         )
 
+        # Initial image scaling to match gridded coords
         self.image_widget.getView().setLabel("bottom", "K")
         self.image_widget.getView().setLabel("left", "L")
         self.transform = QtGui.QTransform()
@@ -220,9 +220,9 @@ class GriddedDataWidget(DockArea):
         self.addDock(self.options_dock, "bottom", self.image_dock)
 
         # Signals
-        self.slice_cbx.currentIndexChanged.connect(self.load_data)
+        self.slice_cbx.currentIndexChanged.connect(self._load_data)
 
-    def load_data(self):
+    def _load_data(self) -> None:
         """Displays image data."""
 
         axis_labels = ["H", "K", "L"]

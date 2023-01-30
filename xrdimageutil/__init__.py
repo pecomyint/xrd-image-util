@@ -128,10 +128,6 @@ class Scan:
     h = None # List of H center values throughout scan
     k = None # List of K center values throughout scan
     l = None # List of L center values throughout scan
-    omega = None
-    chi = None
-    phi = None
-    tth = None
     
     rsm = None # Reciprocal space map for every point within a scan
     rsm_bounds = None # Min/max HKL values for RSM
@@ -211,7 +207,7 @@ class Scan:
 
     # TODO: Function to determine if code is being ran in a jupyter notebook
     def view_image_data(self) -> None:
-        """Displays GUI with raw and gridded image data."""
+        """Displays Scan image data in an interactive GUI."""
         
         self.app = pg.mkQApp()
         self.window = gui.ScanImageDataWidget(scan=self)
