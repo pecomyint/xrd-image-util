@@ -1,7 +1,11 @@
 # CHANGELOG
 
-## [0.3.0] - 2023-02
-GUI functions.
+## [0.3.0] - 2023-01-30
+Basic GUI for viewing Scan image data.
+
+### Added
+- Scan.view_image_data(): A function that displays a interactive QtWidget for viewing orthogonal slices of a Scan object's image data, both raw and gridded.
+
 
 ## [0.2.0] - 2023-01-18
 Basic Scan mapping and gridding.
