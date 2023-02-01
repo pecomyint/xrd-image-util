@@ -110,7 +110,15 @@ class Catalog:
         table.sortby = "scan_id"
         print(table)
 
-
+    def view_line_data(self) -> None:
+        """Displays Scan line data in an interactive GUI."""
+        
+        self.app = pg.mkQApp()
+        self.window = gui.CatalogLineDataWidget(catalog=self)
+        self.window.raise_()
+        self.window.show()
+        self.window.raise_()
+        self.app.exec_()
 class Scan:
     """Houses data and metadata for a single scan."""
 
@@ -205,7 +213,6 @@ class Scan:
         # Retrieves HKL coordinates for gridded data
         self.gridded_data_coords = [gridder.xaxis, gridder.yaxis, gridder.zaxis]
 
-    # TODO: Function to determine if code is being ran in a jupyter notebook
     def view_image_data(self) -> None:
         """Displays Scan image data in an interactive GUI."""
         
