@@ -260,3 +260,39 @@ class GriddedDataWidget(DockArea):
         self.image_widget.getView().setLabel("bottom", axis_labels[1])
         self.image_widget.getView().setLabel("left", axis_labels[2])
         self.image_widget.setCurrentIndex(0)
+
+
+class CatalogLineDataWidget(DockArea):
+
+    def __init__(self, catalog):
+        super(CatalogLineDataWidget, self).__init__()
+
+        self.catalog = catalog
+
+        self.plot_widget = pg.PlotWidget()
+        self.scan_selection_widget = QtWidgets.QTableWidget()
+        self.variable_selection_widget = QtWidgets.QWidget()
+
+        self.plot_dock = Dock(
+            name="Image", 
+            size=(300, 300), 
+            widget=self.plot_widget,
+            hideTitle=True
+        )
+        self.scan_selection_dock = Dock(
+            name="Image", 
+            size=(100, 150), 
+            widget=self.scan_selection_widget,
+            hideTitle=True
+        )
+        self.variable_selection_dock = Dock(
+            name="Image", 
+            size=(100, 150), 
+            widget=self.variable_selection_widget,
+            hideTitle=True
+        )
+
+        self.addDock(self.plot_dock)
+        self.addDock(self.scan_selection_dock, "right", self.plot_dock)
+        self.addDock(self.variable_selection_dock, "bottom", self.scan_selection_dock)
+        
