@@ -13,5 +13,6 @@ prettytable
 pyqt5
 pyqtgraph
 pyqtwebengine
+pysumreg
 scikit-learn
 xrayutilities
