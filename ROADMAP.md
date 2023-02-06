@@ -11,4 +11,6 @@
 - [X] v0.3.0:
     - GUI to interact with scan image data
 - [ ] v0.4.0
+    - GUI to interact with catalog 1D data variables
+    - QOL fixes for scan image data GUI
     - Prototype for an "operation/plan" tool, which describes a function that can be repeated across a set of scans and plotted.
