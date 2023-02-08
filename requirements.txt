@@ -7,7 +7,6 @@ bluesky-live
 dask
 h5py
 hdf5plugin
-importlib
 ophyd
 polartools
 prettytable
@@ -16,5 +15,4 @@ pyqtgraph
 pyqtwebengine
 pysumreg
 scikit-learn
-setuptools
 xrayutilities

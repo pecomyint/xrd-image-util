@@ -10,11 +10,10 @@ authors = [
 ]
 description = "Utility package for handling XRD image data."
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 classifiers = [
     "Development Status :: 1 - Planning",
     "Natural Language :: English",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
