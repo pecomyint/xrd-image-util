@@ -6,6 +6,7 @@ dependencies:
   pip:
     - databroker
     - flake8
+    - pysumreg
     - pytest
     - pytest-cov
     - tox-conda
