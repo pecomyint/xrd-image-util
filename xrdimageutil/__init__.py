@@ -8,18 +8,15 @@ import numpy as np
 import pyqtgraph as pg
 import xrayutilities as xu
 
-from xrdimageutil import gui, utils
+from xrdimageutil import utils
+from xrdimageutil.gui import image_data_widget, line_data_widget
 
-
-# TODO: Update basic documentation
 
 class Catalog:
     """Houses (i) a Bluesky catalog, already unpacked and (ii) a 
     dictionary of Scan objects that can be accessed.
     """
     
-    # TODO: Add basic scan filtering
-
     bluesky_catalog = None # Bluesky dictionary-like catalog
     name = None # Local name for catalog
     scan_uid_dict = None # Dictionary of scans in catalog with UID as key
@@ -114,11 +111,13 @@ class Catalog:
         """Displays Scan line data in an interactive GUI."""
         
         self.app = pg.mkQApp()
-        self.window = gui.CatalogLineDataWidget(catalog=self)
+        self.window = line_data_widget.CatalogLineDataWidget(catalog=self)
         self.window.raise_()
         self.window.show()
         self.window.raise_()
         self.app.exec_()
+
+        
 class Scan:
     """Houses data and metadata for a single scan."""
 
@@ -217,7 +216,7 @@ class Scan:
         """Displays Scan image data in an interactive GUI."""
         
         self.app = pg.mkQApp()
-        self.window = gui.ScanImageDataWidget(scan=self)
+        self.window = image_data_widget.ScanImageDataWidget(scan=self)
         self.window.raise_()
         self.window.show()
         self.window.raise_()
