@@ -16,4 +16,5 @@ pyqtgraph
 pyqtwebengine
 pysumreg
 scikit-learn
+setuptools
 xrayutilities
