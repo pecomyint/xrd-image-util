@@ -177,14 +177,19 @@ class CLDWVariableSelectionWidget(QtWidgets.QWidget):
         self.y_var_lbl = QtWidgets.QLabel("y:")
         self.y_var_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.y_var_cbx = QtWidgets.QComboBox()
+        self.monitor_var_lbl = QtWidgets.QLabel("Monitor:")
+        self.monitor_var_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        self.monitor_var_cbx = QtWidgets.QComboBox()
 
         # Layout
         self.layout = QtWidgets.QGridLayout()
         self.setLayout(self.layout)
         self.layout.addWidget(self.x_var_lbl, 0, 0)
         self.layout.addWidget(self.x_var_cbx, 0, 1, 1, 4)
-        self.layout.addWidget(self.y_var_lbl, 2, 0)
-        self.layout.addWidget(self.y_var_cbx, 2, 1, 1, 4)
+        self.layout.addWidget(self.y_var_lbl, 1, 0)
+        self.layout.addWidget(self.y_var_cbx, 1, 1, 1, 4)
+        self.layout.addWidget(self.monitor_var_lbl, 2, 0)
+        self.layout.addWidget(self.monitor_var_cbx, 2, 1, 1, 4)
         
         # Signals
         self.x_var_cbx.currentIndexChanged.connect(self._set_variables)
@@ -205,6 +210,7 @@ class CLDWVariableSelectionWidget(QtWidgets.QWidget):
 
         self.x_var_cbx.addItems(self.variables)
         self.y_var_cbx.addItems(self.variables)
+        self.monitor_var_cbx.addItems([""] + self.variables) # Ensures that there can be a non-monitor option
         self.x_var_cbx.setCurrentIndex(len(self.variables) - 1)
 
     def _set_variables(self) -> None:
