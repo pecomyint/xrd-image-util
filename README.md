@@ -5,7 +5,7 @@ Utility package for handling XRD image data.
 `xrd-image-util` aims to provide (i) a lightweight interface for Bluesky data handling, (ii) an arsenal of tools for analyzing XRD image data, and (iii) options for exporting XRD image data. In its current form, `xrd-image-util` is tailored for data gathering at APS beamline 6-ID-B.
 
 ## Prerequisites
-- Python 3.7+
+- Python 3.8+
 - Anaconda installations of Python are recommended
 
 ## Getting Started

@@ -1,10 +1,17 @@
 # CHANGELOG
 
+## [0.4.0] - 2023-02-10
+Basic GUI for viewing 1D Catalog data.
+
+### Added
+- Catalog.view_line_data(): A function that displays an interactive widget for viewing various 1D curves for all Scan variables in a given Catalog.
+
+
 ## [0.3.0] - 2023-01-30
 Basic GUI for viewing Scan image data.
 
 ### Added
-- Scan.view_image_data(): A function that displays a interactive QtWidget for viewing orthogonal slices of a Scan object's image data, both raw and gridded.
+- Scan.view_image_data(): A function that displays an interactive widget for viewing orthogonal slices of a Scan object's image data, both raw and gridded.
 
 
 ## [0.2.0] - 2023-01-18
@@ -19,6 +26,7 @@ Basic Scan mapping and gridding.
 - Variables `bs_catalog` and `bs_run` have been renamed to `bluesky_catalog` and `bluesky_run`, respectively.
 ### Removed
 - Various filtering functions in the Catalog class.
+
 
 ## [0.1.0] - 2023-01-04
 First functional release. Provides users with a basic interface for accessing scans from a local catalog.
