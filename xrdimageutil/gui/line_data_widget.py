@@ -88,11 +88,12 @@ class CatalogLineDataWidget(DockArea):
 
         x_var = self.variable_selection_widget.x_var
         y_var = self.variable_selection_widget.y_var
+        monitor_var = self.variable_selection_widget.monitor_var
 
-        self.plot_widget._update_labels(x_var=x_var, y_var=y_var)
+        self.plot_widget._update_labels(x_var=x_var, y_var=y_var, monitor_var=monitor_var)
 
         for scan_item in self.scan_items:
-            scan_item._set_curve(x_var=x_var, y_var=y_var)
+            scan_item._set_curve(x_var=x_var, y_var=y_var, monitor_var=monitor_var)
 
         self.plot_widget.getPlotItem().getViewBox().autoRange()
         self.scan_info_widget._update()
@@ -117,10 +118,12 @@ class CLDWPlotWidget(pg.PlotWidget):
 
         self.parent = parent
 
-    def _update_labels(self, x_var, y_var):
+    def _update_labels(self, x_var, y_var, monitor_var):
         """Updates plot labels with new variable names."""
 
         self.getPlotItem().getAxis("bottom").setLabel(x_var)
+        if monitor_var is not None:
+            y_var = f"{y_var}/{monitor_var}"
         self.getPlotItem().getAxis("left").setLabel(y_var)
 
 
@@ -168,7 +171,7 @@ class CLDWVariableSelectionWidget(QtWidgets.QWidget):
     
         self.parent = parent
         self.variables = None
-        self.x_var, self.y_var = None, None
+        self.x_var, self.y_var, self.monitor_var = None, None, None
 
         # Child widgets
         self.x_var_lbl = QtWidgets.QLabel("x:")
@@ -194,6 +197,7 @@ class CLDWVariableSelectionWidget(QtWidgets.QWidget):
         # Signals
         self.x_var_cbx.currentIndexChanged.connect(self._set_variables)
         self.y_var_cbx.currentIndexChanged.connect(self._set_variables)
+        self.monitor_var_cbx.currentIndexChanged.connect(self._set_variables)
 
         # Initial setup
         self._load_variables()
@@ -218,6 +222,10 @@ class CLDWVariableSelectionWidget(QtWidgets.QWidget):
 
         self.x_var = self.x_var_cbx.currentText()
         self.y_var = self.y_var_cbx.currentText()
+        if self.monitor_var_cbx.currentText() == "":
+            self.monitor_var = None
+        else:
+            self.monitor_var = self.monitor_var_cbx.currentText()
         self.variableChanged.emit()
 
 
@@ -251,11 +259,14 @@ class CLDWScanItem:
         # Initial setup
         self._hide_curve()
 
-    def _set_curve(self, x_var, y_var):
+    def _set_curve(self, x_var, y_var, monitor_var):
         """Sets new data for curve."""
 
         x = self.scan.bluesky_run.primary.read()[x_var].values
         y = self.scan.bluesky_run.primary.read()[y_var].values
+        if monitor_var is not None:
+            monitor = self.scan.bluesky_run.primary.read()[monitor_var].values
+            y = y / monitor
 
         self.curve.setData(x, y)
         
