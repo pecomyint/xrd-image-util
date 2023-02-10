@@ -6,11 +6,12 @@ import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 from pyqtgraph.dockarea import Dock, DockArea
+
 from xrdimageutil import utils
 
 
 class ScanImageDataWidget(QtWidgets.QWidget):
-    """Custom QtWidget for viewing raw and gridded Scan images."""
+    """GUI application for viewing raw and gridded Scan images."""
     
     def __init__(self, scan) -> None:
         super(ScanImageDataWidget, self).__init__()
@@ -254,4 +255,3 @@ class GriddedDataWidget(DockArea):
         self.image_widget.getView().setLabel("bottom", axis_labels[1])
         self.image_widget.getView().setLabel("left", axis_labels[2])
         self.image_widget.setCurrentIndex(0)
-

@@ -1,4 +1,1 @@
-# Outer level GUI applications
-
-# ScanImageDataWidget
-# ScanLineDataWidget
+"""Houses GUI applications for xrd-image-util"""

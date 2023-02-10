@@ -35,6 +35,7 @@ def _add_catalog_handler(catalog) -> None:
         overwrite=True
     )
 
+
 def _get_rsm_for_scan(scan):
     """Returns a reciprocal space map for a given scan.
     
@@ -116,6 +117,7 @@ def _get_rsm_for_scan(scan):
 
     return rsm
 
+
 def _get_rsm_bounds(scan):
     """Returns the minimum and maximum values for H, K, and L with an RSM."""
 
@@ -139,6 +141,7 @@ def _get_rsm_bounds(scan):
         
     return rsm_bounds
 
+
 def _get_motor_bounds(scan) -> tuple:
     """Returns minimum and maximum values for each instrument motor."""
 
@@ -160,6 +163,7 @@ def _get_motor_bounds(scan) -> tuple:
 
     return (m_start, m_stop)
 
+
 def _get_raw_data(scan) -> np.ndarray:
     """Returns raw detector images for a Scan."""
     run = scan.bluesky_run
@@ -172,6 +176,7 @@ def _get_raw_data(scan) -> np.ndarray:
     raw_data = np.swapaxes(raw_data_unordered, 1, 2)
 
     return raw_data
+
 
 def _get_hkl_centers(scan) -> tuple:
     """Returns lists of H, K, and L center values."""
@@ -186,6 +191,7 @@ def _get_hkl_centers(scan) -> tuple:
     l = run.primary.read()["fourc_l"].values
 
     return (h, k, l)
+
 
 def _create_colormap(
     name: str,

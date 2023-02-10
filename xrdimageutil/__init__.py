@@ -4,7 +4,6 @@ See LICENSE file.
 
 import databroker
 from prettytable import PrettyTable
-import numpy as np
 import pyqtgraph as pg
 import xrayutilities as xu
 
@@ -47,10 +46,7 @@ class Catalog:
             self.scan_id_dict = None
 
     def get_scan(self, scan_id: int):
-        """Returns scan from given numerical scan ID.
-        
-        :rtype: Scan
-        """
+        """Returns scan from given numerical scan ID."""
 
         if type(scan_id) != int:
             raise TypeError(f"Scan ID {scan_id} does not exist.")
@@ -62,10 +58,7 @@ class Catalog:
         return self.scan_id_dict[scan_id]
 
     def get_scans(self, scan_ids: list) -> list:
-        """Returns list of scans from given numerical scan ID's.
-        
-        :rtype: list
-        """
+        """Returns list of scans from given numerical scan ID's."""
 
         if type(scan_ids) != list:
             raise TypeError("Input needs to be a list.")
@@ -82,7 +75,6 @@ class Catalog:
         
         return len(self.scan_uid_dict.keys())
 
-    # Add gridded data info (if available) -- maybe shape
     def list_scans(self) -> None:
         """Prints formatted string table listing scans in catalog."""
 
@@ -120,8 +112,6 @@ class Catalog:
         
 class Scan:
     """Houses data and metadata for a single scan."""
-
-    # TODO: Add full list of 1D variables from bluesky
 
     catalog = None # Parent Catalog
     uid = None # UID for scan; given by bluesky
