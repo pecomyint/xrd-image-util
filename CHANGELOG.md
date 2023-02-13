@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [0.5.0] - 2023-02-24 (estimated)
+
+### Added
+- Monitor variable to line data GUI. If selected, y-axis variable will be divided by the monitor.
+
+### Changed
+- Line data GUI variable selector now holds list of all variables available in a catalog. Scans that do not include a selected variable name are blacked out and cannot be plotted.
+
 ## [0.4.0] - 2023-02-10
 Basic GUI for viewing 1D Catalog data.
 
