@@ -193,6 +193,22 @@ def _get_hkl_centers(scan) -> tuple:
     return (h, k, l)
 
 
+def _get_bluesky_1d_variables(scan) -> list:
+    run = scan.bluesky_run
+
+    if "primary" not in run.keys():
+        return []
+    
+    vars = list(run.primary.read().keys())
+    vars_1d = []
+
+    for v in vars:
+        if run.primary.read()[v].ndim == 1:
+            vars_1d.append(v)
+
+    return vars_1d
+
+
 def _create_colormap(
     name: str,
     scale: str,
