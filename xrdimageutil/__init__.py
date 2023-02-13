@@ -125,6 +125,7 @@ class Scan:
     h = None # List of H center values throughout scan
     k = None # List of K center values throughout scan
     l = None # List of L center values throughout scan
+    bluesky_1d_vars = None # List of 1D variables used in bluesky run
     
     rsm = None # Reciprocal space map for every point within a scan
     rsm_bounds = None # Min/max HKL values for RSM
@@ -144,6 +145,7 @@ class Scan:
         self.motors = self.bluesky_run.metadata["start"]["motors"]
         self.motor_bounds = utils._get_motor_bounds(self)
         self.h, self.k, self.l = utils._get_hkl_centers(self)
+        self.bluesky_1d_vars = utils._get_bluesky_1d_variables(self)
 
         # TODO: Figure out where to put these steps
         self.rsm = utils._get_rsm_for_scan(self)
