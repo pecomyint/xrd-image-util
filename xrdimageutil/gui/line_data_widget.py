@@ -18,6 +18,7 @@ class CatalogLineDataWidget(DockArea):
         super(CatalogLineDataWidget, self).__init__()
 
         self.catalog = catalog
+        self.scans = [self.catalog.scan_id_dict[id] for id in sorted(list(self.catalog.scan_id_dict.keys()))]
         self.scan_items = None
 
         # Child widgets
@@ -66,12 +67,11 @@ class CatalogLineDataWidget(DockArea):
         self._set_colormap("turbo")
 
     def _create_scan_items(self):
-        """Builds a list of Scan items.."""
+        """Builds a list of Scan items."""
 
         self.scan_items = []
 
-        scans = [self.catalog.scan_id_dict[id] for id in sorted(list(self.catalog.scan_id_dict.keys()))]
-        for scan in scans:
+        for scan in self.scans:
             if "primary" in scan.bluesky_run.keys():
                 scan_item = CLDWScanItem(parent=self, scan=scan)
                 self.scan_items.append(scan_item)
@@ -157,8 +157,9 @@ class CLDWScanSelectionWidget(QtWidgets.QTableWidget):
 
         i = self.currentRow()
         scan_item = self.parent.scan_items[i]
-        scan_item._show_curve()
-        self.parent.scan_info_widget._set_scan_item(scan_item=scan_item)
+        if scan_item.enabled:
+            scan_item._show_curve()
+            self.parent.scan_info_widget._set_scan_item(scan_item=scan_item)
 
 
 class CLDWVariableSelectionWidget(QtWidgets.QWidget):
@@ -205,13 +206,10 @@ class CLDWVariableSelectionWidget(QtWidgets.QWidget):
     def _load_variables(self) -> None:
         """Loads list of variables from Catalog."""
 
-        self.variables = []
-
-        scan = self.parent.catalog.scan_id_dict[list(self.parent.catalog.scan_id_dict.keys())[-1]]
-        for var in list(scan.bluesky_run.primary.read().keys()):
-            if not scan.bluesky_run.primary.read()[var].values.ndim > 2:
-                self.variables.append(var)
-
+        scan_vars = [s.bluesky_1d_vars for s in self.parent.scans]
+        scan_var_union = list(set().union(*scan_vars))
+        self.variables = sorted(scan_var_union)
+    
         self.x_var_cbx.addItems(self.variables)
         self.y_var_cbx.addItems(self.variables)
         self.monitor_var_cbx.addItems([""] + self.variables) # Ensures that there can be a non-monitor option
@@ -237,6 +235,7 @@ class CLDWScanItem:
         self.scan = scan
 
         self.curve = pg.PlotDataItem()
+        self.enabled = True
 
         # Widgets for ScanSelectionWidget
         self.show_chkbx = QtWidgets.QCheckBox()
@@ -257,14 +256,21 @@ class CLDWScanItem:
         self.scan_color_btn.sigColorChanged.connect(self._set_color)
 
         # Initial setup
-        self._hide_curve()
+        self.curve.hide()
 
     def _set_curve(self, x_var, y_var, monitor_var):
         """Sets new data for curve."""
 
+        if (x_var not in self.scan.bluesky_1d_vars or 
+            y_var not in self.scan.bluesky_1d_vars or 
+            monitor_var not in [None] + self.scan.bluesky_1d_vars):
+            self._disable()
+            return
+        
+        self._enable()
         x = self.scan.bluesky_run.primary.read()[x_var].values
         y = self.scan.bluesky_run.primary.read()[y_var].values
-        if monitor_var is not None:
+        if monitor_var is not None and monitor_var in self.scan.bluesky_1d_vars:
             monitor = self.scan.bluesky_run.primary.read()[monitor_var].values
             y = y / monitor
 
@@ -281,6 +287,7 @@ class CLDWScanItem:
     def _hide_curve(self):
         """Hides curve and resets plotting range to match visible curves."""
 
+        self.show_chkbx.setChecked(False)
         self.curve.hide()
         self.parent.plot_widget.getPlotItem().getViewBox().autoRange()
 
@@ -291,6 +298,17 @@ class CLDWScanItem:
         self.curve.show()
         self._get_stats()
         self.parent.plot_widget.getPlotItem().getViewBox().autoRange()
+
+    def _enable(self):
+        self.enabled = True
+        for w in self.widgets:
+            w.setEnabled(True)
+
+    def _disable(self):
+        self.enabled = False
+        self._hide_curve()
+        for w in self.widgets:
+            w.setEnabled(False)
 
     def _set_color(self, color=None):
         """Sets curve color."""
@@ -415,7 +433,7 @@ class CLDWScanInfoWidget(QtWidgets.QWidget):
         if self.scan_item is not None:
             stats = self.scan_item._get_stats()
             if stats is None:
-                self._clear()
+                self._remove_scan_item()
             else:
                 self.x_min_txt.setText(str(round(stats["min_x"], 5)))
                 self.x_max_txt.setText(str(round(stats["max_x"], 5)))
@@ -431,9 +449,10 @@ class CLDWScanInfoWidget(QtWidgets.QWidget):
     def _set_scan_item(self, scan_item):
         """Sets new Scan item and updates textboxes."""
 
-        self.scan_item = scan_item
-        self.scan_id_txt.setText(str(scan_item.scan.scan_id))
-        self._update()
+        if scan_item.enabled:
+            self.scan_item = scan_item
+            self.scan_id_txt.setText(str(scan_item.scan.scan_id))
+            self._update()
 
     def _remove_scan_item(self):
         """Removes scan item and clears textboxes."""
