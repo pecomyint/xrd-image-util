@@ -162,6 +162,8 @@ class Scan(object):
 
         if "primary" not in self.bluesky_run.keys():
             return 0
+        elif "dims" not in self.bluesky_run.primary.metadata.keys():
+            return 0
         else:
             return self.bluesky_run.primary.metadata["dims"]["time"]
 
