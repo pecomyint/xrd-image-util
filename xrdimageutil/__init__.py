@@ -19,7 +19,6 @@ class Catalog:
     bluesky_catalog = None # Bluesky dictionary-like catalog
     name = None # Local name for catalog
     scan_uid_dict = None # Dictionary of scans in catalog with UID as key
-    scan_id_dict = None # Dictionary of scans in catalog with scan ID as key
 
     def __init__(self, name) -> None:
 
@@ -31,41 +30,27 @@ class Catalog:
 
         # Creates a Scan object for every run in the catalog
         # Adds Scans to a dictionary
-        self.scan_uid_dict, self.scan_id_dict = {}, {}
-        for scan_uid in sorted(list(self.bluesky_catalog)):
-            scan = Scan(catalog=self, uid=scan_uid)
-            self.scan_uid_dict.update({scan_uid: scan})
-            try:
-                self.scan_id_dict.update({scan.scan_id: scan})
-            except:
-                pass
+        self.scan_uid_dict = dict([(uid, Scan(catalog=self, uid=uid)) for uid in list(self.bluesky_catalog)])
 
-        # Checks if all scan ID's are unique
-        # If not, then search by scan ID is not allowed in catalog
-        if len(self.scan_id_dict.keys()) != len(self.scan_uid_dict.keys()):
-            self.scan_id_dict = None
+    def get_scan(self, uid_or_id: int):
 
-    def get_scan(self, scan_id: int):
-        """Returns scan from given numerical scan ID."""
+        if uid_or_id in self.scan_uid_dict.keys():
+            return self.scan_uid_dict[uid_or_id]
+        
+        for scan in self.scan_uid_dict.values():
+            if scan.scan_id == uid_or_id:
+                return scan
 
-        if type(scan_id) != int:
-            raise TypeError(f"Scan ID {scan_id} does not exist.")
+        raise KeyError(f"Scan with UID or ID '{uid_or_id}' not found.")
 
-        # Checks if scan ID exists
-        if scan_id not in self.scan_id_dict:
-            raise KeyError(f"Scan ID {scan_id} does not exist.")
+    def get_scans(self, uids_or_ids: list) -> list:
 
-        return self.scan_id_dict[scan_id]
-
-    def get_scans(self, scan_ids: list) -> list:
-        """Returns list of scans from given numerical scan ID's."""
-
-        if type(scan_ids) != list:
+        if type(uids_or_ids) != list:
             raise TypeError("Input needs to be a list.")
 
         scan_list = []
-        for scan_id in scan_ids:
-            scan = self.get_scan(scan_id=scan_id)
+        for uid_or_id in uids_or_ids:
+            scan = self.get_scan(uid_or_id=uid_or_id)
             scan_list.append(scan)
 
         return scan_list
@@ -110,7 +95,7 @@ class Catalog:
         self.app.exec_()
 
         
-class Scan:
+class Scan(object):
     """Houses data and metadata for a single scan."""
 
     catalog = None # Parent Catalog
@@ -137,20 +122,40 @@ class Scan:
 
         self.catalog = catalog
         self.uid = uid
-        self.bluesky_run = catalog.bluesky_catalog[uid]
-        self.scan_id = self.bluesky_run.metadata["start"]["scan_id"]
-        self.sample = self.bluesky_run.metadata["start"]["sample"]
-        self.proposal_id = self.bluesky_run.metadata["start"]["proposal_id"]
-        self.user = self.bluesky_run.metadata["start"]["user"]
-        self.motors = self.bluesky_run.metadata["start"]["motors"]
-        self.motor_bounds = utils._get_motor_bounds(self)
-        self.h, self.k, self.l = utils._get_hkl_centers(self)
-        self.bluesky_1d_vars = utils._get_bluesky_1d_variables(self)
 
-        # TODO: Figure out where to put these steps
-        self.rsm = utils._get_rsm_for_scan(self)
-        self.rsm_bounds = utils._get_rsm_bounds(self)
-        self.raw_data = utils._get_raw_data(self)
+    def __getattribute__(self, __name: str):
+
+        if __name == "bluesky_run":
+            return self.catalog.bluesky_catalog[self.uid]
+        elif __name == "scan_id":
+            return self.bluesky_run.metadata["start"]["scan_id"]
+        elif __name == "sample":
+            return self.bluesky_run.metadata["start"]["sample"]
+        elif __name == "proposal_id":
+            return self.bluesky_run.metadata["start"]["proposal_id"]
+        elif __name == "user":
+            return self.bluesky_run.metadata["start"]["user"]
+        elif __name == "motors":
+            return self.bluesky_run.metadata["start"]["motors"]
+        elif __name == "motor_bounds":
+            return utils._get_motor_bounds(self)
+        elif __name == "bluesky_1d_vars":
+            return utils._get_bluesky_1d_variables(self)
+        elif __name == "h":
+            return utils._get_hkl_centers(self)[0]
+        elif __name == "k":
+            return utils._get_hkl_centers(self)[1]
+        elif __name == "l":
+            return utils._get_hkl_centers(self)[2]
+        elif __name == "rsm":
+            return utils._get_rsm_for_scan(self)
+        elif __name == "rsm_bounds":
+            return utils._get_rsm_bounds(self)
+        elif __name == "raw_data":
+            return utils._get_raw_data(self)
+        else:
+            return object.__getattribute__(self, __name)
+        
 
     def point_count(self) -> int:
         """Returns number of points in scan."""
