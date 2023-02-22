@@ -126,37 +126,64 @@ class Scan(object):
     def __getattribute__(self, __name: str):
 
         if __name == "bluesky_run":
-            return self.catalog.bluesky_catalog[self.uid]
+            if object.__getattribute__(self, __name) is None:
+                object.__setattr__(self, __name, self.catalog.bluesky_catalog[self.uid])
+            return object.__getattribute__(self, __name)
         elif __name == "scan_id":
-            return self.bluesky_run.metadata["start"]["scan_id"]
+            if object.__getattribute__(self, __name) is None:
+                object.__setattr__(self, __name, self.bluesky_run.metadata["start"]["scan_id"])
+            return object.__getattribute__(self, __name) 
         elif __name == "sample":
-            return self.bluesky_run.metadata["start"]["sample"]
+            if object.__getattribute__(self, __name) is None:
+                object.__setattr__(self, __name, self.bluesky_run.metadata["start"]["sample"])
+            return object.__getattribute__(self, __name) 
         elif __name == "proposal_id":
-            return self.bluesky_run.metadata["start"]["proposal_id"]
+            if object.__getattribute__(self, __name) is None:
+                object.__setattr__(self, __name, self.bluesky_run.metadata["start"]["proposal_id"])
+            return object.__getattribute__(self, __name)
         elif __name == "user":
-            return self.bluesky_run.metadata["start"]["user"]
+            if object.__getattribute__(self, __name) is None:
+                object.__setattr__(self, __name, self.bluesky_run.metadata["start"]["user"])
+            return object.__getattribute__(self, __name)
         elif __name == "motors":
-            return self.bluesky_run.metadata["start"]["motors"]
+            if object.__getattribute__(self, __name) is None:
+                object.__setattr__(self, __name, self.bluesky_run.metadata["start"]["motors"])
+            return object.__getattribute__(self, __name)
         elif __name == "motor_bounds":
-            return utils._get_motor_bounds(self)
+            if object.__getattribute__(self, __name) is None:
+                object.__setattr__(self, __name, utils._get_motor_bounds(self))
+            return object.__getattribute__(self, __name)
         elif __name == "bluesky_1d_vars":
-            return utils._get_bluesky_1d_variables(self)
+            if object.__getattribute__(self, __name) is None:
+                object.__setattr__(self, __name, utils._get_bluesky_1d_variables(self))
+            return object.__getattribute__(self, __name)
         elif __name == "h":
-            return utils._get_hkl_centers(self)[0]
+            if object.__getattribute__(self, __name) is None:
+                object.__setattr__(self, __name, utils._get_hkl_centers(self)[0])
+            return object.__getattribute__(self, __name)
         elif __name == "k":
-            return utils._get_hkl_centers(self)[1]
+            if object.__getattribute__(self, __name) is None:
+                object.__setattr__(self, __name, utils._get_hkl_centers(self)[1])
+            return object.__getattribute__(self, __name)
         elif __name == "l":
-            return utils._get_hkl_centers(self)[2]
+            if object.__getattribute__(self, __name) is None:
+                object.__setattr__(self, __name, utils._get_hkl_centers(self)[2])
+            return object.__getattribute__(self, __name)
         elif __name == "rsm":
-            return utils._get_rsm_for_scan(self)
+            if object.__getattribute__(self, __name) is None:
+                object.__setattr__(self, __name, utils._get_rsm_for_scan(self))
+            return object.__getattribute__(self, __name)
         elif __name == "rsm_bounds":
-            return utils._get_rsm_bounds(self)
+            if object.__getattribute__(self, __name) is None:
+                object.__setattr__(self, __name, utils._get_rsm_bounds(self))
+            return object.__getattribute__(self, __name)
         elif __name == "raw_data":
-            return utils._get_raw_data(self)
+            if object.__getattribute__(self, __name) is None:
+                object.__setattr__(self, __name, utils._get_raw_data(self))
+            return object.__getattribute__(self, __name)
         else:
             return object.__getattribute__(self, __name)
         
-
     def point_count(self) -> int:
         """Returns number of points in scan."""
 
