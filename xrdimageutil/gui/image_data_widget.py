@@ -8,6 +8,7 @@ import pyqtgraph as pg
 from pyqtgraph.dockarea import Dock, DockArea
 
 from xrdimageutil import utils
+from xrdimageutil.gui.roi import RectROI
 
 
 class ScanImageDataWidget(QtWidgets.QWidget):
@@ -39,12 +40,24 @@ class ScanImageDataWidget(QtWidgets.QWidget):
 
 class ImageDataWidget(DockArea):
 
+    direction_changed = QtCore.pyqtSignal()
+
     def __init__(self, data, coords, dim_labels):
         super(ImageDataWidget, self).__init__()
 
         self.data = data
+        if coords is None:
+            coords = [
+                np.linspace(0, data.shape[0] - 1, data.shape[0]),
+                np.linspace(0, data.shape[1] - 1, data.shape[1]),
+                np.linspace(0, data.shape[2] - 1, data.shape[2])
+            ]
+
         self.coords = coords
         self.dim_labels = dim_labels
+        self.current_coords = coords
+        self.current_dim_order = dim_labels
+        self.rois, self.roi_docks = [], []
 
         self.image_widget = pg.ImageView(view=pg.PlotItem())
         self.image_widget.ui.histogram.hide()
@@ -62,6 +75,7 @@ class ImageDataWidget(DockArea):
         self.colorbar.setColorMap(self.colormap)
         self.colorbar.setImageItem(img=self.image_widget.getImageItem(), insert_in=self.image_widget.getView())
 
+        # Options widget
         self.options_widget = QtWidgets.QWidget()
         self.slice_lbl = QtWidgets.QLabel("Slicing Direction: ")
         self.slice_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
@@ -73,7 +87,15 @@ class ImageDataWidget(DockArea):
         self.options_widget.setLayout(self.options_layout)
         self.options_layout.addWidget(self.slice_lbl, 0, 0, 1, 1)
         self.options_layout.addWidget(self.slice_cbx, 0, 1, 1, 1)
-        self.options_layout.setColumnStretch(2, 5)
+
+        # Add ROI widget
+        self.add_roi_widget = QtWidgets.QWidget()
+        self.add_rect_roi_btn = QtWidgets.QPushButton("Add Rect ROI")
+        self.add_line_roi_btn = QtWidgets.QPushButton("Add Line ROI")
+        self.add_roi_layout = QtWidgets.QGridLayout()
+        self.add_roi_widget.setLayout(self.add_roi_layout)
+        self.add_roi_layout.addWidget(self.add_rect_roi_btn, 0, 0, 1, 1)
+        self.add_roi_layout.addWidget(self.add_line_roi_btn, 0, 1, 1, 1)
 
         self.image_dock = Dock(
             name="Image", 
@@ -83,62 +105,99 @@ class ImageDataWidget(DockArea):
         )
         self.options_dock = Dock(
             name="Options", 
-            size=(300, 10), 
+            size=(150, 10), 
             widget=self.options_widget,
+            hideTitle=True
+        )
+        self.add_roi_dock = Dock(
+            name="Add ROI", 
+            size=(150, 10), 
+            widget=self.add_roi_widget,
             hideTitle=True
         )
         self.addDock(self.image_dock)
         self.addDock(self.options_dock, "bottom", self.image_dock)
+        self.addDock(self.add_roi_dock, "right", self.options_dock)
 
         # Signals
         self.slice_cbx.currentIndexChanged.connect(self._change_orthogonal_slice_direction)
+        self.add_rect_roi_btn.clicked.connect(self._add_rect_roi)
 
+        self._change_orthogonal_slice_direction()
         self._load_data(data=self.data)
 
     def _load_data(self, data):
 
-        if self.coords is not None:
-            timeline_values = self.coords[0]
-        else:
-            timeline_values = None
-
         self.image_widget.setImage(
             img=data,
             transform=self.transform,
-            xvals=timeline_values
+            xvals=self.current_coords[0]
         )
         self.image_widget.setCurrentIndex(0)
 
     def _change_orthogonal_slice_direction(self):
 
         data = self.data
-        if self.coords is not None:
-            coords = self.coords[:]
+        coords = self.coords[:]
         labels = self.dim_labels[:]
-        prev_slice_dir = self.slice_dir
         slice_dir = self.slice_cbx.currentIndex()
-        self.slice_dir = slice_dir
 
         # Swaps axis labels
-        labels[0], labels[slice_dir] = labels[slice_dir], labels[0]
-        self.image_widget.getView().setLabel("bottom", labels[1])
-        self.image_widget.getView().setLabel("left", labels[2])
+        slice_dim = labels.pop(slice_dir)
+        self.current_dim_order = [slice_dim] + labels
+        self.image_widget.getView().setLabel("bottom", labels[0])
+        self.image_widget.getView().setLabel("left", labels[1])
+        
+        # Swap dim coords
+        slice_coords = coords.pop(slice_dir)
+        self.current_coords = [slice_coords] + coords
+        scale = (
+            coords[0][1] - coords[0][0],
+            coords[1][1] - coords[1][0]
+        )
+        pos = [coords[0][0], coords[1][0]]
 
-        # Changes image bounds
-        if self.coords is not None:
-            if slice_dir != 0:
-                coords[0], coords[slice_dir] = coords[slice_dir], coords[0]
-            else:
-                coords[prev_slice_dir], coords[slice_dir] = coords[slice_dir], coords[prev_slice_dir]
-            scale = (
-                coords[1][1] - coords[1][0],
-                coords[2][1] - coords[2][0]
-            )
-            pos = [coords[1][0], coords[2][0]]
-            self.transform.reset()
-            self.transform.translate(*pos)
-            self.transform.scale(*scale)
+        self.transform.reset()
+        self.transform.translate(*pos)
+        self.transform.scale(*scale)
 
         # Swaps data axes to match new dimension order
-        data = np.swapaxes(data, 0, slice_dir)
+        dim_order = [0, 1, 2]
+        slice_dim = dim_order.pop(slice_dir)
+        new_order = [slice_dim] + dim_order
+        data = np.transpose(data, axes=new_order)
         self._load_data(data=data)
+
+        self.direction_changed.emit()
+
+    def _get_dim_index(self, dim: str) -> int:
+        return self.current_dim_order.index(dim)
+    
+    def _add_rect_roi(self):
+        if len(self.rois) < 2:
+            pos = (self.current_coords[1][0], self.current_coords[2][0])
+            size = (
+                self.current_coords[1][-1] - self.current_coords[1][0],
+                self.current_coords[2][-1] - self.current_coords[2][0]
+            )
+            
+            roi = RectROI(pos=pos,size=size,image_widget=self)
+            roi_dock = Dock(
+                name="ROI", 
+                size=(100, 310), 
+                widget=roi.controller,
+                hideTitle=True
+            )
+            self.image_widget.addItem(roi)
+
+            self.rois.append(roi)
+            self.roi_docks.append(roi_dock)
+
+            self.addDock(roi_dock, "right")
+    
+    def _remove_roi(self, roi):
+        i = self.rois.index(roi)
+        dock = self.roi_docks.pop(i)
+        dock.deleteLater()
+        roi = self.rois.pop(i)
+        roi.deleteLater()
