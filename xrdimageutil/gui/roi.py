@@ -189,3 +189,16 @@ class ROIController(QtWidgets.QWidget):
         
     def _remove_roi(self):
         ...
+
+    def _set_roi_color(self):
+        ...
+
+    def _select_roi_output_type(self):
+        ...
+
+    def _set_roi_output_details_widgets(self):
+        ...
+
+    def _display_roi_output(self):
+        ...
+    
