@@ -57,6 +57,7 @@ class ImageDataWidget(DockArea):
         self.dim_labels = dim_labels
         self.current_coords = coords
         self.current_dim_order = dim_labels
+        self.num_dim_order = [0, 1, 2]
         self.rois, self.roi_docks = [], []
 
         self.image_widget = pg.ImageView(view=pg.PlotItem())
@@ -165,6 +166,7 @@ class ImageDataWidget(DockArea):
         dim_order = [0, 1, 2]
         slice_dim = dim_order.pop(slice_dir)
         new_order = [slice_dim] + dim_order
+        self.num_dim_order = new_order
         data = np.transpose(data, axes=new_order)
         self._load_data(data=data)
 
