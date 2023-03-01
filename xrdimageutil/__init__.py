@@ -3,6 +3,7 @@ See LICENSE file.
 """
 
 import databroker
+import numpy as np
 from prettytable import PrettyTable
 import pyqtgraph as pg
 import xrayutilities as xu
@@ -115,6 +116,7 @@ class Scan(object):
     rsm = None # Reciprocal space map for every point within a scan
     rsm_bounds = None # Min/max HKL values for RSM
     raw_data = None # 3D numpy array of scan data
+    raw_data_coords = None
     gridded_data = None # Interpolated and transformed scan data
     gridded_data_coords = None # HKL coordinates for gridded data
 
@@ -181,6 +183,15 @@ class Scan(object):
             if object.__getattribute__(self, __name) is None:
                 object.__setattr__(self, __name, utils._get_raw_data(self))
             return object.__getattribute__(self, __name)
+        elif __name == "raw_data_coords":
+            if object.__getattribute__(self, __name) is None:
+                coords = {
+                    "t": np.linspace(0, self.raw_data.shape[0] - 1, self.raw_data.shape[0]),
+                    "x": np.linspace(0, self.raw_data.shape[1] - 1, self.raw_data.shape[1]),
+                    "y": np.linspace(0, self.raw_data.shape[2] - 1, self.raw_data.shape[2]),
+                }
+                object.__setattr__(self, __name, coords)
+            return object.__getattribute__(self, __name)
         else:
             return object.__getattribute__(self, __name)
         
@@ -236,7 +247,11 @@ class Scan(object):
         self.gridded_data = gridder.data
 
         # Retrieves HKL coordinates for gridded data
-        self.gridded_data_coords = [gridder.xaxis, gridder.yaxis, gridder.zaxis]
+        self.gridded_data_coords = {
+            "H": gridder.xaxis, 
+            "K": gridder.yaxis, 
+            "L": gridder.zaxis
+        }
 
     def view_image_data(self) -> None:
         """Displays Scan image data in an interactive GUI."""
