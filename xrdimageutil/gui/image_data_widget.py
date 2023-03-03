@@ -49,7 +49,6 @@ class ImageDataWidget(DockArea):
         self.data = data
         self.coords = coords
         self.dim_labels = dim_labels
-        self.current_coords = coords
         self.current_dim_order = dim_labels
         self.num_dim_order = [0, 1, 2]
         self.rois, self.roi_docks = [], []
@@ -83,15 +82,6 @@ class ImageDataWidget(DockArea):
         self.options_layout.addWidget(self.slice_lbl, 0, 0, 1, 1)
         self.options_layout.addWidget(self.slice_cbx, 0, 1, 1, 1)
 
-        # Add ROI widget
-        self.add_roi_widget = QtWidgets.QWidget()
-        self.add_rect_roi_btn = QtWidgets.QPushButton("Add Rect ROI")
-        self.add_line_roi_btn = QtWidgets.QPushButton("Add Line ROI")
-        self.add_roi_layout = QtWidgets.QGridLayout()
-        self.add_roi_widget.setLayout(self.add_roi_layout)
-        self.add_roi_layout.addWidget(self.add_rect_roi_btn, 0, 0, 1, 1)
-        self.add_roi_layout.addWidget(self.add_line_roi_btn, 0, 1, 1, 1)
-
         self.image_dock = Dock(
             name="Image", 
             size=(300, 300), 
@@ -104,22 +94,17 @@ class ImageDataWidget(DockArea):
             widget=self.options_widget,
             hideTitle=True
         )
-        self.add_roi_dock = Dock(
-            name="Add ROI", 
-            size=(150, 10), 
-            widget=self.add_roi_widget,
-            hideTitle=True
-        )
         self.addDock(self.image_dock)
         self.addDock(self.options_dock, "bottom", self.image_dock)
-        self.addDock(self.add_roi_dock, "right", self.options_dock)
 
         # Signals
         self.slice_cbx.currentIndexChanged.connect(self._change_orthogonal_slice_direction)
-        self.add_rect_roi_btn.clicked.connect(self._add_rect_roi)
 
         self._change_orthogonal_slice_direction()
         self._load_data(data=self.data)
+
+        #self._add_rect_roi()
+        self._add_rect_roi()
 
     def _load_data(self, data):
 
@@ -141,7 +126,7 @@ class ImageDataWidget(DockArea):
         self.current_dim_order = [slice_dim] + labels
         self.image_widget.getView().setLabel("bottom", labels[0])
         self.image_widget.getView().setLabel("left", labels[1])
-        
+
         # Swap dim coords
         x_coords = self.coords[self.current_dim_order[1]]
         y_coords = self.coords[self.current_dim_order[2]]
@@ -149,6 +134,7 @@ class ImageDataWidget(DockArea):
             x_coords[1] - x_coords[0],
             y_coords[1] - y_coords[0]
         )
+
         pos = [x_coords[0], y_coords[0]]
 
         self.transform.reset()
@@ -169,29 +155,31 @@ class ImageDataWidget(DockArea):
         return self.current_dim_order.index(dim)
     
     def _add_rect_roi(self):
-        if len(self.rois) < 2:
-            
-            x_coords = self.coords[self.current_dim_order[1]]
-            y_coords = self.coords[self.current_dim_order[2]]
-            size = (
-                x_coords[-1] - x_coords[0],
-                y_coords[-1] - y_coords[0]
-            )
-            pos = [x_coords[0], y_coords[0]]
-            
-            roi = GraphicalRectROI(pos=pos,size=size,image_widget=self)
-            roi_dock = Dock(
-                name="ROI", 
-                size=(100, 310), 
-                widget=roi.controller,
-                hideTitle=True
-            )
-            self.image_widget.addItem(roi)
+        x_coords = self.coords[self.current_dim_order[1]]
+        y_coords = self.coords[self.current_dim_order[2]]
+        size = (
+            x_coords[-1] - x_coords[0],
+            y_coords[-1] - y_coords[0]
+        )
+        pos = [x_coords[0], y_coords[0]]
+        
+        roi = GraphicalRectROI(pos=pos,size=size,image_widget=self)
+        roi_dock = Dock(
+            name="ROI", 
+            size=(100, 310), 
+            widget=roi.controller,
+            hideTitle=True
+        )
+        self.image_widget.addItem(roi)
 
-            self.rois.append(roi)
-            self.roi_docks.append(roi_dock)
+        self.rois.append(roi)
+        self.roi_docks.append(roi_dock)
 
+        if len(self.rois) == 1:
             self.addDock(roi_dock, "right")
+        elif len(self.rois) == 2:
+            self.addDock(roi_dock, "right")
+            self.moveDock(roi_dock, "bottom", self.roi_docks[0])
     
     def _remove_roi(self, roi):
         i = self.rois.index(roi)
@@ -230,10 +218,10 @@ class GraphicalRectROI(pg.RectROI):
         self._center()
         self._set_color(color=self.color)
 
-    def _set_bounds(self, bounds):
+    def _set_bounds(self, bounds) -> None:
         self.roi.set_bounds(bounds)
 
-    def _update_graphical_roi(self):
+    def _update_graphical_roi(self) -> None:
         x_pos, y_pos, x_size, y_size = None, None, None, None
         dim_order = self.image_widget.current_dim_order
         x_dim, y_dim = dim_order[1], dim_order[2]
@@ -244,6 +232,8 @@ class GraphicalRectROI(pg.RectROI):
 
         self.setPos(pos=(x_pos, y_pos))
         self.setSize(size=(x_size, y_size))
+
+        self._update_bounds_from_graphical_roi()
 
     def _update_bounds_from_graphical_roi(self) -> None:
         dim_order = self.image_widget.current_dim_order
@@ -267,9 +257,10 @@ class GraphicalRectROI(pg.RectROI):
         self._set_bounds(bounds)
         self.controller._update_controller_bounds_from_roi()
 
-    def _center(self):
+    def _center(self) -> None:
 
         dim_order = self.image_widget.current_dim_order
+
         bounds = {}
 
         for dim in dim_order:
@@ -443,4 +434,3 @@ class GraphicalRectROIController(QtWidgets.QWidget):
             ax.set_ylabel(labels[1])
         ax.set_title(title) 
         plt.show()
-
