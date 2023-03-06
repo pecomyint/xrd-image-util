@@ -103,7 +103,7 @@ class ImageDataWidget(DockArea):
         self._change_orthogonal_slice_direction()
         self._load_data(data=self.data)
 
-        #self._add_rect_roi()
+        self._add_rect_roi()
         self._add_rect_roi()
 
     def _load_data(self, data):
@@ -269,6 +269,7 @@ class GraphicalRectROI(pg.RectROI):
         self._set_bounds(bounds)
         self._update_graphical_roi()
         self.controller._update_controller_bounds_from_roi()
+        self.image_widget.image_widget.autoRange()
 
     def _remove(self) -> None:
         self.controller.deleteLater()
@@ -302,7 +303,7 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         self.center_roi_btn = QtWidgets.QPushButton("Center")
         self.remove_roi_btn = QtWidgets.QPushButton("Remove")
         self.output_type_cbx = QtWidgets.QComboBox()
-        self.output_type_cbx.addItems(["Average (frame)", "Average (x)", "Average (y)", "Average (frame, x)", "Average (frame, y)", "Average (x, y)"])
+        self.output_type_cbx.addItems(["Average (frame-var)", "Average (x-var)", "Average (y-var)", "Average (frame-var, x-var)", "Average (frame-var, y-var)", "Average (x-var, y-var)"])
         self.output_type_lbl = QtWidgets.QLabel("Output:")
         self.output_type_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.show_output_btn = QtWidgets.QPushButton("Show Output")
@@ -371,10 +372,10 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         for dim, min_sbx, max_sbx in zip(self.dims, self.min_sbxs, self.max_sbxs):
             dim_bounds = bounds[dim]
             if dim_bounds is None or dim_order.index(dim) == 0:
-                min_sbx.setValue(0)
                 min_sbx.setEnabled(False)
-                max_sbx.setValue(0)
                 max_sbx.setEnabled(False)
+                min_sbx.setValue(0)
+                max_sbx.setValue(0)
             else:
                 min_sbx.setEnabled(True)
                 max_sbx.setEnabled(True)
@@ -404,17 +405,17 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         }
         if "Average" in str_type:
             calculation["output"] = "average"
-        if "(frame)" in str_type:
+        if "(frame-var)" in str_type:
             calculation["dims"] = dim_order[0]
-        elif "(x)" in str_type:
+        elif "(x-var)" in str_type:
             calculation["dims"] = dim_order[1]
-        elif "(y)" in str_type:
+        elif "(y-var)" in str_type:
             calculation["dims"] = dim_order[2]
-        elif "(frame, x)" in str_type:
+        elif "(frame-var, x-var)" in str_type:
             calculation["dims"] = dim_order[0:2]
-        elif "(frame, y)" in str_type:
+        elif "(frame-var, y-var)" in str_type:
             calculation["dims"] = [dim_order[0], dim_order[2]]
-        elif "(x, y)" in str_type:
+        elif "(x-var, y-var)" in str_type:
             calculation["dims"] = dim_order[1:]
 
         output = self.roi._get_output(calculation)
