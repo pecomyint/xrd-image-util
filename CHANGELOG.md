@@ -1,11 +1,14 @@
 # CHANGELOG
 
-## [0.5.0] - 2023-02-24 (estimated)
+## [0.5.0] - 2023-03-06
 
 ### Added
-- Monitor variable to line data GUI. If selected, y-axis variable will be divided by the monitor.
+- Lazy loading for Scan class variables.
+- RectROI class - Creates a rectangular region of interest that can present output from a series of scans.
+- Line Data GUI: Monitor variable. If selected, y-axis variable will be divided by the monitor.
+- Image Data GUI: Rectangular ROI's with controls.
 
-### Changed
+##### Changed
 - Line data GUI variable selector now holds list of all variables available in a catalog. Scans that do not include a selected variable name are blacked out and cannot be plotted.
 
 ## [0.4.0] - 2023-02-10
