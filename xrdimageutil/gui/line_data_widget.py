@@ -18,7 +18,7 @@ class CatalogLineDataWidget(DockArea):
         super(CatalogLineDataWidget, self).__init__()
 
         self.catalog = catalog
-        self.scans = [self.catalog.scan_id_dict[id] for id in sorted(list(self.catalog.scan_id_dict.keys()))]
+        self.scans = catalog.scan_uid_dict.values()
         self.scan_items = None
 
         # Child widgets
@@ -75,6 +75,8 @@ class CatalogLineDataWidget(DockArea):
             if "primary" in scan.bluesky_run.keys():
                 scan_item = CLDWScanItem(parent=self, scan=scan)
                 self.scan_items.append(scan_item)
+
+        self.scan_items.sort(key=lambda x: x.scan.scan_id)
 
     def _load_scan_items(self):
         """Loads Scan items into application."""
