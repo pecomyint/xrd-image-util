@@ -5,6 +5,13 @@ import xrdimageutil as xiu
 
 
 class ROI(ABC):
+    """General region of interest class.
+    
+    This class (and its child classes) handle backend calculations for ROI's.
+    The ROI class that deals specifically with the GUI frontend can be found 
+    in xiu.gui.image_data_widget.
+    """
+
     data_type = None
     bounds = None
     calculation = None
@@ -89,6 +96,8 @@ class RectROI(ROI):
                 raise ValueError("Bounds for each dimension must be either a tuple of lower/upper bounds or 'None'.")
     
     def set_calculation(self, calc: dict) -> None:
+        """Sets the calculation dictionary for an ROI."""
+
         if set(list(calc.keys())) != set(["output", "dims"]):
             raise ValueError("Calculation requires an output value (average, max) and a list of dimensions to calculate along")
         
@@ -104,6 +113,8 @@ class RectROI(ROI):
         self.calculation = calc   
     
     def calculate(self, scan=None, data=None, coords=None) -> None:
+        """Calculates ROI output given a specific scan/dataset and a calculation dict."""
+
         output = {
             "data": None,
             "coords": None,
@@ -174,6 +185,8 @@ class RectROI(ROI):
             self.output = output
 
     def _get_pixel_bounds(self, coords) -> dict:
+        """Returns the pixel indicies that correspond to the ROI's bounds."""
+
         bounds = self.bounds
         if self.data_type == "raw":
             dim_list = ["t", "x", "y"]
@@ -200,15 +213,13 @@ class RectROI(ROI):
             pixel_bounds.append((min_dim_pixel, max_dim_pixel))
 
         return pixel_bounds
-    
-    def _set_output_label(self, label: str) -> None:
-        self.output["label"] = label
 
     def get_output(self) -> dict:
+        """Returns the ROI output dictionary."""
         return self.output
 
 
-class LineROI(ROI):
+'''class LineROI(ROI):
     """A line segment region of interest to be applied to Scan image data.
     
     This ROI is bounded by explicit endpoints that can be set with the
@@ -265,3 +276,4 @@ class LineROI(ROI):
     
     def get_output() -> dict:
         pass
+'''
