@@ -164,7 +164,7 @@ class RectROI(ROI):
                 indicies_to_average_on = (dim_list.index(dims_wrt[0]), dim_list.index(dims_wrt[1]))
                 index_to_collapse = tuple(set([0, 1, 2]) - set(indicies_to_average_on))
 
-                output["data"] = np.mean(data, axis=index_to_collapse)
+                output["data"] = np.mean(data, axis=index_to_collapse).T
                 output["coords"] = {
                     dims_wrt[0]: coords[dims_wrt[0]],
                     dims_wrt[1]: coords[dims_wrt[1]]
@@ -205,9 +205,6 @@ class RectROI(ROI):
         self.output["label"] = label
 
     def get_output(self) -> dict:
-        print(f"BOUNDS: {self.bounds}")
-        print(f"CALC: {self.calculation}")
-        print(f"OUTPUT SHAPE: {self.output['data'].shape}")
         return self.output
 
 
