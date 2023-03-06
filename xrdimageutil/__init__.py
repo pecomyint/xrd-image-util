@@ -34,6 +34,7 @@ class Catalog:
         self.scan_uid_dict = dict([(uid, Scan(catalog=self, uid=uid)) for uid in list(self.bluesky_catalog)])
 
     def get_scan(self, uid_or_id: int):
+        """Returns Scan object from given identifier."""
 
         if uid_or_id in self.scan_uid_dict.keys():
             return self.scan_uid_dict[uid_or_id]
@@ -45,6 +46,7 @@ class Catalog:
         raise KeyError(f"Scan with UID or ID '{uid_or_id}' not found.")
 
     def get_scans(self, uids_or_ids: list) -> list:
+        """Returns Scan objects from list of given identifiers."""
 
         if type(uids_or_ids) != list:
             raise TypeError("Input needs to be a list.")
@@ -126,6 +128,7 @@ class Scan(object):
         self.uid = uid
 
     def __getattribute__(self, __name: str):
+        """Lazy loading for class variables."""
 
         if __name == "bluesky_run":
             if object.__getattribute__(self, __name) is None:
