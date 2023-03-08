@@ -82,6 +82,7 @@ class ImageDataWidget(DockArea):
         self.options_layout.addWidget(self.slice_lbl, 0, 0, 1, 1)
         self.options_layout.addWidget(self.slice_cbx, 0, 1, 1, 1)
 
+        # Docks
         self.image_dock = Dock(
             name="Image", 
             size=(300, 300), 
@@ -105,6 +106,16 @@ class ImageDataWidget(DockArea):
 
         self._add_rect_roi()
         self._add_rect_roi()
+
+        '''self.subtract_rect_rois_btn = QtWidgets.QPushButton("Show Subtraction Output")
+        self.rect_roi_subtraction_dock = Dock(
+            name="ROI Subtraction", 
+            size=(100, 10), 
+            widget=self.subtract_rect_rois_btn,
+            hideTitle=True
+        )
+        self.addDock(self.rect_roi_subtraction_dock, "right", self.options_dock)
+        self.moveDock(self.rect_roi_subtraction_dock, "bottom", self.roi_docks[1])'''
 
     def _load_data(self, data):
 
@@ -211,6 +222,7 @@ class GraphicalRectROI(pg.RectROI):
         self.addScaleHandle((1, 1), (0, 0), index=1)
         self.addScaleHandle((0, 1), (1, 0), index=2)
         self.addScaleHandle((1, 0), (0, 1), index=3)
+        self.hide()
 
         self.sigRegionChanged.connect(self._update_bounds_from_graphical_roi)
         self.controller.updated.connect(self._update_graphical_roi)
@@ -222,15 +234,15 @@ class GraphicalRectROI(pg.RectROI):
         self.roi.set_bounds(bounds)
 
     def _update_graphical_roi(self) -> None:
-        x_pos, y_pos, x_size, y_size = None, None, None, None
+        x_1, y_1, x_size, y_size = None, None, None, None
         dim_order = self.image_widget.current_dim_order
         x_dim, y_dim = dim_order[1], dim_order[2]
 
-        x_pos, y_pos = self.roi.bounds[x_dim][0], self.roi.bounds[y_dim][0]
-        x_size = self.roi.bounds[x_dim][1] - x_pos
-        y_size = self.roi.bounds[y_dim][1] - y_pos
+        x_1, y_1 = self.roi.bounds[x_dim][0], self.roi.bounds[y_dim][0]
+        x_size = self.roi.bounds[x_dim][1] - x_1
+        y_size = self.roi.bounds[y_dim][1] - y_1
 
-        self.setPos(pos=(x_pos, y_pos))
+        self.setPos(pos=(x_1, y_1))
         self.setSize(size=(x_size, y_size))
 
         self._update_bounds_from_graphical_roi()
@@ -245,6 +257,15 @@ class GraphicalRectROI(pg.RectROI):
         
         x_1, y_1 = pos_1.x(), pos_1.y()
         x_2, y_2 = pos_2.x(), pos_2.y()
+
+        x_dim, y_dim = dim_order[1], dim_order[2]
+        img_x_1, img_x_2 = self.image_widget.coords[x_dim][0], self.image_widget.coords[x_dim][-1]
+        img_y_1, img_y_2 = self.image_widget.coords[y_dim][0], self.image_widget.coords[y_dim][-1]
+
+        if x_1 < img_x_1 or y_1 < img_y_1 or x_2 > img_x_2 or y_2 > img_y_2:
+            self.controller.show_output_btn.setEnabled(False)
+        else:
+            self.controller.show_output_btn.setEnabled(True)
 
         for i, dim in zip(range(3), dim_order):
             if i == 0:
@@ -286,7 +307,7 @@ class GraphicalRectROI(pg.RectROI):
         self.roi.calculate(data=self.image_widget.data, coords=self.image_widget.coords)
         return self.roi.get_output()
 
-
+        
 class GraphicalRectROIController(QtWidgets.QWidget):
     updated = QtCore.pyqtSignal()
 
@@ -296,12 +317,9 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         self.roi = roi
         self.dims = roi.image_widget.dim_labels
 
-        self.roi_type_lbl = QtWidgets.QLabel("Rectangular ROI")
-        self.roi_type_lbl.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
         self.show_roi_chkbx = QtWidgets.QCheckBox("Show")
-        self.show_roi_chkbx.setChecked(True)
+        self.show_roi_chkbx.setChecked(False)
         self.center_roi_btn = QtWidgets.QPushButton("Center")
-        self.remove_roi_btn = QtWidgets.QPushButton("Remove")
         self.output_type_cbx = QtWidgets.QComboBox()
         self.output_type_cbx.addItems(["Average (frame-var)", "Average (x-var)", "Average (y-var)", "Average (frame-var, x-var)", "Average (frame-var, y-var)", "Average (x-var, y-var)"])
         self.output_type_lbl = QtWidgets.QLabel("Output:")
@@ -318,37 +336,34 @@ class GraphicalRectROIController(QtWidgets.QWidget):
 
         for sbx in self.min_sbxs + self.max_sbxs:
             sbx.setDecimals(5)
-            sbx.setSingleStep(0.1)
+            sbx.setSingleStep(0.5)
             sbx.setRange(-1000, 1000)
         
         self.layout = QtWidgets.QGridLayout()
         self.setLayout(self.layout)
-        self.layout.addWidget(self.roi_type_lbl, 0, 0, 1, 4)
-        self.layout.addWidget(self.show_roi_chkbx, 0, 4, 1, 3)
-        self.layout.addWidget(self.color_btn, 1, 0, 1, 7)
-        self.layout.addWidget(self.center_roi_btn, 2, 0, 1, 7)
-        self.layout.addWidget(self.remove_roi_btn, 3, 0, 1, 7)
-        self.layout.addWidget(self.dim_lbls[0], 4, 0, 1, 1)
-        self.layout.addWidget(self.dim_lbls[1], 5, 0, 1, 1)
-        self.layout.addWidget(self.dim_lbls[2], 6, 0, 1, 1)
-        self.layout.addWidget(self.min_sbxs[0], 4, 1, 1, 3)
-        self.layout.addWidget(self.min_sbxs[1], 5, 1, 1, 3)
-        self.layout.addWidget(self.min_sbxs[2], 6, 1, 1, 3)
-        self.layout.addWidget(self.max_sbxs[0], 4, 4, 1, 3)
-        self.layout.addWidget(self.max_sbxs[1], 5, 4, 1, 3)
-        self.layout.addWidget(self.max_sbxs[2], 6, 4, 1, 3)
-        self.layout.addWidget(self.output_type_lbl, 7, 0, 1, 1)
-        self.layout.addWidget(self.output_type_cbx, 7, 1, 1, 6)
-        self.layout.addWidget(self.show_output_btn, 8, 0, 1, 7)
+        self.layout.addWidget(self.show_roi_chkbx, 0, 0, 1, 2)
+        self.layout.addWidget(self.center_roi_btn, 0, 2, 1, 7)
+        self.layout.addWidget(self.color_btn, 1, 0, 1, 9)
+        self.layout.addWidget(self.dim_lbls[0], 2, 0, 1, 1)
+        self.layout.addWidget(self.dim_lbls[1], 3, 0, 1, 1)
+        self.layout.addWidget(self.dim_lbls[2], 4, 0, 1, 1)
+        self.layout.addWidget(self.min_sbxs[0], 2, 1, 1, 4)
+        self.layout.addWidget(self.min_sbxs[1], 3, 1, 1, 4)
+        self.layout.addWidget(self.min_sbxs[2], 4, 1, 1, 4)
+        self.layout.addWidget(self.max_sbxs[0], 2, 5, 1, 4)
+        self.layout.addWidget(self.max_sbxs[1], 3, 5, 1, 4)
+        self.layout.addWidget(self.max_sbxs[2], 4, 5, 1, 4)
+        self.layout.addWidget(self.output_type_lbl, 5, 0, 1, 2)
+        self.layout.addWidget(self.output_type_cbx, 5, 2, 1, 7)
+        self.layout.addWidget(self.show_output_btn, 6, 0, 1, 9)
         
-        for i in range(7):
+        for i in range(self.layout.columnCount()):
             self.layout.setColumnStretch(i, 1)
-
-        self.layout.setRowStretch(9, 5)
+        for i in range(self.layout.rowCount()):
+            self.layout.setRowStretch(i, 1)
 
         self.show_roi_chkbx.stateChanged.connect(self._toggle_roi_visibility)
         self.center_roi_btn.clicked.connect(self.roi._center)
-        self.remove_roi_btn.clicked.connect(self.roi._remove)
         self.color_btn.sigColorChanged.connect(self._set_roi_color)
         for sbx in self.min_sbxs + self.max_sbxs:
             sbx.editingFinished.connect(self._update_roi_from_controller_bounds)
@@ -430,8 +445,9 @@ class GraphicalRectROIController(QtWidgets.QWidget):
             ax.plot(coords[0], data)
             ax.set_xlabel(labels[0])
         else:
-            ax.imshow(data, aspect="auto", extent=(coords[0][0], coords[0][-1], coords[1][0], coords[1][-1]))
+            ax.imshow(np.flipud(data), aspect="auto", extent=(coords[0][0], coords[0][-1], coords[1][0], coords[1][-1]))
             ax.set_xlabel(labels[0])
             ax.set_ylabel(labels[1])
+            ax.invert_yaxis()
         ax.set_title(title) 
         plt.show()
