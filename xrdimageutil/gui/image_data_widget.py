@@ -63,7 +63,7 @@ class ImageDataWidget(DockArea):
         self.image_widget.getView().setLabel("left", dim_labels[2])
         self.transform = QtGui.QTransform()
 
-        self.colormap = utils._create_colormap(name="turbo", scale="log", max=np.amax(data))
+        self.colormap = utils._create_colormap(name="magma", scale="linear", max=np.amax(data))
         self.image_widget.setColorMap(colormap=self.colormap)
         self.colorbar = pg.ColorBarItem(values=(0, np.amax(data)), cmap=self.colormap, interactive=False, width=15, orientation="v")
         self.colorbar.setColorMap(self.colormap)
@@ -77,10 +77,56 @@ class ImageDataWidget(DockArea):
         self.slice_cbx.addItems(dim_labels)
         self.slice_cbx.setCurrentIndex(0)
         self.slice_dir = 0
+        self.colormap_gbx = QtWidgets.QGroupBox()
+        self.colormap_gbx.setTitle("Colormap")
+        self.colormap_gbx_layout = QtWidgets.QGridLayout()
+        self.colormap_gbx.setLayout(self.colormap_gbx_layout)
+        self.colormap_cbx = QtWidgets.QComboBox()
+        self.colormap_cbx.addItems(pg.colormap.listMaps(source="matplotlib"))
+        self.colormap_scale_cbx = QtWidgets.QComboBox()
+        self.colormap_scale_cbx.addItems(["linear", "log", "power"])
+        self.colormap_max_lbl = QtWidgets.QLabel("Maximum:")
+        self.colormap_max_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        self.colormap_max_sbx = QtWidgets.QDoubleSpinBox()
+        self.colormap_max_sbx.setMinimum(1)
+        self.colormap_max_sbx.setMaximum(10000000)
+        self.colormap_max_sbx.setSingleStep(10)
+        self.colormap_max_sbx.setValue(np.amax(data))
+        self.base_lbl = QtWidgets.QLabel("Base:")
+        self.base_lbl.hide()
+        self.base_sbx = QtWidgets.QDoubleSpinBox()
+        self.base_sbx.setMinimum(0)
+        self.base_sbx.setMaximum(100)
+        self.base_sbx.setSingleStep(0.25)
+        self.base_sbx.setValue(2)
+        self.base_sbx.hide()
+        self.gamma_lbl = QtWidgets.QLabel("Gamma:")
+        self.gamma_lbl.hide()
+        self.gamma_sbx = QtWidgets.QDoubleSpinBox()
+        self.gamma_sbx.setMinimum(0)
+        self.gamma_sbx.setMaximum(100)
+        self.gamma_sbx.setSingleStep(0.25)
+        self.gamma_sbx.setValue(2)
+        self.gamma_sbx.hide()
         self.options_layout = QtWidgets.QGridLayout()
         self.options_widget.setLayout(self.options_layout)
-        self.options_layout.addWidget(self.slice_lbl, 0, 0, 1, 1)
-        self.options_layout.addWidget(self.slice_cbx, 0, 1, 1, 1)
+        self.options_layout.addWidget(self.slice_lbl, 0, 2, 1, 1)
+        self.options_layout.addWidget(self.slice_cbx, 0, 3, 1, 1)
+        self.options_layout.addWidget(self.colormap_gbx, 1, 0, 2, 4)
+        self.colormap_gbx_layout.addWidget(self.colormap_cbx, 0, 0, 1, 1)
+        self.colormap_gbx_layout.addWidget(self.colormap_scale_cbx, 0, 1, 1, 1)
+        self.colormap_gbx_layout.addWidget(self.colormap_max_lbl, 0, 2, 1, 1)
+        self.colormap_gbx_layout.addWidget(self.colormap_max_sbx, 0, 3, 1, 1)
+        self.colormap_gbx_layout.addWidget(self.base_lbl, 0, 4, 1, 1)
+        self.colormap_gbx_layout.addWidget(self.gamma_lbl, 0, 4, 1, 1)
+        self.colormap_gbx_layout.addWidget(self.base_sbx, 0, 5, 1, 1)
+        self.colormap_gbx_layout.addWidget(self.gamma_sbx, 0, 5, 1, 1)
+        
+
+        for i in range(self.options_layout.columnCount()):
+            self.options_layout.setColumnStretch(i, 1)
+        for i in range(self.options_layout.rowCount()):
+            self.options_layout.setRowStretch(i, 1)
 
         # Docks
         self.image_dock = Dock(
@@ -100,6 +146,12 @@ class ImageDataWidget(DockArea):
 
         # Signals
         self.slice_cbx.currentIndexChanged.connect(self._change_orthogonal_slice_direction)
+        self.colormap_cbx.currentIndexChanged.connect(self._set_colormap)
+        self.colormap_scale_cbx.currentIndexChanged.connect(self._toggle_colormap_scale)
+        self.colormap_scale_cbx.currentIndexChanged.connect(self._set_colormap)
+        self.colormap_max_sbx.valueChanged.connect(self._set_colormap)
+        self.base_sbx.valueChanged.connect(self._set_colormap)
+        self.gamma_sbx.valueChanged.connect(self._set_colormap)
 
         self._change_orthogonal_slice_direction()
         self._load_data(data=self.data)
@@ -199,6 +251,40 @@ class ImageDataWidget(DockArea):
         roi = self.rois.pop(i)
         roi.deleteLater()
 
+    def _set_colormap(self):
+        name = self.colormap_cbx.currentText()
+        scale = self.colormap_scale_cbx.currentText()
+        max = self.colormap_max_sbx.value()
+        if scale == "log":
+            base = self.base_sbx.value()
+        else:
+            base = None
+        if scale == "power":
+            gamma = self.gamma_sbx.value()
+        else:
+            gamma = None
+        self.colormap = utils._create_colormap(name=name, scale=scale, max=max, base=base, gamma=gamma)
+        self.image_widget.setColorMap(colormap=self.colormap)
+        self.colorbar.setColorMap(self.colormap)
+        self.colorbar.setLevels((0, max))
+        
+    def _toggle_colormap_scale(self):
+        scale = self.colormap_scale_cbx.currentText()
+        if scale == "linear":
+            self.base_lbl.hide()
+            self.base_sbx.hide()
+            self.gamma_lbl.hide()
+            self.gamma_sbx.hide()
+        elif scale == "log":
+            self.base_lbl.show()
+            self.base_sbx.show()
+            self.gamma_lbl.hide()
+            self.gamma_sbx.hide()
+        elif scale == "power":
+            self.base_lbl.hide()
+            self.base_sbx.hide()
+            self.gamma_lbl.show()
+            self.gamma_sbx.show()
 
 class GraphicalRectROI(pg.RectROI):
 
@@ -228,6 +314,7 @@ class GraphicalRectROI(pg.RectROI):
         self.controller.updated.connect(self._update_graphical_roi)
         self.image_widget.direction_changed.connect(self._center)
         self._center()
+        self.controller._validate_output_dims()
         self._set_color(color=self.color)
 
     def _set_bounds(self, bounds) -> None:
@@ -262,7 +349,10 @@ class GraphicalRectROI(pg.RectROI):
         img_x_1, img_x_2 = self.image_widget.coords[x_dim][0], self.image_widget.coords[x_dim][-1]
         img_y_1, img_y_2 = self.image_widget.coords[y_dim][0], self.image_widget.coords[y_dim][-1]
 
-        if x_1 < img_x_1 or y_1 < img_y_1 or x_2 > img_x_2 or y_2 > img_y_2:
+        if (round(x_1, 5) < round(img_x_1, 5) or 
+           round(y_1, 5) < round(img_y_1, 5) or 
+           round(x_2, 5) > round(img_x_2, 5) or 
+           round(y_2, 5) > round(img_y_2, 5)):
             self.controller.show_output_btn.setEnabled(False)
         else:
             self.controller.show_output_btn.setEnabled(True)
@@ -321,10 +411,14 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         self.show_roi_chkbx.setChecked(False)
         self.center_roi_btn = QtWidgets.QPushButton("Center")
         self.output_type_cbx = QtWidgets.QComboBox()
-        self.output_type_cbx.addItems(["Average (frame-var)", "Average (x-var)", "Average (y-var)", "Average (frame-var, x-var)", "Average (frame-var, y-var)", "Average (x-var, y-var)"])
+        self.output_type_cbx.addItems([
+            "Average"
+        ])
+        self.output_dim_chkbxs = [QtWidgets.QCheckBox(dim) for dim in self.dims]
         self.output_type_lbl = QtWidgets.QLabel("Output:")
         self.output_type_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.show_output_btn = QtWidgets.QPushButton("Show Output")
+        self.show_output_btn.setEnabled(False)
         
         self.color_btn = pg.ColorButton()
         self.color_btn.setColor(self.roi.color)
@@ -354,7 +448,11 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         self.layout.addWidget(self.max_sbxs[1], 3, 5, 1, 4)
         self.layout.addWidget(self.max_sbxs[2], 4, 5, 1, 4)
         self.layout.addWidget(self.output_type_lbl, 5, 0, 1, 2)
-        self.layout.addWidget(self.output_type_cbx, 5, 2, 1, 7)
+        self.layout.addWidget(self.output_type_cbx, 5, 2, 1, 4)
+        self.layout.addWidget(self.output_dim_chkbxs[0], 5, 6, 1, 1)
+        self.layout.addWidget(self.output_dim_chkbxs[1], 5, 7, 1, 1)
+        self.layout.addWidget(self.output_dim_chkbxs[2], 5, 8, 1, 1)
+        
         self.layout.addWidget(self.show_output_btn, 6, 0, 1, 9)
         
         for i in range(self.layout.columnCount()):
@@ -367,6 +465,8 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         self.color_btn.sigColorChanged.connect(self._set_roi_color)
         for sbx in self.min_sbxs + self.max_sbxs:
             sbx.editingFinished.connect(self._update_roi_from_controller_bounds)
+        for chkbx in self.output_dim_chkbxs:
+            chkbx.stateChanged.connect(self._validate_output_dims)
         self.show_output_btn.clicked.connect(self._show_output)
 
     def _toggle_roi_visibility(self):
@@ -380,6 +480,24 @@ class GraphicalRectROIController(QtWidgets.QWidget):
             if self.min_sbxs[i].value() >= self.max_sbxs[i].value():
                 self.min_sbxs[i].setValue(self.max_sbxs[i].value())
 
+    def _validate_output_dims(self):
+        num_checked = 0
+        for chkbx in self.output_dim_chkbxs:
+            if chkbx.isChecked():
+                num_checked += 1
+        if num_checked == 0 or num_checked == 3:
+            self.show_output_btn.setEnabled(False)
+        else:
+            self.show_output_btn.setEnabled(True)
+
+    def _get_output_dims(self):
+        output_dims = []
+        for chkbx, dim in zip(self.output_dim_chkbxs, self.dims):
+            if chkbx.isChecked():
+                output_dims.append(dim)
+
+        return output_dims
+    
     def _update_controller_bounds_from_roi(self):
         bounds = self.roi.roi.bounds
         dim_order = self.roi.image_widget.current_dim_order
@@ -420,18 +538,7 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         }
         if "Average" in str_type:
             calculation["output"] = "average"
-        if "(frame-var)" in str_type:
-            calculation["dims"] = dim_order[0]
-        elif "(x-var)" in str_type:
-            calculation["dims"] = dim_order[1]
-        elif "(y-var)" in str_type:
-            calculation["dims"] = dim_order[2]
-        elif "(frame-var, x-var)" in str_type:
-            calculation["dims"] = dim_order[0:2]
-        elif "(frame-var, y-var)" in str_type:
-            calculation["dims"] = [dim_order[0], dim_order[2]]
-        elif "(x-var, y-var)" in str_type:
-            calculation["dims"] = dim_order[1:]
+            calculation["dims"] = self._get_output_dims()
 
         output = self.roi._get_output(calculation)
 
