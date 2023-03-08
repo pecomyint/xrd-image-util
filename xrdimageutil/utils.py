@@ -6,6 +6,7 @@ import area_detector_handlers.handlers as adh
 from dask.array import from_array
 import numpy as np
 import pyqtgraph as pg
+from scipy.signal import find_peaks, peak_widths
 from sklearn import preprocessing
 import xrayutilities as xu
 
@@ -258,3 +259,26 @@ def _create_colormap(
         raise ValueError("Scale type not valid.")
 
     return pg.ColorMap(pos=stops, color=colors)
+
+def _find_2d_peak_intensity(data):
+
+    # Find the peaks in the array
+    peaks, _ = find_peaks(data.flatten())
+
+    # Get the location, height, and width of the tallest peak
+    peak_idx = peaks[np.argmax(data.flatten()[peaks])]
+    peak_y, peak_x = np.unravel_index(peak_idx, data.shape)
+    peak_height = data[peak_y, peak_x]
+
+    return peak_height
+
+def _find_2d_peak_location(data, x_coords, y_coords):
+
+    # Find the peaks in the array
+    peaks, _ = find_peaks(data.flatten())
+
+    # Get the location, height, and width of the tallest peak
+    peak_idx = peaks[np.argmax(data.flatten()[peaks])]
+    peak_y, peak_x = np.unravel_index(peak_idx, data.shape)
+    
+    return (peak_x, peak_y)
