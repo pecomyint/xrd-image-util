@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 import xrdimageutil as xiu
-
+from xrdimageutil import utils
 
 class ROI(ABC):
     """General region of interest class.
@@ -99,7 +99,7 @@ class RectROI(ROI):
         """Sets the calculation dictionary for an ROI."""
 
         if set(list(calc.keys())) != set(["output", "dims"]):
-            raise ValueError("Calculation requires an output value (average, max) and a list of dimensions to calculate along")
+            raise ValueError("Calculation requires an output value (average, peak intensity) and a list of dimensions to calculate along")
         
         if calc["dims"] is not None:
             if self.data_type == "raw" and not set(["t", "x", "y"]).issuperset(set(calc["dims"])):
@@ -107,8 +107,8 @@ class RectROI(ROI):
             if self.data_type == "gridded" and not set(["H", "K", "L"]).issuperset(set(calc["dims"])):
                 raise ValueError("Invalid dimension list provided. Must be a subset of ['H', 'K', 'L']")
         
-        if calc["output"] not in ["average", "max"]:
-            raise ValueError("Invalid output type provided. Accepted values are 'average' and 'max'.")
+        if calc["output"] not in ["average", "peak intensity"]:
+            raise ValueError("Invalid output type provided. Accepted values are 'average' and 'peak intensity'.")
 
         self.calculation = calc   
     
@@ -182,7 +182,22 @@ class RectROI(ROI):
                 }
                 output["label"] = f"Average Intensity w.r.t. {dims_wrt[0]}, {dims_wrt[1]}"
 
-            self.output = output
+        if output_type == "peak intensity":
+            index_to_calc_peaks_on = dim_list.index(dims_wrt[0])
+            peaks = []
+            
+            for i in range(data.shape[index_to_calc_peaks_on]):
+                if index_to_calc_peaks_on == 0:
+                    peaks.append(utils._find_2d_peak_intensity(data[i, :, :]))
+                elif index_to_calc_peaks_on == 1:
+                    peaks.append(utils._find_2d_peak_intensity(data[:, i, :]))
+                else:
+                    peaks.append(utils._find_2d_peak_intensity(data[:, :, i]))
+            output["data"] = np.array(peaks)
+            output["coords"] = {dims_wrt[0]: coords[dims_wrt[0]]}
+            output["label"] = f"Peak Intensity w.r.t. {dims_wrt[0]}"
+
+        self.output = output
 
     def _get_pixel_bounds(self, coords) -> dict:
         """Returns the pixel indicies that correspond to the ROI's bounds."""
@@ -271,8 +286,11 @@ class LineROI(ROI):
             else:
                 raise ValueError("Bounds for each dimension must be either a tuple of lower/upper bounds or 'None'.")
     
-    def set_calc(calc: dict) -> None:
+    def set_calculation(calc: dict) -> None:
         ...
     
+    def calculate(self, scan=None, data=None, coords=None) -> None:
+        ...
+
     def get_output() -> dict:
         pass
