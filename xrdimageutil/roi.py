@@ -219,7 +219,7 @@ class RectROI(ROI):
         return self.output
 
 
-'''class LineROI(ROI):
+class LineROI(ROI):
     """A line segment region of interest to be applied to Scan image data.
     
     This ROI is bounded by explicit endpoints that can be set with the
@@ -276,4 +276,3 @@ class RectROI(ROI):
     
     def get_output() -> dict:
         pass
-'''
