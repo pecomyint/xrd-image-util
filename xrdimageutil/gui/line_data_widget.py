@@ -125,7 +125,7 @@ class CLDWPlotWidget(pg.PlotWidget):
 
         self.getPlotItem().getAxis("bottom").setLabel(x_var)
         if monitor_var is not None:
-            y_var = f"{y_var}/{monitor_var}"
+            y_var = f""
         self.getPlotItem().getAxis("left").setLabel(y_var)
 
 
