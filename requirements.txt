@@ -14,5 +14,6 @@ pyqt5
 pyqtgraph
 pyqtwebengine
 pysumreg
+scikit-image
 scikit-learn
 xrayutilities
