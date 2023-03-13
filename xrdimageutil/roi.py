@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import numpy as np
+from skimage.draw import line_nd
 
 import xrdimageutil as xiu
 from xrdimageutil import utils
@@ -244,6 +245,11 @@ class LineROI(ROI):
     def __init__(self, data_type) -> None:
         super(LineROI, self).__init__(data_type=data_type)
 
+        self.calculation = {
+            "output": None,
+            "dims": None
+        }
+
     def set_bounds(self, bounds: dict) -> None:
         """Applies explicit endpoints to the region.
         
@@ -286,11 +292,113 @@ class LineROI(ROI):
             else:
                 raise ValueError("Bounds for each dimension must be either a tuple of lower/upper bounds or 'None'.")
     
-    def set_calculation(calc: dict) -> None:
-        ...
+    def set_calculation(self, calc: dict) -> None:
+        if set(list(calc.keys())) != set(["output", "dims"]):
+            raise ValueError("Calculation requires an output value (average, values) and a dimension to calculate along")
+        
+        if calc["dims"] is not None:
+            if self.data_type == "raw" and not set(["t", "x", "y"]).issuperset(set(calc["dims"])):
+                raise ValueError("Invalid dimension provided. Must be in ['t', 'x', 'y']")
+            if self.data_type == "gridded" and not set(["H", "K", "L"]).issuperset(set(calc["dims"])):
+                raise ValueError("Invalid dimension provided. Must be in ['H', 'K', 'L']")
+        
+        if calc["output"] not in ["average", "values"]:
+            raise ValueError("Invalid output type provided. Accepted values are 'average' and 'values'.")
+
+        self.calculation = calc   
     
     def calculate(self, scan=None, data=None, coords=None) -> None:
-        ...
+        output = {
+            "data": None,
+            "coords": None,
+            "label": None
+        }
+
+        if scan is not None:
+            if self.data_type == "raw":
+                data = scan.raw_data
+                coords = scan.raw_data_coords
+            elif self.data_type == "gridded":
+                data = scan.gridded_data
+                coords = scan.gridded_data_coords
+        else:
+            if self.data_type == "raw" and set(list(coords.keys())) != set(["t", "x", "y"]):
+                raise ValueError("Invalid dimension provided. Must be in ['t', 'x', 'y']")
+            if self.data_type == "gridded" and set(list(coords.keys())) != set(["H", "K", "L"]):
+                raise ValueError("Invalid dimension provided. Must be in ['H', 'K', 'L']")
+
+        coords = coords.copy()
+        output_type = self.calculation["output"]
+        dims_wrt = self.calculation["dims"]
+        if type(dims_wrt) == str:
+            dims_wrt = [dims_wrt]
+
+        if dims_wrt is None:
+            dims_wrt = []
+        if output_type is None:
+            raise ValueError("No calculation type found. Please add a calculation type using 'set_calculation()'.")
+
+        if self.data_type == "raw":
+            dim_list = ["t", "x", "y"]
+        else:
+            dim_list = ["H", "K", "L"]
+
+        if output_type == "values":
+            roi_pixels = self._get_pixels(coords)
+            output_data = data[roi_pixels[:, 0], roi_pixels[:, 1], roi_pixels[:, 2]]
+            dim_coord_pixels = roi_pixels.T
+            output_coords = {}
+            for dim, dcp in zip(dim_list, dim_coord_pixels):
+                dim_coords = coords[dim]
+                roi_coords_for_dim = np.array([dim_coords[i] for i in dcp])
+                output_coords.update({dim: roi_coords_for_dim})
+            
+            output["data"] = output_data
+            output["coords"] = output_coords
+
+            self.output = output
+
+    def _get_pixels(self, coords) -> list:
+        """Utilizes Bresenham's line algorithm to pull out pixels that the line ROI intersects."""
+
+        bounds = self.bounds
+        if self.data_type == "raw":
+            dim_list = ["t", "x", "y"]
+        else:
+            dim_list = ["H", "K", "L"]
+        
+        min_coord, max_coord = [], []
+
+        for dim in dim_list:
+            min_dim_pixel, max_dim_pixel = None, None
+            dim_coords = coords[dim]
+            pixel_size = dim_coords[1] - dim_coords[0]
+            lower_dim_bound, upper_dim_bound = bounds[dim]
+
+            if lower_dim_bound is None:
+                min_dim_pixel = 0
+            else:
+                min_dim_pixel = int((lower_dim_bound - dim_coords[0]) / pixel_size) 
+            if upper_dim_bound is None:
+                max_dim_pixel = len(dim_coords)
+            else:
+                max_dim_pixel = int((upper_dim_bound - dim_coords[0]) / pixel_size)
+
+            min_coord.append(min_dim_pixel)
+            max_coord.append(max_dim_pixel)
+
+        start_coord = np.array(min_coord).astype(int)
+        end_coord = np.array(max_coord).astype(int)
+
+        points = np.transpose(line_nd(start_coord, end_coord))
+
+        grid_shape = points[-1]
+
+        valid_indices = np.all((points >= 0) & (points <= grid_shape), axis=1)
+        valid_points = points[valid_indices]
+
+
+        return valid_points
 
     def get_output() -> dict:
         pass

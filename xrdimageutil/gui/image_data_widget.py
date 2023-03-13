@@ -243,7 +243,12 @@ class ImageDataWidget(DockArea):
         elif len(self.rois) == 2:
             self.addDock(roi_dock, "right")
             self.moveDock(roi_dock, "bottom", self.roi_docks[0])
+
+        roi.hide()
     
+    def _add_line_roi(self):
+        ...
+
     def _remove_roi(self, roi):
         i = self.rois.index(roi)
         dock = self.roi_docks.pop(i)
@@ -285,6 +290,7 @@ class ImageDataWidget(DockArea):
             self.base_sbx.hide()
             self.gamma_lbl.show()
             self.gamma_sbx.show()
+
 
 class GraphicalRectROI(pg.RectROI):
 
@@ -558,3 +564,11 @@ class GraphicalRectROIController(QtWidgets.QWidget):
             ax.invert_yaxis()
         ax.set_title(title) 
         plt.show()
+
+
+class GraphicalLineROI(pg.LineSegmentROI):
+    ...
+
+
+class GraphicalLineROIController(QtWidgets.QWidget):
+    ...
