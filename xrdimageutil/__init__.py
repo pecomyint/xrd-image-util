@@ -265,3 +265,7 @@ class Scan(object):
         self.window.show()
         self.window.raise_()
         self.app.exec_()
+
+
+def run_vti_viewer():
+    ...
