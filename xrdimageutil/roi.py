@@ -281,12 +281,7 @@ class LineROI(ROI):
                 if len(dim_bounds) == 2:
                     lower_bound = dim_bounds[0]
                     upper_bound = dim_bounds[1]
-                    if type(lower_bound) not in [type(None), int, float] or type(upper_bound) not in [type(None), int, float]:
-                        raise ValueError("Bounds for each dimension must be either a tuple of lower/upper bounds or 'None'.") 
-                    elif lower_bound is None or upper_bound is None or lower_bound <= upper_bound:
-                        self.bounds[dim] = (lower_bound, upper_bound)
-                    else:
-                        raise ValueError("Upper bounds must be greater than or equal to lower bounds.")
+                    self.bounds[dim] = (lower_bound, upper_bound)
                 else:
                     raise ValueError("Bounds for each dimension must be either a tuple of lower/upper bounds or 'None'.")
             else:
@@ -344,15 +339,23 @@ class LineROI(ROI):
             dim_list = ["H", "K", "L"]
 
         if output_type == "values":
+            # Data
             roi_pixels = self._get_pixels(coords)
-            output_data = data[roi_pixels[:, 0], roi_pixels[:, 1], roi_pixels[:, 2]]
+            if dim_list.index(dims_wrt[0]) == 0:
+                output_data = data[:, roi_pixels[:, 1], roi_pixels[:, 2]]
+            elif dim_list.index(dims_wrt[0]) == 1:
+                output_data = data[roi_pixels[:, 0], :, roi_pixels[:, 2]]
+            elif dim_list.index(dims_wrt[0]) == 2:
+                output_data = data[roi_pixels[:, 0], roi_pixels[:, 1], :]
+
+            # Coords
             dim_coord_pixels = roi_pixels.T
             output_coords = {}
             for dim, dcp in zip(dim_list, dim_coord_pixels):
                 dim_coords = coords[dim]
                 roi_coords_for_dim = np.array([dim_coords[i] for i in dcp])
                 output_coords.update({dim: roi_coords_for_dim})
-            
+
             output["data"] = output_data
             output["coords"] = output_coords
 
@@ -394,11 +397,10 @@ class LineROI(ROI):
 
         grid_shape = points[-1]
 
-        valid_indices = np.all((points >= 0) & (points <= grid_shape), axis=1)
+        valid_indices = np.all((points >= 0) & (points < grid_shape), axis=1)
         valid_points = points[valid_indices]
-
 
         return valid_points
 
-    def get_output() -> dict:
-        pass
+    def get_output(self) -> dict:
+        return self.output
