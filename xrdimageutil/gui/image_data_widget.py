@@ -11,6 +11,7 @@ from pyqtgraph.dockarea import Dock, DockArea
 from xrdimageutil import utils
 from xrdimageutil.roi import LineROI, RectROI
 
+# TODO: Find better naming conventions for the image widget and roi-related entities
 
 class ScanImageDataWidget(QtWidgets.QWidget):
     """GUI application for viewing raw and gridded Scan images."""
@@ -40,6 +41,8 @@ class ScanImageDataWidget(QtWidgets.QWidget):
 
 
 class ImageDataWidget(DockArea):
+
+    # TODO: Write out UML workflow for how the ImageDataWidget should function
 
     direction_changed = QtCore.pyqtSignal()
 
@@ -334,6 +337,8 @@ class GraphicalRectROI(pg.RectROI):
 
     updated = QtCore.pyqtSignal()
     
+    # TODO: Write out workflow for how the Graphical RectROI interacts with the internal RectROI
+
     def __init__(self, pos, size, image_widget) -> None:
         super(GraphicalRectROI, self).__init__(pos, size)
 
@@ -644,6 +649,8 @@ class GraphicalLineROI(pg.LineSegmentROI):
         self.getHandles()[0].setPos(x_1, y_1)
         self.getHandles()[1].setPos(x_2, y_2)
 
+        self.image_widget.update()
+
     def _update_bounds_from_graphical_roi(self):
         dim_order = self.image_widget.current_dim_order
         bounds = {}
@@ -829,7 +836,7 @@ class GraphicalLineROIController(QtWidgets.QWidget):
             ax.plot(coords[0], data)
             ax.set_xlabel(labels[0])
         else:
-            ax.imshow(np.flipud(data), aspect="auto", extent=(coords[0][0], coords[0][-1], coords[1][0], coords[1][-1]))
+            ax.imshow(np.flipud(data.T), aspect="auto", extent=(coords[0][0], coords[0][-1], coords[1][0], coords[1][-1]))
             ax.set_xlabel(labels[0])
             ax.set_ylabel(labels[1])
             ax2 = ax.twinx()

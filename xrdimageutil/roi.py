@@ -242,6 +242,8 @@ class LineROI(ROI):
     'set_bounds()' function.
     """
     
+    # TODO: Turn the 'set bounds' function into a 'set endpoints' function (more natural)
+
     def __init__(self, data_type) -> None:
         super(LineROI, self).__init__(data_type=data_type)
 

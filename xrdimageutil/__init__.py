@@ -17,6 +17,11 @@ class Catalog:
     dictionary of Scan objects that can be accessed.
     """
     
+    # TODO: Write out UML workflow for how the Catalog interacts with other parts of XIU
+    # TODO: Finalize function list for Catalog class
+    # TODO: Rename attribute name to something descriptive
+    
+
     bluesky_catalog = None # Bluesky dictionary-like catalog
     name = None # Local name for catalog
     scan_uid_dict = None # Dictionary of scans in catalog with UID as key
@@ -100,6 +105,8 @@ class Catalog:
         
 class Scan(object):
     """Houses data and metadata for a single scan."""
+
+    # TODO: Document what can be improved with the Scan class
 
     catalog = None # Parent Catalog
     uid = None # UID for scan; given by bluesky
@@ -265,7 +272,3 @@ class Scan(object):
         self.window.show()
         self.window.raise_()
         self.app.exec_()
-
-
-def run_vti_viewer():
-    ...
