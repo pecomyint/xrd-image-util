@@ -19,7 +19,7 @@ class TestCatalog:
         except KeyError:
             assert True
 
-    # Search
+    # Searching
     def test_search_with_valid_sample_expects_19_items(self):
         catalog = Catalog(local_name=self.catalog_name)
         results = catalog.search(sample="erte3")
@@ -29,3 +29,14 @@ class TestCatalog:
         catalog = Catalog(local_name=self.catalog_name)
         results = catalog.search(sample="erte3")
         assert len(results) == 19
+
+    # Scans
+    def test_get_scan_with_id_and_uid_expects_equal(self):
+        scan_id = 71
+        scan_uid = "765b60a4-106b-4975-907e-50d3612d24b3"
+
+        catalog = Catalog(local_name=self.catalog_name)
+        scan_with_id = catalog.get_scan(scan_id)
+        scan_with_uid = catalog.get_scan(scan_uid)
+
+        assert scan_with_id == scan_with_uid
