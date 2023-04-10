@@ -13,121 +13,140 @@ from xrdimageutil.gui import image_data_widget, line_data_widget
 
 
 class Catalog:
-    """Houses (i) a Bluesky catalog, already unpacked and (ii) a 
-    dictionary of Scan objects that can be accessed.
+    """Houses functionality to filter and return xrdimageutil.Scan objects.
+    
+    This class acts as the entry point for all xrdimageutil use cases. Provided
+    a local name for an unpacked databroker catalog, the xrdimageutil.Catalog 
+    class provides a simpler way to view scans.
     """
     
-    # TODO: Write out UML workflow for how the Catalog interacts with other parts of XIU
-    # TODO: Finalize function list for Catalog class
-    # TODO: Rename attribute name to something descriptive
-    
-
+    local_name = None
     bluesky_catalog = None # Bluesky dictionary-like catalog
-    name = None # Local name for catalog
     scan_uid_dict = None # Dictionary of scans in catalog with UID as key
 
-    def __init__(self, name) -> None:
+    def __init__(self, local_name) -> None:
 
-        self.name = str(name)
-        self.bluesky_catalog = databroker.catalog[self.name]
+        self.local_name = str(local_name)
+        self.bluesky_catalog = databroker.catalog[self.local_name]
 
         # Currently only configured for beamline 6-ID-B
         utils._add_catalog_handler(catalog=self)
 
         # Creates a Scan object for every run in the catalog
         # Adds Scans to a dictionary
-        self.scan_uid_dict = dict([(uid, Scan(catalog=self, uid=uid)) for uid in list(self.bluesky_catalog)])
+        self.scan_uid_dict = dict(
+            [(uid, Scan(catalog=self, uid=uid)) for uid in list(self.bluesky_catalog)]
+        )
 
-    def get_scan(self, uid_or_id: int):
-        """Returns Scan object from given identifier."""
-
-        if uid_or_id in self.scan_uid_dict.keys():
-            return self.scan_uid_dict[uid_or_id]
+    def search(self, sample=None, proposal_id=None, user=None) -> list:
+        """Returns a list of scan UID's from given criteria.
         
-        for scan in self.scan_uid_dict.values():
-            if scan.scan_id == uid_or_id:
-                return scan
+        This function is a limited extension of databroker's catalog search. 
+        """
 
-        raise KeyError(f"Scan with UID or ID '{uid_or_id}' not found.")
+        query = {}
+        if sample is not None:
+            query.update({"sample": sample})
+        if proposal_id is not None:
+            query.update({"proposal_id": proposal_id})
+        if user is not None:
+            query.update({"user": user})
 
-    def get_scans(self, uids_or_ids: list) -> list:
-        """Returns Scan objects from list of given identifiers."""
+        search_results = self.bluesky_catalog.search(query)
 
-        if type(uids_or_ids) != list:
-            raise TypeError("Input needs to be a list.")
-
-        scan_list = []
-        for uid_or_id in uids_or_ids:
-            scan = self.get_scan(uid_or_id=uid_or_id)
-            scan_list.append(scan)
-
-        return scan_list
-    
-    def scan_count(self) -> int:
-        """Returns the number of scans in catalog."""
-        
-        return len(self.scan_uid_dict.keys())
+        return search_results
 
     def list_scans(self) -> None:
-        """Prints formatted string table listing scans in catalog."""
+        """Displays basic information about scans within the catalog.
+        
+        Depending on the size of the Catalog, this function may take 
+        an extended time to run.
+        """
 
-        headers = [
-            "scan_id", "motors", 
-            "motor_start", "motor_stop", "n_pts",
-            "sample", "proposal_id", "user"
-        ]
+        headers = ["scan_id", "motors", "sample", "proposal_id", "user"]
         table = PrettyTable(headers)
 
-        scan_uids = list(self.scan_uid_dict.keys())
-        scans = [self.scan_uid_dict[uid] for uid in scan_uids]
-
-        for scan in scans:
-            row = [
-                scan.scan_id, scan.motors, 
-                scan.motor_bounds[0], scan.motor_bounds[1], scan.point_count(), 
-                scan.sample, scan.proposal_id, scan.user
-            ]
+        for uid in list(self.scan_uid_dict.keys()):
+            scan = self.scan_uid_dict[uid]
+            row = [scan.scan_id, scan.motors, scan.sample, scan.proposal_id, scan.user]
             table.add_row(row)
 
         table.sortby = "scan_id"
         print(table)
 
-    def view_line_data(self) -> None:
-        """Displays Scan line data in an interactive GUI."""
+    def get_scan(self, id) -> object:
+        """Returns xrdimageutil.Scan object from given identifier.
         
+        UID's and numerical scan ID's are both viable parameters.
+        As for scan ID's, which are not necessarily unique, this 
+        function will return the most recent Scan with the ID.
+
+        Negative integers denoting recent scans also are acceptable.
+        """
+
+        # UID
+        if type(id) == str:
+            if id in self.scan_uid_dict.keys():
+                return self.scan_uid_dict[id]
+            else:
+                raise KeyError(f"Scan with UID '{id}' not found.")
+
+        # Scan ID
+        elif type(id) == int:
+            try:
+                uid = self.bluesky_catalog[id].primary.metadata["start"]["uid"]
+                return self.scan_uid_dict[uid]
+            except ValueError:
+                raise KeyError(f"Scan with ID #{id} not found.")
+
+        else:
+            raise TypeError(f"Scan ID must be either str or int.")
+
+    def get_scans(self, ids: list) -> list:
+        """Returns xrdimageutil.Scan objects from list of given identifiers.
+        
+        See xrdimageutil.Catalog.get_scan for more details.
+        """
+
+        if type(ids) != list:
+            raise TypeError("Input needs to be a list.")
+
+        scan_list = []
+        for id in ids:
+            scan = self.get_scan(id=id)
+            scan_list.append(scan)
+
+        return scan_list
+
+    def view_line_data(self) -> None:
+        # TODO: Revisit functionality for LineDataGUI
+        '''
         self.app = pg.mkQApp()
         self.window = line_data_widget.CatalogLineDataWidget(catalog=self)
         self.window.raise_()
         self.window.show()
         self.window.raise_()
-        self.app.exec_()
+        self.app.exec_()'''
+        ...
 
-        
+
 class Scan(object):
     """Houses data and metadata for a single scan."""
 
-    # TODO: Document what can be improved with the Scan class
-
     catalog = None # Parent Catalog
     uid = None # UID for scan; given by bluesky
+
     bluesky_run = None # Raw Bluesky run for scan
-    scan_id = None # Simple ID given to scan by user -- not always unique
+
+    scan_id = None # Numerical ID -- not always unique
     sample = None # Experimental sample
     proposal_id = None # Manually provided Proposal ID
     user = None # Experimental user
     motors = None # List of variable motors for scan
-    motor_bounds = None # The starting and ending values for each variable motor
-    h = None # List of H center values throughout scan
-    k = None # List of K center values throughout scan
-    l = None # List of L center values throughout scan
-    bluesky_1d_vars = None # List of 1D variables used in bluesky run
     
     rsm = None # Reciprocal space map for every point within a scan
-    rsm_bounds = None # Min/max HKL values for RSM
     raw_data = None # 3D numpy array of scan data
-    raw_data_coords = None
     gridded_data = None # Interpolated and transformed scan data
-    gridded_data_coords = None # HKL coordinates for gridded data
 
     def __init__(self, catalog: Catalog, uid: str) -> None:
 
@@ -161,31 +180,11 @@ class Scan(object):
             if object.__getattribute__(self, __name) is None:
                 object.__setattr__(self, __name, self.bluesky_run.metadata["start"]["motors"])
             return object.__getattribute__(self, __name)
-        elif __name == "motor_bounds":
-            if object.__getattribute__(self, __name) is None:
-                object.__setattr__(self, __name, utils._get_motor_bounds(self))
-            return object.__getattribute__(self, __name)
-        elif __name == "bluesky_1d_vars":
-            if object.__getattribute__(self, __name) is None:
-                object.__setattr__(self, __name, utils._get_bluesky_1d_variables(self))
-            return object.__getattribute__(self, __name)
-        elif __name == "h":
-            if object.__getattribute__(self, __name) is None:
-                object.__setattr__(self, __name, utils._get_hkl_centers(self)[0])
-            return object.__getattribute__(self, __name)
-        elif __name == "k":
-            if object.__getattribute__(self, __name) is None:
-                object.__setattr__(self, __name, utils._get_hkl_centers(self)[1])
-            return object.__getattribute__(self, __name)
-        elif __name == "l":
-            if object.__getattribute__(self, __name) is None:
-                object.__setattr__(self, __name, utils._get_hkl_centers(self)[2])
-            return object.__getattribute__(self, __name)
         elif __name == "rsm":
             if object.__getattribute__(self, __name) is None:
                 object.__setattr__(self, __name, utils._get_rsm_for_scan(self))
             return object.__getattribute__(self, __name)
-        elif __name == "rsm_bounds":
+        
             if object.__getattribute__(self, __name) is None:
                 object.__setattr__(self, __name, utils._get_rsm_bounds(self))
             return object.__getattribute__(self, __name)
@@ -193,7 +192,6 @@ class Scan(object):
             if object.__getattribute__(self, __name) is None:
                 object.__setattr__(self, __name, utils._get_raw_data(self))
             return object.__getattribute__(self, __name)
-        elif __name == "raw_data_coords":
             if object.__getattribute__(self, __name) is None:
                 coords = {
                     "t": np.linspace(0, self.raw_data.shape[0] - 1, self.raw_data.shape[0]),
