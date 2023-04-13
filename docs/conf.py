@@ -32,10 +32,7 @@ extensions = """
 templates_path = ["_templates"]
 exclude_patterns = []
 
-html_static_path = ["_static"]
 html_theme = "pydata_sphinx_theme"
-html_logo = '_static/logo.png'
-html_favicon = '_static/favicon.ico'
 html_theme_options = {
     'show_prev_next': False,
     'navbar_align': 'left',
