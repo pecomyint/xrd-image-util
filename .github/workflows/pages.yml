@@ -35,7 +35,7 @@ jobs:
         run: |
           cd docs
           make clean
-          mdir _build
+          mkdir _build
           make html
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
