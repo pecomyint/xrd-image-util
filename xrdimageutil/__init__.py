@@ -131,7 +131,7 @@ class Catalog:
 
 
 class Scan(object):
-    """Houses data and metadata for a single scan."""
+    # TODO: Class docstring
 
     catalog = None # Parent Catalog
     uid = None # UID for scan; given by bluesky
@@ -145,8 +145,8 @@ class Scan(object):
     motors = None # List of variable motors for scan
     
     rsm = None # Reciprocal space map for every point within a scan
-    raw_data = None # 3D numpy array of scan data
-    gridded_data = None # Interpolated and transformed scan data
+    raw_data = None # Data and coords for raw 2D detector images
+    gridded_data = None # Data and coords for mapped 3D image
 
     def __init__(self, catalog: Catalog, uid: str) -> None:
 
@@ -184,7 +184,6 @@ class Scan(object):
             if object.__getattribute__(self, __name) is None:
                 object.__setattr__(self, __name, utils._get_rsm_for_scan(self))
             return object.__getattribute__(self, __name)
-        
             if object.__getattribute__(self, __name) is None:
                 object.__setattr__(self, __name, utils._get_rsm_bounds(self))
             return object.__getattribute__(self, __name)
@@ -192,19 +191,75 @@ class Scan(object):
             if object.__getattribute__(self, __name) is None:
                 object.__setattr__(self, __name, utils._get_raw_data(self))
             return object.__getattribute__(self, __name)
+        elif __name == "gridded_data":
             if object.__getattribute__(self, __name) is None:
-                coords = {
-                    "t": np.linspace(0, self.raw_data.shape[0] - 1, self.raw_data.shape[0]),
-                    "x": np.linspace(0, self.raw_data.shape[1] - 1, self.raw_data.shape[1]),
-                    "y": np.linspace(0, self.raw_data.shape[2] - 1, self.raw_data.shape[2]),
-                }
-                object.__setattr__(self, __name, coords)
+                object.__setattr__(self, __name, {"data": None, "coords": None})
             return object.__getattribute__(self, __name)
         else:
             return object.__getattribute__(self, __name)
         
+    def grid_data(self, shape: tuple, bounds: dict=None) -> None:
+        """Creates a gridded 3D image according to coordinates given by a Scan's reciprocal space map."""
+
+        # Shape validation
+        if type(shape) is not tuple:
+            raise TypeError(f"Shape must be a tuple.")
+        if len(shape) != 3:
+            raise ValueError(f"Shape must be of length 3.")
+        for i in shape:
+            if type(i) != int:
+                raise ValueError(f"Dimension shape must consist of integers.")
+            if i < 10:
+                raise ValueError(f"Minimum gridded data shape is (10, 10, 10).")
+        
+        # Bounds validation
+        if bounds is None:
+            bounds = {
+                "H": (np.amin(self.rsm[:,:,:,0]), np.amax(self.rsm[:,:,:,0])),
+                "K": (np.amin(self.rsm[:,:,:,1]), np.amax(self.rsm[:,:,:,1])),
+                "L": (np.amin(self.rsm[:,:,:,2]), np.amax(self.rsm[:,:,:,2]))
+            }
+        else:
+            if set(list(bounds.keys())) != set(["H", "K", "L"]):
+                raise ValueError(f"Expects 'H', 'K', and 'L' as keys for gridded data bounds.")
+            for i in list(bounds.keys()):
+                if type(bounds[i]) != tuple or type(bounds[i]) != list or len(bounds[i]) != 2:
+                    raise ValueError(f"Expects a tuple/list (len 2) denoting a min and max value for each dimension.")
+                if bounds[i][0] >= bounds[i][1]:
+                    raise ValueError(f"First bound must be less than second bound.")
+                
+        # Prepares gridder bounds/interpolation
+        gridder = xu.Gridder3D(
+            nx=shape[0], 
+            ny=shape[1], 
+            nz=shape[2]
+        )
+        gridder.KeepData(True)
+        gridder.dataRange(
+            xmin=bounds["H"][0], xmax=bounds["H"][1],
+            ymin=bounds["K"][0], ymax=bounds["K"][1],
+            zmin=bounds["L"][0], zmax=bounds["L"][1],
+            fixed=True
+        )
+
+        # Grids raw data with bounds
+        gridder(
+            self.rsm[:,:,:,0], 
+            self.rsm[:,:,:,1], 
+            self.rsm[:,:,:,2], 
+            self.raw_data["data"]
+        )
+        self.gridded_data["data"] = gridder.data
+
+        # Retrieves HKL coordinates for gridded data
+        self.gridded_data["coords"] = {
+            "H": gridder.xaxis, 
+            "K": gridder.yaxis, 
+            "L": gridder.zaxis
+        }
+    
     def point_count(self) -> int:
-        """Returns number of points in scan."""
+        """Returns the number of points in a Scan."""
 
         if "primary" not in self.bluesky_run.keys():
             return 0
@@ -212,54 +267,6 @@ class Scan(object):
             return 0
         else:
             return self.bluesky_run.primary.metadata["dims"]["time"]
-
-    def grid_data(
-        self,
-        h_count: int=250, k_count: int=250, l_count: int=250,
-        h_min: float=None, h_max: float=None, 
-        k_min: float=None, k_max: float=None,
-        l_min: float=None, l_max: float=None
-    ) -> None:
-        """Constructs gridded 3D image from RSM coordinates."""
-
-        # Provided bounds for gridding
-        grid_bounds = [h_min, h_max, k_min, k_max, l_min, l_max]
-
-        # Bounds in reciprocal space map, reshaped to a list
-        rsm_bounds = [self.rsm_bounds[b] for b in list(self.rsm_bounds.keys())]
-        
-        for i in range(len(grid_bounds)):
-            if grid_bounds[i] is None:
-                grid_bounds[i] = rsm_bounds[i]
-
-        h_map = self.rsm[:, :, :, 0]
-        k_map = self.rsm[:, :, :, 1]
-        l_map = self.rsm[:, :, :, 2]
-
-        # Prepares gridder bounds/interpolation
-        gridder = xu.Gridder3D(
-            nx=h_count, 
-            ny=k_count, 
-            nz=l_count
-        )
-        gridder.KeepData(True)
-        gridder.dataRange(
-            xmin=grid_bounds[0], xmax=grid_bounds[1],
-            ymin=grid_bounds[2], ymax=grid_bounds[3],
-            zmin=grid_bounds[4], zmax=grid_bounds[5],
-            fixed=True
-        )
-
-        # Grids raw data with bounds
-        gridder(h_map, k_map, l_map, self.raw_data)
-        self.gridded_data = gridder.data
-
-        # Retrieves HKL coordinates for gridded data
-        self.gridded_data_coords = {
-            "H": gridder.xaxis, 
-            "K": gridder.yaxis, 
-            "L": gridder.zaxis
-        }
 
     def view_image_data(self) -> None:
         """Displays Scan image data in an interactive GUI."""

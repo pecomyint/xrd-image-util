@@ -27,6 +27,8 @@ class PilatusHDF5Handler(adh.AreaDetectorHDF5SingleHandler):
 
 
 def _add_catalog_handler(catalog) -> None:
+    """Helper function to add 6-ID-B-specific handler."""
+
     bluesky_catalog = catalog.bluesky_catalog
     bluesky_catalog.register_handler(
         "AD_HDF5_Pilatus_6idb", 
@@ -35,11 +37,14 @@ def _add_catalog_handler(catalog) -> None:
     )
 
 
-def _get_rsm_for_scan(scan):
+def _get_rsm_for_scan(scan) -> np.ndarray:
     """Returns a reciprocal space map for a given scan.
     
-    Currently restricted to four circle geometries
+    In its current form, this function works only for four
+    circle geometries
     """
+
+    # TODO: Generalize this function
 
     run = scan.bluesky_run
 
@@ -117,54 +122,9 @@ def _get_rsm_for_scan(scan):
     return rsm
 
 
-def _get_rsm_bounds(scan):
-    """Returns the minimum and maximum values for H, K, and L with an RSM."""
-
-    rsm = scan.rsm
-    rsm_bounds = {}
-
-    if scan.rsm is None:
-        rsm_bounds.update({"h_min": None})
-        rsm_bounds.update({"h_max": None})
-        rsm_bounds.update({"k_min": None})
-        rsm_bounds.update({"k_max": None})
-        rsm_bounds.update({"l_min": None})
-        rsm_bounds.update({"l_max": None})
-    else:
-        rsm_bounds.update({"h_min": np.amin(rsm[:, :, :, 0])})
-        rsm_bounds.update({"h_max": np.amax(rsm[:, :, :, 0])})
-        rsm_bounds.update({"k_min": np.amin(rsm[:, :, :, 1])})
-        rsm_bounds.update({"k_max": np.amax(rsm[:, :, :, 1])})
-        rsm_bounds.update({"l_min": np.amin(rsm[:, :, :, 2])})
-        rsm_bounds.update({"l_max": np.amax(rsm[:, :, :, 2])})
-        
-    return rsm_bounds
-
-
-def _get_motor_bounds(scan) -> tuple:
-    """Returns minimum and maximum values for each instrument motor."""
-
-    run = scan.bluesky_run
-
-    if "primary" not in run.keys():
-        return (None, None)
-
-    motors = scan.motors
-    m_start = []
-    m_stop = []
-    start, stop = 0, 0
-    for motor in motors:
-        start = run.primary.read()[motor].values[0]
-        stop = run.primary.read()[motor].values[-1]
-
-        m_start.append(round(start, 5))
-        m_stop.append(round(stop, 5))
-
-    return (m_start, m_stop)
-
-
 def _get_raw_data(scan) -> np.ndarray:
-    """Returns raw detector images for a Scan."""
+    """Returns raw detector data and coordinates for a Scan."""
+
     run = scan.bluesky_run
 
     if "primary" not in run.keys():
@@ -173,8 +133,18 @@ def _get_raw_data(scan) -> np.ndarray:
     raw_data_unordered = run.primary.read()["pilatus100k_image"].values
     raw_data_unordered = np.squeeze(raw_data_unordered)
     raw_data = np.swapaxes(raw_data_unordered, 1, 2)
+    raw_data_coords = {
+        "t": np.linspace(0, raw_data.shape[0] - 1, raw_data.shape[0]),
+        "x": np.linspace(0, raw_data.shape[1] - 1, raw_data.shape[1]),
+        "y": np.linspace(0, raw_data.shape[2] - 1, raw_data.shape[2])
+    }
 
-    return raw_data
+    raw_data_dict = {
+        "data": raw_data,
+        "coords": raw_data_coords
+    }
+
+    return raw_data_dict
 
 
 def _get_hkl_centers(scan) -> tuple:
