@@ -33,14 +33,4 @@ templates_path = ["_templates"]
 exclude_patterns = []
 
 html_theme = "pydata_sphinx_theme"
-html_theme_options = {
-    'show_prev_next': False,
-    'navbar_align': 'left',
-    'github_url': 'https://github.com/myusername/my-project',
-    'navbar_links': [
-        ('API', 'api'),
-        ('Examples', 'examples'),
-    ],
-}
-
 html_baseurl = '/xrd-image-util/'
