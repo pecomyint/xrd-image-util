@@ -8,7 +8,7 @@ on:
     tags:
       - '*'  # all tags
 
-  workflow_discpatch:
+  workflow_dispatch:
     inputs:
       deploy:
         description: 'Deploy Documentation'
