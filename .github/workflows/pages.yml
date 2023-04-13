@@ -1,0 +1,43 @@
+name: Publish Docs
+
+on: 
+  release:
+    types: [published]
+    branches:
+      - main
+    tags:
+      - '*'  # all tags
+
+  workflow_discpatch:
+    inputs:
+      deploy:
+        description: 'Deploy Documentation'
+        type: boolean
+        required: true
+        default: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install build dependencies
+        run: |
+          pip install sphinx
+          pip install sphinx_rtd_theme
+          pip install sphinxcontrib-ghpages
+      - name: Build Documentation
+        run: |
+          cd docs
+          make html
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          personal_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/_build/html
