@@ -9,7 +9,6 @@ import pathlib
 import sys
 
 sys.path.append(str(pathlib.Path(__file__).parent.parent.parent))
-import xrdimageutil as xiu
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
