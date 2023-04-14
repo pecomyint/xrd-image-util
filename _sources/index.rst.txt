@@ -1,6 +1,7 @@
 xrd-image-util
 ======================================
 
+
 Contents:
 
 .. toctree::
@@ -8,8 +9,8 @@ Contents:
 
    getting_started
    api/
-     catalog
-     scan
+      catalog
+      scan
 
 Indices and tables
 ==================
