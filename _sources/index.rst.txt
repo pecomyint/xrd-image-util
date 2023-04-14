@@ -6,10 +6,10 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-    getting_started
-    api/
-        catalog
-        scan
+   getting_started
+   api/
+     catalog
+     scan
 
 Indices and tables
 ==================
