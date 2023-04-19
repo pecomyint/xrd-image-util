@@ -8,10 +8,173 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 from pyqtgraph.dockarea import Dock, DockArea
 
+import xrdimageutil as xiu
 from xrdimageutil import utils
 from xrdimageutil.roi import LineROI, RectROI
 
-# TODO: Find better naming conventions for the image widget and roi-related entities
+'''
+class ScanImageDataGUI(QtWidgets.QWidget):
+    
+    scan = None # xiu.Scan to display image data for
+
+    # PyQt components
+    tab_widget = None
+    raw_data_widget = None
+    gridded_data_widget = None
+    layout = None
+
+    def __init__(self, scan: xiu.Scan) -> None:
+        super(ScanImageDataGUI, self).__init__()
+
+
+class ImageDataWidget(DockArea):
+
+    data = None # 3D numpy.ndarray of image data
+    coords = None # Ordered dictionary with 3 keys that denotes each dimension's labels and coordinates
+
+    image_tool = None # Modified pg.ImageView
+    image_tool_dock = None
+
+    image_tool_controller = None # Interface to controller ImageTool
+    image_tool_controller_dock = None
+
+    graphical_rect_rois = None # List of two GraphicalRectROI's associated with widget
+    graphical_rect_roi_docks = None
+
+    graphical_line_rois = None # List of two GraphicalLineROI's associated with widget
+    graphical_rect_roi_docks = None
+
+    def __init__(self, data: np.ndarray, coords: dict) -> None:
+        super(ImageDataWidget, self).__init__()  
+
+
+class ImageTool(pg.ImageView):
+    
+    image_data_widget = None # Parent
+
+    # Interface to control ImageTool
+    controller = None
+
+    # Visual components
+    transform = None
+    colormap = None
+    colorbar = None
+
+    def __init__(self, image_data_widget: ImageDataWidget, view=pg.PlotItem()) -> None:
+        super(ImageTool, self).__init__(view)
+
+    def _load_data() -> None:
+        ...
+
+    def _set_colormap() -> None:
+        ...
+
+
+class ImageToolController(QtWidgets.QWidget):
+     
+    image_tool = None
+    
+    # Transposed data/coords to match ImageTool display
+    t_data = None
+    t_coords = None
+
+    # PyQt Signals
+    signal_data_transposed = None
+    signal_colormap_changed = None
+
+    # PyQt components
+    slice_direction_lbl = None
+    slice_direction_cbx = None
+    colormap_lbl = None
+    colormap_cbx = None
+    colormap_scale_lbl = None
+    colormap_scale_cbx = None
+    colormap_max_lbl = None
+    colormap_max_sbx = None
+    colormap_gamma_lbl = None
+    colormap_gamma_sbx = None
+    colormap_base_lbl = None
+    colormap_base_sbx = None
+    layout = None
+
+    def __init__(self, image_tool: ImageTool) -> None:
+        super(ImageToolController, self).__init__()
+
+    def _transpose_data(dim_order) -> None:
+        ...
+
+    def _change_colormap() -> None:
+        ...
+
+    def _toggle_colormap_scale() -> None:
+        ...
+
+
+class GraphicalRectROI(pg.RectROI):
+    
+    image_data_widget = None
+    controller = None
+    color = None
+
+    def __init__(self, pos, size, image_data_widget: ImageDataWidget) -> None:
+        super(GraphicalRectROI, self).__init__(pos, size)
+
+    def _set_color() -> None:
+        ...
+
+    def _set_visibility() -> None:
+        ...
+
+
+class GraphicalRectROIController(QtWidgets.QWidget):
+    
+    # Visual ROI
+    graphical_rect_roi = None
+
+    # Computational ROI
+    rect_roi = None
+
+    bounds = None # Dict of ROI constraints
+
+    # PyQt Signals
+    signal_visibility_changed = None
+    visibiity_chkbx = None
+    center_btn = None
+    color_btn = None
+    output_type_lbl = None
+    output_type_cbx = None
+    show_output_btn = None
+    bounds_sbxs = None
+    layout = None
+
+    def __init__(self, graphical_rect_roi: GraphicalRectROI) -> None:
+        super(GraphicalRectROIController, self).__init__()
+
+    def _set_bounds_from_graphical_rect_roi() -> None:
+        ...
+
+    def _update_graphical_rect_roi() -> None:
+        ...
+
+    def _set_bounds_from_spinboxes() -> None:
+        ...
+
+    def _update_spinboxes() -> None:
+        ...
+
+    def _center() -> None:
+        ...
+
+    def _validate_graphical_rect_roi() -> None:
+        ...
+
+    def _validate_spinboxes() -> None:
+        ...
+
+    def _show_output() -> None:
+        ...
+'''
+# ================================================================
 
 class ScanImageDataWidget(QtWidgets.QWidget):
     """GUI application for viewing raw and gridded Scan images."""
