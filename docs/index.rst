@@ -24,9 +24,18 @@ Below is an example of unpacking `xrd-image-util`'s sample data catalog.
 
     databroker-unpack inplace data/singh test-catalog
     
+`xrd-image-util` requires Python 3.8 or newer (conda installations are preferred).
 
 Getting Started
 ---------------
+
+Install the Python package with the shell command below:
+
+.. code-block:: console
+
+    pip install xrd-image-util
+
+To import the package inline, use this line:
 
 .. code-block:: python
 
