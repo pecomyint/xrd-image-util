@@ -257,13 +257,22 @@ is tailored for data gathering at APS beamline 6-ID-B.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>This project is currently under development.
-Please report any issues or bugs <cite>here &lt;https://github.com/henryjsmith12/xrd-image-util/issues&gt;</cite>.</p>
+Please report any issues or bugs <a class="reference external" href="https://github.com/henryjsmith12/xrd-image-util/issues">here</a>.</p>
 </div>
 <section id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this heading">#</a></h2>
+<p>This project requires an unpacked databroker catalog to be used. Instructions for how to accomplish
+this can be found <a class="reference external" href="https://blueskyproject.io/databroker-pack/usage.html#option-1-unpacking-in-place">here</a>.
+Below is an example of unpacking <cite>xrd-image-util</cite>’s sample data catalog.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">databroker-unpack inplace data/singh test-catalog</span>
+</pre></div>
+</div>
 </section>
 <section id="getting-started">
 <h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">xrdimageutil</span> <span class="k">as</span> <span class="nn">xiu</span>
+</pre></div>
+</div>
 </section>
 </section>
 
