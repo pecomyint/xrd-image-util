@@ -272,8 +272,10 @@ class Scan(object):
         """Displays Scan image data in an interactive GUI."""
         
         self.app = pg.mkQApp()
-        self.window = image_data_widget.ScanImageDataWidget(scan=self)
-        self.window.raise_()
-        self.window.show()
-        self.window.raise_()
+        self.gui_window = image_data_widget.ScanImageDataGUI(scan=self)
+        self.gui_window.raise_()
+        self.gui_window.show()
+        self.gui_window.raise_()
         self.app.exec_()
+        
+        

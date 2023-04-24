@@ -12,10 +12,11 @@ import xrdimageutil as xiu
 from xrdimageutil import utils
 from xrdimageutil.roi import LineROI, RectROI
 
-'''
+
 class ScanImageDataGUI(QtWidgets.QWidget):
+    """Graphical user interface for exploring a Scan's image data."""
     
-    scan = None # xiu.Scan to display image data for
+    scan = None # xiu.Scan object to display image data for
 
     # PyQt components
     tab_widget = None
@@ -23,11 +24,25 @@ class ScanImageDataGUI(QtWidgets.QWidget):
     gridded_data_widget = None
     layout = None
 
-    def __init__(self, scan: xiu.Scan) -> None:
+    def __init__(self, scan) -> None:
         super(ScanImageDataGUI, self).__init__()
+
+        self.tab_widget = QtWidgets.QTabWidget()
+        self.layout = QtWidgets.QGridLayout()
+        self.setLayout(self.layout)
+
+        self.raw_data_widget = ImageDataWidget(data=scan.raw_data["data"], coords=scan.raw_data["coords"])
+        if scan.gridded_data["data"] is not None:
+            self.tab_widget.addTab(self.raw_data_widget, "Raw")
+            self.gridded_data_widget = ImageDataWidget(data=scan.gridded_data["data"], coords=scan.gridded_data["coords"])
+            self.tab_widget.addTab(self.gridded_data_widget, "Gridded")
+            self.layout.addWidget(self.tab_widget)
+        else:
+            self.layout.addWidget(self.raw_data_widget)
 
 
 class ImageDataWidget(DockArea):
+    """Generalized 3D image data GUI."""
 
     data = None # 3D numpy.ndarray of image data
     coords = None # Ordered dictionary with 3 keys that denotes each dimension's labels and coordinates
@@ -47,6 +62,24 @@ class ImageDataWidget(DockArea):
     def __init__(self, data: np.ndarray, coords: dict) -> None:
         super(ImageDataWidget, self).__init__()  
 
+        self.data = data
+        self.coords = coords
+
+        self.setMinimumSize(800, 500)
+        self.move(250, 250)
+
+        # ImageTool
+        self.image_tool = ImageTool(image_data_widget=self, view=pg.PlotItem())
+        self.image_tool_dock = Dock(name="ImageTool", size=(10, 8), widget=self.image_tool, hideTitle=True)
+        
+        # ImageToolController
+        self.image_tool_controller = self.image_tool.controller
+        self.image_tool_controller_dock = Dock(name="ImageToolController", size=(10, 2), widget=self.image_tool_controller, hideTitle=True)
+        
+        # Organizes dock area
+        self.addDock(self.image_tool_dock)
+        self.addDock(self.image_tool_controller_dock)
+
 
 class ImageTool(pg.ImageView):
     
@@ -60,13 +93,58 @@ class ImageTool(pg.ImageView):
     colormap = None
     colorbar = None
 
-    def __init__(self, image_data_widget: ImageDataWidget, view=pg.PlotItem()) -> None:
-        super(ImageTool, self).__init__(view)
+    def __init__(self, image_data_widget, view) -> None:
+        super(ImageTool, self).__init__(view=view)
 
-    def _load_data() -> None:
-        ...
+        self.image_data_widget = image_data_widget
 
-    def _set_colormap() -> None:
+        # Window settings
+        self.ui.histogram.hide()
+        self.ui.roiBtn.hide()
+        self.ui.menuBtn.hide()
+        self.getView().setAspectLocked(False)
+        self.getView().ctrlMenu = None
+
+        self.controller = ImageToolController(image_tool=self)
+
+        self.transform = QtGui.QTransform()
+
+        self.colormap = utils._create_colormap(name="magma", scale="log", max=100)
+        self.setColorMap(colormap=self.colormap)
+        self.colorbar = pg.ColorBarItem(values=(0, 100), cmap=self.colormap, interactive=False, width=15, orientation="v")
+        self.colorbar.setColorMap(self.colormap)
+        self.colorbar.setImageItem(img=self.getImageItem(), insert_in=self.getView())
+
+        # Signals
+        self.controller.signal_data_transposed.connect(self._load_data)
+        self.controller.signal_colormap_changed.connect(self._set_colormap)
+        
+    def _load_data(self) -> None:
+        """Loads transposed data and coordinates in the ImageView."""
+
+        # Transposed data
+        data = self.controller.t_data
+        coords = self.controller.t_coords
+
+        # Image transform
+        self.transform.reset()
+        scale = (
+            coords[list(coords.keys())[1]][1] - coords[list(coords.keys())[1]][0],
+            coords[list(coords.keys())[2]][1] - coords[list(coords.keys())[2]][0]
+        )
+        pos = [coords[list(coords.keys())[1]][0], coords[list(coords.keys())[2]][0]]
+        self.transform.translate(*pos)
+        self.transform.scale(*scale)
+
+        # Sets image
+        self.setImage(
+            img=data,
+            transform=self.transform,
+            xvals=coords[list(coords.keys())[0]]
+        )
+        self.setCurrentIndex(0)
+
+    def _set_colormap(self) -> None:
         ...
 
 
@@ -79,8 +157,8 @@ class ImageToolController(QtWidgets.QWidget):
     t_coords = None
 
     # PyQt Signals
-    signal_data_transposed = None
-    signal_colormap_changed = None
+    signal_data_transposed = QtCore.pyqtSignal()
+    signal_colormap_changed = QtCore.pyqtSignal()
 
     # PyQt components
     slice_direction_lbl = None
@@ -100,9 +178,87 @@ class ImageToolController(QtWidgets.QWidget):
     def __init__(self, image_tool: ImageTool) -> None:
         super(ImageToolController, self).__init__()
 
-    def _transpose_data(dim_order) -> None:
-        ...
+        self.image_tool = image_tool
 
+        self.t_data = image_tool.image_data_widget.data
+        self.t_coords = image_tool.image_data_widget.coords
+
+        self.layout = QtWidgets.QGridLayout()
+        self.setLayout(self.layout)
+        self.slice_direction_lbl = QtWidgets.QLabel("Slicing Dimension:")
+        self.slice_direction_cbx = QtWidgets.QComboBox()
+        self.slice_direction_cbx.addItems(list(self.t_coords.keys()))
+        self.colormap_lbl = QtWidgets.QLabel("Image Colormap:")
+        self.colormap_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        self.colormap_cbx = QtWidgets.QComboBox()
+        self.colormap_cbx.addItems(pg.colormap.listMaps(source="matplotlib"))
+        self.colormap_scale_lbl = QtWidgets.QLabel("CMap Scale:")
+        self.colormap_scale_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        self.colormap_scale_cbx = QtWidgets.QComboBox()
+        self.colormap_scale_cbx.addItems(["linear", "log", "power"])
+        self.colormap_max_lbl = QtWidgets.QLabel("CMap Max:")
+        self.colormap_max_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        self.colormap_max_sbx = QtWidgets.QDoubleSpinBox()
+        self.colormap_max_sbx.setMinimum(1)
+        self.colormap_max_sbx.setMaximum(1000000)
+        self.colormap_max_sbx.setSingleStep(1)
+        self.colormap_max_sbx.setValue(100)
+        self.colormap_gamma_lbl = QtWidgets.QLabel("CMap Gamma:")
+        self.colormap_gamma_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        self.colormap_gamma_sbx = QtWidgets.QDoubleSpinBox()
+        self.colormap_gamma_sbx.setMinimum(0)
+        self.colormap_gamma_sbx.setMaximum(100)
+        self.colormap_gamma_sbx.setSingleStep(0.1)
+        self.colormap_gamma_sbx.setValue(1.5)
+        self.colormap_base_lbl = QtWidgets.QLabel("CMap Base:")
+        self.colormap_base_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        self.colormap_base_sbx = QtWidgets.QDoubleSpinBox()
+        self.colormap_base_sbx.setMinimum(0)
+        self.colormap_base_sbx.setMaximum(100)
+        self.colormap_base_sbx.setSingleStep(0.1)
+        self.colormap_base_sbx.setValue(1.5)
+
+        self.layout.setColumnStretch(0, 1)
+        self.layout.setColumnStretch(1, 3)
+        self.layout.setColumnStretch(2, 1)
+        self.layout.setColumnStretch(3, 1)
+        self.layout.setColumnStretch(4, 1)
+        self.layout.setColumnStretch(5, 1)
+        self.layout.addWidget(self.slice_direction_lbl, 0, 0, 1, 1)
+        self.layout.addWidget(self.slice_direction_cbx, 1, 0, 1, 1)
+        self.layout.addWidget(self.colormap_lbl, 0, 2, 1, 1)
+        self.layout.addWidget(self.colormap_cbx, 0, 3, 1, 1)
+        self.layout.addWidget(self.colormap_max_lbl, 0, 4, 1, 1)
+        self.layout.addWidget(self.colormap_max_sbx, 0, 5, 1, 1)
+        self.layout.addWidget(self.colormap_scale_lbl, 1, 2, 1, 1)
+        self.layout.addWidget(self.colormap_scale_cbx, 1, 3, 1, 1)
+
+        # Signals
+        self.slice_direction_cbx.currentIndexChanged.connect(self._transpose_data)
+
+    def _transpose_data(self) -> None:
+
+        # Original data/coords
+        data = self.image_tool.image_data_widget.data
+        coords = self.image_tool.image_data_widget.coords
+
+        # New dim order
+        dim_order = [] # Strings
+        dim_order.append(self.slice_direction_cbx.currentText())
+        for dim in list(coords.keys()):
+            if dim != dim_order[0]:
+                dim_order.append(dim)
+
+        dim_order_i = [] # Indicies
+        for dim in dim_order:
+            dim_order_i.append(list(coords.keys()).index(dim))
+        dim_order_tuple = tuple(dim_order_i)
+
+        self.t_data = np.transpose(data, axes=dim_order_tuple)
+        self.t_coords = {dim: coords[dim] for dim in dim_order}
+
+        self.signal_data_transposed.emit()
+        
     def _change_colormap() -> None:
         ...
 
@@ -110,6 +266,7 @@ class ImageToolController(QtWidgets.QWidget):
         ...
 
 
+'''
 class GraphicalRectROI(pg.RectROI):
     
     image_data_widget = None
@@ -175,7 +332,7 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         ...
 '''
 # ================================================================
-
+'''
 class ScanImageDataWidget(QtWidgets.QWidget):
     """GUI application for viewing raw and gridded Scan images."""
     
@@ -327,7 +484,7 @@ class ImageDataWidget(DockArea):
         self._add_line_roi()
         self._add_line_roi()
 
-        '''self.subtract_rect_rois_btn = QtWidgets.QPushButton("Show Subtraction Output")
+        #self.subtract_rect_rois_btn = QtWidgets.QPushButton("Show Subtraction Output")
         self.rect_roi_subtraction_dock = Dock(
             name="ROI Subtraction", 
             size=(100, 10), 
@@ -335,7 +492,7 @@ class ImageDataWidget(DockArea):
             hideTitle=True
         )
         self.addDock(self.rect_roi_subtraction_dock, "right", self.options_dock)
-        self.moveDock(self.rect_roi_subtraction_dock, "bottom", self.roi_docks[1])'''
+        self.moveDock(self.rect_roi_subtraction_dock, "bottom", self.roi_docks[1])
 
     def _load_data(self, data):
 
@@ -1009,3 +1166,4 @@ class GraphicalLineROIController(QtWidgets.QWidget):
             ax2.set_ybound(coords[2][0], coords[2][-1])
         ax.set_title(title) 
         plt.show()
+'''
