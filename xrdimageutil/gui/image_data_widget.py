@@ -14,7 +14,11 @@ from xrdimageutil.roi import LineROI, RectROI
 
 
 class ScanImageDataGUI(QtWidgets.QWidget):
-    """Graphical user interface for exploring a Scan's image data."""
+    """Housing window for ImageTool objects to analyze Scan image data.
+    
+    If the provided Scan object parameter has raw and RSM-gridded image data
+    available, the ScanImageDataGUI object will appear as a window with two tabs.
+    """
     
     scan = None # xiu.Scan object to display image data for
 
@@ -42,7 +46,7 @@ class ScanImageDataGUI(QtWidgets.QWidget):
 
 
 class ImageDataWidget(DockArea):
-    """Generalized 3D image data GUI."""
+    """A generalized 3D image data interface."""
 
     data = None # 3D numpy.ndarray of image data
     coords = None # Ordered dictionary with 3 keys that denotes each dimension's labels and coordinates
@@ -82,6 +86,7 @@ class ImageDataWidget(DockArea):
 
 
 class ImageTool(pg.ImageView):
+    """A customized pyqtgraph ImageView widget."""
     
     image_data_widget = None # Parent
 
@@ -118,6 +123,9 @@ class ImageTool(pg.ImageView):
         # Signals
         self.controller.signal_data_transposed.connect(self._load_data)
         self.controller.signal_colormap_changed.connect(self._set_colormap)
+
+        # Initial data load
+        self._load_data()
         
     def _load_data(self) -> None:
         """Loads transposed data and coordinates in the ImageView."""
@@ -144,12 +152,32 @@ class ImageTool(pg.ImageView):
         )
         self.setCurrentIndex(0)
 
+        # Fixes cmap reset bug
+        self._set_colormap()
+
     def _set_colormap(self) -> None:
-        ...
+        name = self.controller.colormap_cbx.currentText()
+        scale = self.controller.colormap_scale_cbx.currentText()
+        max = self.controller.colormap_max_sbx.value()
+
+        if scale == "log":
+            base = self.controller.colormap_base_sbx.value()
+        else:
+            base = None
+        if scale == "power":
+            gamma = self.controller.colormap_gamma_sbx.value()
+        else:
+            gamma = None
+
+        self.colormap = utils._create_colormap(name=name, scale=scale, max=max, base=base, gamma=gamma)
+        self.setColorMap(colormap=self.colormap)
+        self.colorbar.setColorMap(self.colormap)
+        self.colorbar.setLevels((0, max))
 
 
 class ImageToolController(QtWidgets.QWidget):
-     
+    """A widget for controlling an ImageTool object."""
+    
     image_tool = None
     
     # Transposed data/coords to match ImageTool display
@@ -204,15 +232,19 @@ class ImageToolController(QtWidgets.QWidget):
         self.colormap_max_sbx.setSingleStep(1)
         self.colormap_max_sbx.setValue(100)
         self.colormap_gamma_lbl = QtWidgets.QLabel("CMap Gamma:")
+        self.colormap_gamma_lbl.hide()
         self.colormap_gamma_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.colormap_gamma_sbx = QtWidgets.QDoubleSpinBox()
+        self.colormap_gamma_sbx.hide()
         self.colormap_gamma_sbx.setMinimum(0)
         self.colormap_gamma_sbx.setMaximum(100)
         self.colormap_gamma_sbx.setSingleStep(0.1)
         self.colormap_gamma_sbx.setValue(1.5)
         self.colormap_base_lbl = QtWidgets.QLabel("CMap Base:")
+        self.colormap_base_lbl.hide()
         self.colormap_base_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.colormap_base_sbx = QtWidgets.QDoubleSpinBox()
+        self.colormap_base_sbx.hide()
         self.colormap_base_sbx.setMinimum(0)
         self.colormap_base_sbx.setMaximum(100)
         self.colormap_base_sbx.setSingleStep(0.1)
@@ -232,11 +264,21 @@ class ImageToolController(QtWidgets.QWidget):
         self.layout.addWidget(self.colormap_max_sbx, 0, 5, 1, 1)
         self.layout.addWidget(self.colormap_scale_lbl, 1, 2, 1, 1)
         self.layout.addWidget(self.colormap_scale_cbx, 1, 3, 1, 1)
+        self.layout.addWidget(self.colormap_gamma_lbl, 1, 4, 1, 1)
+        self.layout.addWidget(self.colormap_gamma_sbx, 1, 5, 1, 1)
+        self.layout.addWidget(self.colormap_base_lbl, 1, 4, 1, 1)
+        self.layout.addWidget(self.colormap_base_sbx, 1, 5, 1, 1)
 
         # Signals
         self.slice_direction_cbx.currentIndexChanged.connect(self._transpose_data)
+        self.colormap_scale_cbx.currentIndexChanged.connect(self._toggle_colormap_scale)
+        self.colormap_cbx.currentIndexChanged.connect(self._change_colormap)
+        self.colormap_max_sbx.valueChanged.connect(self._change_colormap)
+        self.colormap_base_sbx.valueChanged.connect(self._change_colormap)
+        self.colormap_gamma_sbx.valueChanged.connect(self._change_colormap)
 
     def _transpose_data(self) -> None:
+        """Reorders data dimensions and coordinates to match given dimension order."""
 
         # Original data/coords
         data = self.image_tool.image_data_widget.data
@@ -259,11 +301,29 @@ class ImageToolController(QtWidgets.QWidget):
 
         self.signal_data_transposed.emit()
         
-    def _change_colormap() -> None:
-        ...
+    def _change_colormap(self) -> None:
+        self.signal_colormap_changed.emit()
 
-    def _toggle_colormap_scale() -> None:
-        ...
+    def _toggle_colormap_scale(self) -> None:
+        scale = self.colormap_scale_cbx.currentText()
+
+        if scale == "linear":
+            self.colormap_base_lbl.hide()
+            self.colormap_base_sbx.hide()
+            self.colormap_gamma_lbl.hide()
+            self.colormap_gamma_sbx.hide()
+        elif scale == "log":
+            self.colormap_base_lbl.show()
+            self.colormap_base_sbx.show()
+            self.colormap_gamma_lbl.hide()
+            self.colormap_gamma_sbx.hide()
+        elif scale == "power":
+            self.colormap_base_lbl.hide()
+            self.colormap_base_sbx.hide()
+            self.colormap_gamma_lbl.show()
+            self.colormap_gamma_sbx.show()
+
+        self.signal_colormap_changed.emit()
 
 
 '''
