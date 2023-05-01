@@ -2,15 +2,12 @@
 See LICENSE file.
 """
 
-import matplotlib.pyplot as plt
 import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 from pyqtgraph.dockarea import Dock, DockArea
 
-import xrdimageutil as xiu
 from xrdimageutil import utils
-from xrdimageutil.roi import LineROI, RectROI
 
 
 class ScanImageDataGUI(QtWidgets.QWidget):
@@ -326,8 +323,8 @@ class ImageToolController(QtWidgets.QWidget):
         self.signal_colormap_changed.emit()
 
 
-'''
 class GraphicalRectROI(pg.RectROI):
+    """Rectangular ROI displayed in an ImageTool object."""
     
     image_data_widget = None
     controller = None
@@ -344,7 +341,8 @@ class GraphicalRectROI(pg.RectROI):
 
 
 class GraphicalRectROIController(QtWidgets.QWidget):
-    
+    """Interface for controlling a GraphicalRectROI object."""
+
     # Visual ROI
     graphical_rect_roi = None
 
@@ -355,13 +353,23 @@ class GraphicalRectROIController(QtWidgets.QWidget):
 
     # PyQt Signals
     signal_visibility_changed = None
+
+    # PyQt Components
     visibiity_chkbx = None
-    center_btn = None
+    reset_btn = None
     color_btn = None
-    output_type_lbl = None
+
+    dim_lbls = None
+    dim_min_sbxs = None
+    dim_max_sbxs = None
+    dim_reset_btns = None
+
     output_type_cbx = None
-    show_output_btn = None
-    bounds_sbxs = None
+    dim_output_chkbxs = None
+    output_plot = None
+    expand_output_btn = None
+    export_output_btn = None
+    
     layout = None
 
     def __init__(self, graphical_rect_roi: GraphicalRectROI) -> None:
@@ -390,7 +398,8 @@ class GraphicalRectROIController(QtWidgets.QWidget):
 
     def _show_output() -> None:
         ...
-'''
+
+
 # ================================================================
 '''
 class ScanImageDataWidget(QtWidgets.QWidget):
