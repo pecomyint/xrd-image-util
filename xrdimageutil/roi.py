@@ -152,16 +152,30 @@ class RectROI:
 
         # Run output calculation
         if output_type == "average":
+
             if len(output_dims) == 0:
                 raise ValueError("Dimension to average on not provided.")
+            
             elif len(output_dims) == 1:
-                ...
+                avg_dim_idx = list(coords.keys()).index(output_dims[0])
+                self.output["data"] = np.mean(roi_data, axis=avg_dim_idx)
+
+                del(roi_coords[output_dims[0]])
+                self.output["coords"] = roi_coords
+
             elif len(output_dims) == 2:
-                ...
+                avg_dim_idxs = [list(coords.keys()).index(dim) for dim in output_dims]
+                self.output["data"] = np.mean(roi_data, axis=tuple(avg_dim_idxs))
+
+                del(roi_coords[output_dims[0]])
+                del(roi_coords[output_dims[1]])
+                self.output["coords"] = roi_coords
+
             elif len(output_dims) == 3:
-                ...
+                self.output["data"] = np.mean(roi_data, axis=(0, 1, 2))
+
             else:
-                raise ValueError("Invalid .")
+                raise ValueError("Invalid dimension list.")
 
     def get_output(self) -> dict:
         return self.output
