@@ -8,6 +8,7 @@ import pyqtgraph as pg
 from pyqtgraph.dockarea import Dock, DockArea
 
 from xrdimageutil import utils
+from xrdimageutil.roi import RectROI
 
 
 class ScanImageDataGUI(QtWidgets.QWidget):
@@ -66,8 +67,8 @@ class ImageDataWidget(DockArea):
         self.data = data
         self.coords = coords
 
-        self.setMinimumSize(800, 500)
-        self.move(250, 250)
+        self.setMinimumSize(900, 700)
+        self.move(50, 50)
 
         # ImageTool
         self.image_tool = ImageTool(image_data_widget=self, view=pg.PlotItem())
@@ -77,9 +78,22 @@ class ImageDataWidget(DockArea):
         self.image_tool_controller = self.image_tool.controller
         self.image_tool_controller_dock = Dock(name="ImageToolController", size=(10, 2), widget=self.image_tool_controller, hideTitle=True)
         
+        # GraphicalRectROIs
+        self.graphical_rect_rois = [
+            GraphicalRectROI((0, 0), (1, 1), image_data_widget=self), 
+            GraphicalRectROI((0, 0), (1, 1), image_data_widget=self)
+        ]
+        self.graphical_rect_roi_docks = [
+            Dock(name="RectROI", size=(5, 5), widget=roi.controller, hideTitle=True) for roi in self.graphical_rect_rois
+        ]
+
         # Organizes dock area
         self.addDock(self.image_tool_dock)
         self.addDock(self.image_tool_controller_dock)
+        self.addDock(self.graphical_rect_roi_docks[0], "right", self.image_tool_dock)
+        self.addDock(self.graphical_rect_roi_docks[1], "bottom", self.graphical_rect_roi_docks[0])
+        self.moveDock(self.image_tool_controller_dock, "left", self.graphical_rect_roi_docks[1])
+        self.moveDock(self.image_tool_controller_dock, "bottom", self.image_tool_dock)
 
 
 class ImageTool(pg.ImageView):
@@ -333,6 +347,12 @@ class GraphicalRectROI(pg.RectROI):
     def __init__(self, pos, size, image_data_widget: ImageDataWidget) -> None:
         super(GraphicalRectROI, self).__init__(pos, size)
 
+        self.image_data_widget = image_data_widget
+
+        self.color = (0, 255, 0)
+
+        self.controller = GraphicalRectROIController(graphical_rect_roi=self)
+
     def _set_color() -> None:
         ...
 
@@ -352,7 +372,7 @@ class GraphicalRectROIController(QtWidgets.QWidget):
     bounds = None # Dict of ROI constraints
 
     # PyQt Signals
-    signal_visibility_changed = None
+    signal_visibility_changed = QtCore.pyqtSignal()
 
     # PyQt Components
     visibiity_chkbx = None
@@ -374,6 +394,54 @@ class GraphicalRectROIController(QtWidgets.QWidget):
 
     def __init__(self, graphical_rect_roi: GraphicalRectROI) -> None:
         super(GraphicalRectROIController, self).__init__()
+
+        self.graphical_rect_roi = graphical_rect_roi
+
+        if "t" in list(self.graphical_rect_roi.image_data_widget.coords.keys()):
+            self.rect_roi = RectROI(data_type="raw")
+            self.bounds = {"t": None, "x": None, "y": None}
+        else:
+            self.rect_roi = RectROI(data_type="gridded")
+            self.bounds = {"H": None, "K": None, "L": None}
+        
+        self.layout = QtWidgets.QGridLayout()
+        self.setLayout(self.layout)
+
+        self.visibiity_chkbx = QtWidgets.QCheckBox("Show")
+        self.reset_btn = QtWidgets.QPushButton("Reset")
+        self.color_btn = pg.ColorButton(color=self.graphical_rect_roi.color)
+
+        self.dim_lbls = [QtWidgets.QLabel(dim) for dim in list(self.bounds.keys())]
+        self.dim_min_sbxs = [QtWidgets.QDoubleSpinBox() for dim in list(self.bounds.keys())]
+        self.dim_max_sbxs = [QtWidgets.QDoubleSpinBox() for dim in list(self.bounds.keys())]
+        self.dim_reset_btns = [QtWidgets.QPushButton("Auto") for dim in list(self.bounds.keys())]
+
+        self.output_type_cbx = QtWidgets.QComboBox()
+        self.dim_output_chkbxs = [QtWidgets.QCheckBox(dim) for dim in list(self.bounds.keys())]
+        self.expand_output_btn = QtWidgets.QPushButton("Expand")
+        self.export_output_btn = QtWidgets.QPushButton("Export")
+
+        self.layout.addWidget(self.visibiity_chkbx, 0, 0)
+        self.layout.addWidget(self.reset_btn, 0, 1, 1, 7)
+        self.layout.addWidget(self.color_btn, 1, 0, 1, 8)
+        self.layout.addWidget(self.dim_lbls[0], 2, 0, 1, 2)
+        self.layout.addWidget(self.dim_lbls[1], 3, 0, 1, 2)
+        self.layout.addWidget(self.dim_lbls[2], 4, 0, 1, 2)
+        self.layout.addWidget(self.dim_min_sbxs[0], 2, 2, 1, 2)
+        self.layout.addWidget(self.dim_min_sbxs[1], 3, 2, 1, 2)
+        self.layout.addWidget(self.dim_min_sbxs[2], 4, 2, 1, 2)
+        self.layout.addWidget(self.dim_max_sbxs[0], 2, 4, 1, 2)
+        self.layout.addWidget(self.dim_max_sbxs[1], 3, 4, 1, 2)
+        self.layout.addWidget(self.dim_max_sbxs[2], 4, 4, 1, 2)
+        self.layout.addWidget(self.dim_reset_btns[0], 2, 6, 1, 2)
+        self.layout.addWidget(self.dim_reset_btns[1], 3, 6, 1, 2)
+        self.layout.addWidget(self.dim_reset_btns[2], 4, 6, 1, 2)
+        self.layout.addWidget(self.output_type_cbx, 5, 0, 1, 2)
+        self.layout.addWidget(self.dim_output_chkbxs[0], 5, 2, 1, 2)
+        self.layout.addWidget(self.dim_output_chkbxs[1], 5, 4, 1, 2)
+        self.layout.addWidget(self.dim_output_chkbxs[2], 5, 6, 1, 2)
+        self.layout.addWidget(self.expand_output_btn, 6, 0, 1, 4)
+        self.layout.addWidget(self.export_output_btn, 6, 4, 1, 4)
 
     def _set_bounds_from_graphical_rect_roi() -> None:
         ...
