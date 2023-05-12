@@ -34,7 +34,7 @@ class ScanImageDataGUI(QtWidgets.QWidget):
         self.setLayout(self.layout)
 
         self.raw_data_widget = ImageDataWidget(data=scan.raw_data["data"], coords=scan.raw_data["coords"])
-        if scan.gridded_data["data"] is not None:
+        if scan.gridded_data["data"] is not None and scan.gridded_data["data"].ndim > 1:
             self.tab_widget.addTab(self.raw_data_widget, "Raw")
             self.gridded_data_widget = ImageDataWidget(data=scan.gridded_data["data"], coords=scan.gridded_data["coords"])
             self.tab_widget.addTab(self.gridded_data_widget, "Gridded")
@@ -84,14 +84,15 @@ class ImageDataWidget(DockArea):
             GraphicalRectROI((0, 0), (1, 1), image_data_widget=self)
         ]
         self.graphical_rect_roi_docks = [
-            Dock(name="RectROI", size=(5, 5), widget=roi.controller, hideTitle=True) for roi in self.graphical_rect_rois
+            Dock(name="Rect ROI #1", size=(5, 5), widget=self.graphical_rect_rois[0].controller, hideTitle=False),
+            Dock(name="Rect ROI #2", size=(5, 5), widget=self.graphical_rect_rois[1].controller, hideTitle=False)
         ]
 
         # Organizes dock area
         self.addDock(self.image_tool_dock)
         self.addDock(self.image_tool_controller_dock)
         self.addDock(self.graphical_rect_roi_docks[0], "right", self.image_tool_dock)
-        self.addDock(self.graphical_rect_roi_docks[1], "bottom", self.graphical_rect_roi_docks[0])
+        self.addDock(self.graphical_rect_roi_docks[1], "below", self.graphical_rect_roi_docks[0])
         self.moveDock(self.image_tool_controller_dock, "left", self.graphical_rect_roi_docks[1])
         self.moveDock(self.image_tool_controller_dock, "bottom", self.image_tool_dock)
 
@@ -154,6 +155,9 @@ class ImageTool(pg.ImageView):
         pos = [coords[list(coords.keys())[1]][0], coords[list(coords.keys())[2]][0]]
         self.transform.translate(*pos)
         self.transform.scale(*scale)
+
+        self.view.setLabel("bottom", list(coords.keys())[1])
+        self.view.setLabel("left", list(coords.keys())[2])
 
         # Sets image
         self.setImage(
@@ -348,16 +352,31 @@ class GraphicalRectROI(pg.RectROI):
         super(GraphicalRectROI, self).__init__(pos, size)
 
         self.image_data_widget = image_data_widget
-
+        self.image_data_widget.image_tool.addItem(self)
+        self.hide()
         self.color = (0, 255, 0)
+        self.setPen(pg.mkPen(self.color, width=3))
+        self.addScaleHandle((0, 0), (1, 1), index=0)
+        self.addScaleHandle((1, 1), (0, 0), index=1)
+        self.addScaleHandle((0, 1), (1, 0), index=2)
+        self.addScaleHandle((1, 0), (0, 1), index=3)
 
-        self.controller = GraphicalRectROIController(graphical_rect_roi=self)
+        self.controller = GraphicalRectROIController(graphical_rect_roi=self, image_data_widget=image_data_widget)
 
-    def _set_color() -> None:
-        ...
+        self.controller.signal_visibility_changed.connect(self._set_visibility)
+        self.controller.signal_color_changed.connect(self._set_color)
 
-    def _set_visibility() -> None:
-        ...
+    def _set_color(self) -> None:
+        
+        self.color = self.controller.color_btn.color()
+        self.setPen(pg.mkPen(self.color, width=3))
+
+    def _set_visibility(self) -> None:
+        
+        if self.controller.visibiity_chkbx.isChecked():
+            self.show()
+        else:
+            self.hide()
 
 
 class GraphicalRectROIController(QtWidgets.QWidget):
@@ -373,6 +392,7 @@ class GraphicalRectROIController(QtWidgets.QWidget):
 
     # PyQt Signals
     signal_visibility_changed = QtCore.pyqtSignal()
+    signal_color_changed = QtCore.pyqtSignal()
 
     # PyQt Components
     visibiity_chkbx = None
@@ -386,16 +406,17 @@ class GraphicalRectROIController(QtWidgets.QWidget):
 
     output_type_cbx = None
     dim_output_chkbxs = None
-    output_plot = None
+    output_image_tool = None
     expand_output_btn = None
     export_output_btn = None
     
     layout = None
 
-    def __init__(self, graphical_rect_roi: GraphicalRectROI) -> None:
+    def __init__(self, graphical_rect_roi: GraphicalRectROI, image_data_widget: ImageDataWidget) -> None:
         super(GraphicalRectROIController, self).__init__()
 
         self.graphical_rect_roi = graphical_rect_roi
+        self.image_data_widget = image_data_widget
 
         if "t" in list(self.graphical_rect_roi.image_data_widget.coords.keys()):
             self.rect_roi = RectROI(data_type="raw")
@@ -415,58 +436,291 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         self.dim_min_sbxs = [QtWidgets.QDoubleSpinBox() for dim in list(self.bounds.keys())]
         self.dim_max_sbxs = [QtWidgets.QDoubleSpinBox() for dim in list(self.bounds.keys())]
         self.dim_reset_btns = [QtWidgets.QPushButton("Auto") for dim in list(self.bounds.keys())]
+        for sbx in self.dim_min_sbxs + self.dim_max_sbxs:
+            sbx.setDecimals(5)
+            sbx.setSingleStep(0.5)
+            sbx.setRange(-1000, 1000)
+            sbx.setDecimals(3)
+            sbx.valueChanged.connect(self._set_bounds_from_spinboxes)
 
         self.output_type_cbx = QtWidgets.QComboBox()
+        self.output_type_cbx.addItems(["average"])
         self.dim_output_chkbxs = [QtWidgets.QCheckBox(dim) for dim in list(self.bounds.keys())]
+        self.dim_output_chkbxs[0].setChecked(True)
+
+        self.output_image_tool = ROIImageTool(graphical_roi=self.graphical_rect_roi, view=pg.PlotItem())
         self.expand_output_btn = QtWidgets.QPushButton("Expand")
         self.export_output_btn = QtWidgets.QPushButton("Export")
+        for chkbx in self.dim_output_chkbxs:
+            chkbx.stateChanged.connect(self._change_output_dims)
 
-        self.layout.addWidget(self.visibiity_chkbx, 0, 0)
-        self.layout.addWidget(self.reset_btn, 0, 1, 1, 7)
-        self.layout.addWidget(self.color_btn, 1, 0, 1, 8)
-        self.layout.addWidget(self.dim_lbls[0], 2, 0, 1, 2)
-        self.layout.addWidget(self.dim_lbls[1], 3, 0, 1, 2)
-        self.layout.addWidget(self.dim_lbls[2], 4, 0, 1, 2)
-        self.layout.addWidget(self.dim_min_sbxs[0], 2, 2, 1, 2)
-        self.layout.addWidget(self.dim_min_sbxs[1], 3, 2, 1, 2)
-        self.layout.addWidget(self.dim_min_sbxs[2], 4, 2, 1, 2)
-        self.layout.addWidget(self.dim_max_sbxs[0], 2, 4, 1, 2)
-        self.layout.addWidget(self.dim_max_sbxs[1], 3, 4, 1, 2)
-        self.layout.addWidget(self.dim_max_sbxs[2], 4, 4, 1, 2)
-        self.layout.addWidget(self.dim_reset_btns[0], 2, 6, 1, 2)
-        self.layout.addWidget(self.dim_reset_btns[1], 3, 6, 1, 2)
-        self.layout.addWidget(self.dim_reset_btns[2], 4, 6, 1, 2)
-        self.layout.addWidget(self.output_type_cbx, 5, 0, 1, 2)
-        self.layout.addWidget(self.dim_output_chkbxs[0], 5, 2, 1, 2)
-        self.layout.addWidget(self.dim_output_chkbxs[1], 5, 4, 1, 2)
-        self.layout.addWidget(self.dim_output_chkbxs[2], 5, 6, 1, 2)
-        self.layout.addWidget(self.expand_output_btn, 6, 0, 1, 4)
-        self.layout.addWidget(self.export_output_btn, 6, 4, 1, 4)
+        self.layout.addWidget(self.visibiity_chkbx, 0, 0, 1, 2)
+        self.layout.addWidget(self.reset_btn, 0, 2, 1, 8)
+        self.layout.addWidget(self.color_btn, 1, 0, 1, 10)
+        self.layout.addWidget(self.dim_lbls[0], 2, 0, 1, 1)
+        self.layout.addWidget(self.dim_lbls[1], 3, 0, 1, 1)
+        self.layout.addWidget(self.dim_lbls[2], 4, 0, 1, 1)
+        self.layout.addWidget(self.dim_min_sbxs[0], 2, 1, 1, 3)
+        self.layout.addWidget(self.dim_min_sbxs[1], 3, 1, 1, 3)
+        self.layout.addWidget(self.dim_min_sbxs[2], 4, 1, 1, 3)
+        self.layout.addWidget(self.dim_max_sbxs[0], 2, 4, 1, 3)
+        self.layout.addWidget(self.dim_max_sbxs[1], 3, 4, 1, 3)
+        self.layout.addWidget(self.dim_max_sbxs[2], 4, 4, 1, 3)
+        self.layout.addWidget(self.dim_reset_btns[0], 2, 7, 1, 3)
+        self.layout.addWidget(self.dim_reset_btns[1], 3, 7, 1, 3)
+        self.layout.addWidget(self.dim_reset_btns[2], 4, 7, 1, 3)
+        self.layout.addWidget(self.output_type_cbx, 5, 0, 1, 4)
+        self.layout.addWidget(self.dim_output_chkbxs[0], 5, 4, 1, 2)
+        self.layout.addWidget(self.dim_output_chkbxs[1], 5, 6, 1, 2)
+        self.layout.addWidget(self.dim_output_chkbxs[2], 5, 8, 1, 2)
+        self.layout.addWidget(self.output_image_tool, 6, 0, 3, 10)
+        self.layout.addWidget(self.expand_output_btn, 9, 0, 1, 5)
+        self.layout.addWidget(self.export_output_btn, 9, 5, 1, 5)
 
-    def _set_bounds_from_graphical_rect_roi() -> None:
-        ...
+        for i in range(self.layout.columnCount()):
+            self.layout.setColumnStretch(i, 1)
+        for i in range(self.layout.rowCount()):
+            self.layout.setRowStretch(i, 1)
 
-    def _update_graphical_rect_roi() -> None:
-        ...
+        self.visibiity_chkbx.stateChanged.connect(self._toggle_visibility)
+        self.color_btn.sigColorChanged.connect(self._change_color)
+        self.reset_btn.clicked.connect(self._center)
+        self.image_data_widget.image_tool.controller.signal_data_transposed.connect(self._center)
+        self.graphical_rect_roi.sigRegionChanged.connect(self._set_bounds_from_graphical_rect_roi)
+        self.image_data_widget.image_tool.controller.signal_colormap_changed.connect(self._get_output)
 
-    def _set_bounds_from_spinboxes() -> None:
-        ...
+        self._center()
+        self._get_output()
 
-    def _update_spinboxes() -> None:
-        ...
+    def _set_bounds_from_graphical_rect_roi(self) -> None:
+        """Sets bounds according to the current graphical ROI bounds."""
+        t_coords = self.image_data_widget.image_tool.controller.t_coords
 
-    def _center() -> None:
-        ...
+        handle_1, handle_2 = self.graphical_rect_roi.getSceneHandlePositions()[:2]
+        pos_1 = self.graphical_rect_roi.mapSceneToParent(handle_1[1])
+        pos_2 = self.graphical_rect_roi.mapSceneToParent(handle_2[1])
+        
+        x_1, y_1 = pos_1.x(), pos_1.y()
+        x_2, y_2 = pos_2.x(), pos_2.y()
 
+        x_dim, y_dim = list(t_coords.keys())[1], list(t_coords.keys())[2]
+        self.bounds[x_dim] = (x_1, x_2)
+        self.bounds[y_dim] = (y_1, y_2)
+
+        self._update_spinboxes()
+        self._get_output()
+
+    def _update_graphical_rect_roi(self) -> None:
+        """Applies bounds changes to graphical ROI."""
+
+        x_1, y_1, x_size, y_size = None, None, None, None
+        t_coords = self.image_data_widget.image_tool.controller.t_coords
+        x_dim, y_dim = list(t_coords.keys())[1], list(t_coords.keys())[2]
+
+        x_1, y_1 = self.bounds[x_dim][0], self.bounds[y_dim][0]
+        x_size = self.bounds[x_dim][1] - x_1
+        y_size = self.bounds[y_dim][1] - y_1
+
+        self.graphical_rect_roi.blockSignals(True)
+        self.graphical_rect_roi.setPos(pos=(x_1, y_1))
+        self.graphical_rect_roi.setSize(size=(x_size, y_size))
+        self.graphical_rect_roi.blockSignals(False)
+
+    def _set_bounds_from_spinboxes(self) -> None:
+        """Sets bounds according to dimension spinbox values."""
+
+        for dim, min_sbx, max_sbx in zip(list(self.bounds.keys()), self.dim_min_sbxs, self.dim_max_sbxs):
+            self.bounds[dim] = (min_sbx.value(), max_sbx.value())
+
+        self._update_graphical_rect_roi()
+        self._get_output()
+
+    def _update_spinboxes(self) -> None:
+        """Applies bounds changes to spinboxes."""
+        
+        for dim, min_sbx, max_sbx in zip(list(self.bounds.keys()), self.dim_min_sbxs, self.dim_max_sbxs):
+            min_sbx.blockSignals(True)
+            max_sbx.blockSignals(True)
+            dim_bounds = self.bounds[dim]
+            min_sbx.setValue(dim_bounds[0])
+            max_sbx.setValue(dim_bounds[1])
+            min_sbx.blockSignals(False)
+            max_sbx.blockSignals(False)
+
+    def _center(self) -> None:
+        """Resets bounds to outline full image in each dimension."""
+
+        coords = self.image_data_widget.coords
+        for dim in list(coords.keys()):
+            dim_coords = coords[dim]
+            self.bounds.update({dim: (dim_coords[0], dim_coords[-1])})
+        
+        self._validate_spinboxes()
+        self._update_spinboxes()
+        self._update_graphical_rect_roi()
+        self._get_output()
+
+    def _change_color(self) -> None:
+        self.signal_color_changed.emit()
+    
+    def _toggle_visibility(self) -> None:
+        self.signal_visibility_changed.emit()
+    
     def _validate_graphical_rect_roi() -> None:
         ...
 
-    def _validate_spinboxes() -> None:
-        ...
+    def _validate_spinboxes(self) -> None:
+        t_coords = self.image_data_widget.image_tool.controller.t_coords
+        slicing_dim_idx = list(self.bounds.keys()).index(list(t_coords.keys())[0])
 
-    def _show_output() -> None:
-        ...
+        for reset_btn, min_sbx, max_sbx in zip(self.dim_reset_btns, self.dim_min_sbxs, self.dim_max_sbxs):
+            if self.dim_reset_btns.index(reset_btn) == slicing_dim_idx:
+                reset_btn.setEnabled(False)
+                min_sbx.setEnabled(False)
+                max_sbx.setEnabled(False)
+            else:
+                reset_btn.setEnabled(True)
+                min_sbx.setEnabled(True)
+                max_sbx.setEnabled(True)
 
+    def _change_output_dims(self) -> None:
+        self._validate_output_dims()
+        self._get_output()
+
+    def _validate_output_dims(self) -> None:
+        num_checked = 0
+        for chkbx in self.dim_output_chkbxs:
+            if chkbx.isChecked():
+                num_checked += 1
+        if num_checked == 0 or num_checked == 3:
+            self.output_image_tool.clear()
+            self.output_image_tool.plot.clear()
+            self.output_image_tool.colorbar.hide()
+            self.output_image_tool.setEnabled(False)
+            self.expand_output_btn.setEnabled(False)
+            self.export_output_btn.setEnabled(False)
+        else:
+            self.output_image_tool.setEnabled(True)
+            self.expand_output_btn.setEnabled(True)
+            self.export_output_btn.setEnabled(True)
+
+    def _get_output(self) -> None:
+        dims = []
+        for chkbx in self.dim_output_chkbxs:
+            if chkbx.isChecked():
+                dims.append(chkbx.text())
+        output_type = self.output_type_cbx.currentText()
+        
+        self.rect_roi.set_bounds(self.bounds)
+        self.rect_roi.set_output_type(output=output_type, dims=dims)
+        self.rect_roi.apply(data=self.image_data_widget.data, coords=self.image_data_widget.coords)
+        output = self.rect_roi.get_output()
+        self.output_image_tool._plot(output["data"], output["coords"])
+
+class ROIImageTool(pg.ImageView):
+    
+    graphical_roi = None
+    image_data_widget = None # Parent
+
+    # Interface to control ImageTool
+    controller = None
+
+    # Visual components
+    transform = None
+    colormap = None
+    colorbar = None
+
+    def __init__(self, graphical_roi, view) -> None:
+        super(ROIImageTool, self).__init__(view=view)
+
+        self.graphical_roi = graphical_roi
+        self.image_data_widget = graphical_roi.image_data_widget
+
+        # Window settings
+        self.ui.histogram.hide()
+        self.ui.roiBtn.hide()
+        self.ui.menuBtn.hide()
+        self.getView().setAspectLocked(False)
+        self.getView().ctrlMenu = None
+        self.view.invertY(True)
+        self.view.enableAutoRange(True)
+        self.plot = None
+
+        self.colormap = utils._create_colormap(name="magma", scale="log", max=100)
+        self.setColorMap(colormap=self.colormap)
+        self.colorbar = pg.ColorBarItem(values=(0, 100), cmap=self.colormap, interactive=False, width=15, orientation="v")
+        self.colorbar.setColorMap(self.colormap)
+        self.colorbar.setImageItem(img=self.getImageItem(), insert_in=self.getView())
+        self.colorbar.hide()
+
+    def _plot(self, data, coords) -> None:
+
+        if data.ndim < 2:
+            self._plot_1D_data(data, coords)
+        else:
+            self._plot_2D_data(data, coords)
+
+    def _plot_1D_data(self, data, coords) -> None:
+        self.view.invertY(False)
+
+        self.getImageItem().hide()
+        self.clear()
+
+        self.colorbar.hide()
+        self.view.setLabel("bottom", list(coords.keys())[0])
+        self.view.setLabel("left", "")
+
+        if self.plot is None:
+            self.plot = self.view.plot(list(coords.values())[0], data) 
+        else:
+            self.plot.setData(list(coords.values())[0], data)
+
+        self.view.autoRange()
+
+    def _plot_2D_data(self, data, coords) -> None:
+        self.view.invertY(True)
+
+        if self.plot is not None:
+            self.plot.clear()
+        self.getImageItem().show()
+
+        self.colorbar.show()
+        self.view.setLabel("bottom", list(coords.keys())[0])
+        self.view.setLabel("left", list(coords.keys())[1])
+
+        scale = (
+            coords[list(coords.keys())[0]][1] - coords[list(coords.keys())[0]][0],
+            coords[list(coords.keys())[1]][1] - coords[list(coords.keys())[1]][0]
+        )
+        pos = [coords[list(coords.keys())[0]][0], coords[list(coords.keys())[1]][0]]
+
+        # Sets image
+        self.setImage(
+            img=data,
+            scale=scale,
+            pos=pos,
+            autoRange=True
+        )
+        self._set_colormap()
+
+    def _set_colormap(self) -> None:
+        name = self.image_data_widget.image_tool.controller.colormap_cbx.currentText()
+        scale = self.image_data_widget.image_tool.controller.colormap_scale_cbx.currentText()
+        max = self.image_data_widget.image_tool.controller.colormap_max_sbx.value()
+
+        if scale == "log":
+            base = self.image_data_widget.image_tool.controller.colormap_base_sbx.value()
+        else:
+            base = None
+        if scale == "power":
+            gamma = self.image_data_widget.image_tool.controller.colormap_gamma_sbx.value()
+        else:
+            gamma = None
+
+        self.colormap = utils._create_colormap(name=name, scale=scale, max=max, base=base, gamma=gamma)
+        self.setColorMap(colormap=self.colormap)
+        self.colorbar.setColorMap(self.colormap)
+        self.colorbar.setLevels((0, max))
 
 # ================================================================
 '''

@@ -85,7 +85,7 @@ class RectROI:
                 raise ValueError("Invalid bounds.")
         else:
             if set(list(bounds.keys())) == set(["H", "K", "L"]):
-                self.bounds = {dim: bounds[dim] for dim in ["t", "x", "y"]}
+                self.bounds = {dim: bounds[dim] for dim in ["H", "K", "L"]}
             else:
                 raise ValueError("Invalid bounds.")
 
@@ -104,14 +104,7 @@ class RectROI:
             "dims": dims
         }
 
-    def apply(self, scan) -> None:
-        
-        if self.data_type == "raw":
-            data = scan.raw_data["data"]
-            coords = scan.raw_data["coords"]
-        else:
-            data = scan.gridded_data["data"]
-            coords = scan.gridded_data["coords"]
+    def apply(self, data, coords) -> None:
         
         output_dims = self.output_type["dims"]
         output_type = self.output_type["output"]
