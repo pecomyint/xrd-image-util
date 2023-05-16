@@ -451,7 +451,7 @@ class GraphicalRectROIController(QtWidgets.QWidget):
             btn.clicked.connect(self._center_single_dimension)
 
         self.output_type_cbx = QtWidgets.QComboBox()
-        self.output_type_cbx.addItems(["average"])
+        self.output_type_cbx.addItems(["average", "max"])
         self.dim_output_chkbxs = [QtWidgets.QCheckBox(dim) for dim in list(self.bounds.keys())]
         self.dim_output_chkbxs[0].setChecked(True)
 
@@ -500,6 +500,7 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         self.image_data_widget.image_tool.controller.signal_colormap_changed.connect(self._get_output)
         self.export_output_cbx.currentIndexChanged.connect(self._validate_export)
         self.export_output_btn.clicked.connect(self._export_output)
+        self.output_type_cbx.currentIndexChanged.connect(self._get_output)
 
         self._center()
         self._get_output()

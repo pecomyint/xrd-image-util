@@ -40,61 +40,15 @@ class RectROI:
             "coords": None
         }
     
-    def set_bounds(self, dim_0: tuple, dim_1: tuple, dim_2: tuple) -> None:
-        """Sets coordinate bounds for the RectROI."""
-        
-        if self.data_type == "raw":
-            if None in dim_0 or dim_0[0] <= dim_0[-1]:
-                self.bounds.update({"t": dim_0})
-            else:
-                raise ValueError("Invalid bounds.")
-            
-            if None in dim_1 or dim_1[0] <= dim_1[-1]:
-                self.bounds.update({"x": dim_1})
-            else:
-                raise ValueError("Invalid bounds.")
-            
-            if None in dim_2 or dim_2[0] <= dim_2[-1]:
-                self.bounds.update({"y": dim_2})
-            else:
-                raise ValueError("Invalid bounds.")
-            
-        else:
-            if None in dim_0 or dim_0[0] <= dim_0[-1]:
-                self.bounds.update({"H": dim_0})
-            else:
-                raise ValueError("Invalid bounds.")
-            
-            if None in dim_1 or dim_1[0] <= dim_1[-1]:
-                self.bounds.update({"K": dim_1})
-            else:
-                raise ValueError("Invalid bounds.")
-            
-            if None in dim_2 or dim_2[0] <= dim_2[-1]:
-                self.bounds.update({"L": dim_2})
-            else:
-                raise ValueError("Invalid bounds.")
-
     def set_bounds(self, bounds: dict):
         """Sets coordinate bounds for the RectROI."""
         
-        if self.data_type == "raw":
-            if set(list(bounds.keys())) == set(["t", "x", "y"]):
-                self.bounds = {dim: bounds[dim] for dim in ["t", "x", "y"]}
-            else:
-                raise ValueError("Invalid bounds.")
-        else:
-            if set(list(bounds.keys())) == set(["H", "K", "L"]):
-                self.bounds = {dim: bounds[dim] for dim in ["H", "K", "L"]}
-            else:
-                raise ValueError("Invalid bounds.")
+        self.bounds = {dim: bounds[dim] for dim in list(bounds.keys())}
 
     def set_output_type(self, output: str, dims: list) -> None:
         if dims is not None:
-            if self.data_type == "raw" and not set(["t", "x", "y"]).issuperset(set(dims)):
-                raise ValueError("Invalid dimension list provided. Must be a subset of ['t', 'x', 'y']")
-            if self.data_type == "gridded" and not set(["H", "K", "L"]).issuperset(set(dims)):
-                raise ValueError("Invalid dimension list provided. Must be a subset of ['H', 'K', 'L']")
+            if not set(list(self.bounds.keys())).issuperset(set(dims)):
+                raise ValueError("Invalid dimension list provided.")
         
         if output not in ["average", "max"]:
             raise ValueError("Invalid output type provided. Accepted values are 'average' and 'max'.")
@@ -166,6 +120,32 @@ class RectROI:
 
             elif len(output_dims) == 3:
                 self.output["data"] = np.mean(roi_data, axis=(0, 1, 2))
+
+            else:
+                raise ValueError("Invalid dimension list.")
+            
+        if output_type == "max":
+
+            if len(output_dims) == 0:
+                raise ValueError("Dimension to average on not provided.")
+            
+            elif len(output_dims) == 1:
+                avg_dim_idx = list(coords.keys()).index(output_dims[0])
+                self.output["data"] = np.amax(roi_data, axis=avg_dim_idx)
+
+                del(roi_coords[output_dims[0]])
+                self.output["coords"] = roi_coords
+
+            elif len(output_dims) == 2:
+                avg_dim_idxs = [list(coords.keys()).index(dim) for dim in output_dims]
+                self.output["data"] = np.amax(roi_data, axis=tuple(avg_dim_idxs))
+
+                del(roi_coords[output_dims[0]])
+                del(roi_coords[output_dims[1]])
+                self.output["coords"] = roi_coords
+
+            elif len(output_dims) == 3:
+                self.output["data"] = np.amax(roi_data, axis=(0, 1, 2))
 
             else:
                 raise ValueError("Invalid dimension list.")
