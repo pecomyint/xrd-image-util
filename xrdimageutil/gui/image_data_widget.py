@@ -422,12 +422,8 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         self.graphical_rect_roi = graphical_rect_roi
         self.image_data_widget = image_data_widget
 
-        if "t" in list(self.graphical_rect_roi.image_data_widget.coords.keys()):
-            self.rect_roi = RectROI(data_type="raw")
-            self.bounds = {"t": None, "x": None, "y": None}
-        else:
-            self.rect_roi = RectROI(data_type="gridded")
-            self.bounds = {"H": None, "K": None, "L": None}
+        self.rect_roi = RectROI(dims=list(self.graphical_rect_roi.image_data_widget.coords.keys()))
+        self.bounds = self.rect_roi.bounds
         
         self.layout = QtWidgets.QGridLayout()
         self.setLayout(self.layout)

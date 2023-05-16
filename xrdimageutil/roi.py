@@ -12,23 +12,9 @@ class RectROI:
     output_type = None
     output = None
     
-    def __init__(self, data_type) -> None:
+    def __init__(self, dims) -> None:
 
-        self.data_type = data_type
-        if data_type == "raw":
-            self.bounds = {
-                "t": (None, None), 
-                "x": (None, None), 
-                "y": (None, None)
-            }
-        elif data_type == "gridded":
-            self.bounds = {
-                "H": (None, None), 
-                "K": (None, None), 
-                "L": (None, None)
-            }
-        else:
-            raise ValueError("'data_type' accepts either 'raw' or 'gridded' as values.")
+        self.bounds = dict((dim, (None, None)) for dim in dims)
         
         self.output_type = {
             "output": None,

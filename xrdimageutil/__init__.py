@@ -278,4 +278,3 @@ class Scan(object):
         self.gui_window.raise_()
         self.app.exec_()
         
-        
