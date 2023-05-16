@@ -29,6 +29,8 @@ class ScanImageDataGUI(QtWidgets.QWidget):
     def __init__(self, scan) -> None:
         super(ScanImageDataGUI, self).__init__()
 
+        self.setWindowTitle(f"Scan #{scan.scan_id}")
+
         self.tab_widget = QtWidgets.QTabWidget()
         self.layout = QtWidgets.QGridLayout()
         self.setLayout(self.layout)
@@ -228,13 +230,15 @@ class ImageToolController(QtWidgets.QWidget):
 
         self.layout = QtWidgets.QGridLayout()
         self.setLayout(self.layout)
-        self.slice_direction_lbl = QtWidgets.QLabel("Slicing Dimension:")
+        self.slice_direction_lbl = QtWidgets.QLabel("Slice:")
+        self.slice_direction_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.slice_direction_cbx = QtWidgets.QComboBox()
         self.slice_direction_cbx.addItems(list(self.t_coords.keys()))
-        self.colormap_lbl = QtWidgets.QLabel("Image Colormap:")
+        self.colormap_lbl = QtWidgets.QLabel("Colormap:")
         self.colormap_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.colormap_cbx = QtWidgets.QComboBox()
         self.colormap_cbx.addItems(pg.colormap.listMaps(source="matplotlib"))
+        self.colormap_cbx.setCurrentText("turbo")
         self.colormap_scale_lbl = QtWidgets.QLabel("CMap Scale:")
         self.colormap_scale_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.colormap_scale_cbx = QtWidgets.QComboBox()
@@ -266,23 +270,23 @@ class ImageToolController(QtWidgets.QWidget):
         self.colormap_base_sbx.setValue(1.5)
 
         self.layout.setColumnStretch(0, 1)
-        self.layout.setColumnStretch(1, 3)
-        self.layout.setColumnStretch(2, 1)
+        self.layout.setColumnStretch(1, 1)
+        self.layout.setColumnStretch(2, 0)
         self.layout.setColumnStretch(3, 1)
         self.layout.setColumnStretch(4, 1)
-        self.layout.setColumnStretch(5, 1)
-        self.layout.addWidget(self.slice_direction_lbl, 0, 0, 1, 1)
-        self.layout.addWidget(self.slice_direction_cbx, 1, 0, 1, 1)
-        self.layout.addWidget(self.colormap_lbl, 0, 2, 1, 1)
-        self.layout.addWidget(self.colormap_cbx, 0, 3, 1, 1)
-        self.layout.addWidget(self.colormap_max_lbl, 0, 4, 1, 1)
-        self.layout.addWidget(self.colormap_max_sbx, 0, 5, 1, 1)
-        self.layout.addWidget(self.colormap_scale_lbl, 1, 2, 1, 1)
-        self.layout.addWidget(self.colormap_scale_cbx, 1, 3, 1, 1)
-        self.layout.addWidget(self.colormap_gamma_lbl, 1, 4, 1, 1)
-        self.layout.addWidget(self.colormap_gamma_sbx, 1, 5, 1, 1)
-        self.layout.addWidget(self.colormap_base_lbl, 1, 4, 1, 1)
-        self.layout.addWidget(self.colormap_base_sbx, 1, 5, 1, 1)
+        self.layout.addWidget(self.slice_direction_lbl, 0, 0, 2, 1)
+        self.layout.addWidget(self.slice_direction_cbx, 0, 1, 2, 1)
+        self.layout.addWidget(self.colormap_lbl, 2, 0, 2, 1)
+        self.layout.addWidget(self.colormap_cbx, 2, 1, 2, 1)
+        self.layout.addWidget(self.colormap_scale_lbl, 0, 3, 2, 1)
+        self.layout.addWidget(self.colormap_scale_cbx, 0, 4, 2, 1)
+        self.layout.addWidget(self.colormap_max_lbl, 2, 3, 2, 1)
+        self.layout.addWidget(self.colormap_max_sbx, 2, 4, 2, 1)
+        
+        self.layout.addWidget(self.colormap_gamma_lbl, 0, 5, 2, 1)
+        self.layout.addWidget(self.colormap_gamma_sbx, 0, 6, 2, 1)
+        self.layout.addWidget(self.colormap_base_lbl, 0, 5, 2, 1)
+        self.layout.addWidget(self.colormap_base_sbx, 0, 6, 2, 1)
 
         # Signals
         self.slice_direction_cbx.currentIndexChanged.connect(self._transpose_data)
@@ -407,8 +411,8 @@ class GraphicalRectROIController(QtWidgets.QWidget):
     output_type_cbx = None
     dim_output_chkbxs = None
     output_image_tool = None
-    expand_output_btn = None
     export_output_btn = None
+    export_output_cbx = None
     
     layout = None
 
@@ -429,19 +433,22 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         self.setLayout(self.layout)
 
         self.visibiity_chkbx = QtWidgets.QCheckBox("Show")
-        self.reset_btn = QtWidgets.QPushButton("Reset")
+        self.reset_btn = QtWidgets.QPushButton("Reset Bounds")
         self.color_btn = pg.ColorButton(color=self.graphical_rect_roi.color)
 
         self.dim_lbls = [QtWidgets.QLabel(dim) for dim in list(self.bounds.keys())]
         self.dim_min_sbxs = [QtWidgets.QDoubleSpinBox() for dim in list(self.bounds.keys())]
         self.dim_max_sbxs = [QtWidgets.QDoubleSpinBox() for dim in list(self.bounds.keys())]
-        self.dim_reset_btns = [QtWidgets.QPushButton("Auto") for dim in list(self.bounds.keys())]
+        self.dim_reset_btns = [QtWidgets.QPushButton("Reset") for dim in list(self.bounds.keys())]
         for sbx in self.dim_min_sbxs + self.dim_max_sbxs:
             sbx.setDecimals(5)
             sbx.setSingleStep(0.5)
             sbx.setRange(-1000, 1000)
             sbx.setDecimals(3)
             sbx.valueChanged.connect(self._set_bounds_from_spinboxes)
+            
+        for btn in self.dim_reset_btns:
+            btn.clicked.connect(self._center_single_dimension)
 
         self.output_type_cbx = QtWidgets.QComboBox()
         self.output_type_cbx.addItems(["average"])
@@ -449,8 +456,11 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         self.dim_output_chkbxs[0].setChecked(True)
 
         self.output_image_tool = ROIImageTool(graphical_roi=self.graphical_rect_roi, view=pg.PlotItem())
-        self.expand_output_btn = QtWidgets.QPushButton("Expand")
         self.export_output_btn = QtWidgets.QPushButton("Export")
+        self.export_output_btn.setEnabled(False)
+        self.export_output_cbx = QtWidgets.QComboBox()
+        self.export_output_cbx.addItems(["", "CSV", "HDF5"])
+
         for chkbx in self.dim_output_chkbxs:
             chkbx.stateChanged.connect(self._change_output_dims)
 
@@ -474,8 +484,8 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         self.layout.addWidget(self.dim_output_chkbxs[1], 5, 6, 1, 2)
         self.layout.addWidget(self.dim_output_chkbxs[2], 5, 8, 1, 2)
         self.layout.addWidget(self.output_image_tool, 6, 0, 3, 10)
-        self.layout.addWidget(self.expand_output_btn, 9, 0, 1, 5)
-        self.layout.addWidget(self.export_output_btn, 9, 5, 1, 5)
+        self.layout.addWidget(self.export_output_cbx, 9, 0, 1, 3)
+        self.layout.addWidget(self.export_output_btn, 9, 3, 1, 7)
 
         for i in range(self.layout.columnCount()):
             self.layout.setColumnStretch(i, 1)
@@ -488,6 +498,8 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         self.image_data_widget.image_tool.controller.signal_data_transposed.connect(self._center)
         self.graphical_rect_roi.sigRegionChanged.connect(self._set_bounds_from_graphical_rect_roi)
         self.image_data_widget.image_tool.controller.signal_colormap_changed.connect(self._get_output)
+        self.export_output_cbx.currentIndexChanged.connect(self._validate_export)
+        self.export_output_btn.clicked.connect(self._export_output)
 
         self._center()
         self._get_output()
@@ -529,6 +541,8 @@ class GraphicalRectROIController(QtWidgets.QWidget):
     def _set_bounds_from_spinboxes(self) -> None:
         """Sets bounds according to dimension spinbox values."""
 
+        self._validate_spinbox_bounds()
+
         for dim, min_sbx, max_sbx in zip(list(self.bounds.keys()), self.dim_min_sbxs, self.dim_max_sbxs):
             self.bounds[dim] = (min_sbx.value(), max_sbx.value())
 
@@ -559,15 +573,42 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         self._update_spinboxes()
         self._update_graphical_rect_roi()
         self._get_output()
+        self.image_data_widget.image_tool.autoRange()
+
+    def _center_single_dimension(self) -> None:
+        i = self.dim_reset_btns.index(self.sender())
+        dim = list(self.bounds.keys())[i]
+        coords = self.image_data_widget.coords
+        dim_coords = coords[dim]
+        self.bounds.update({dim: (dim_coords[0], dim_coords[-1])})
+
+        self._validate_spinboxes()
+        self._update_spinboxes()
+        self._update_graphical_rect_roi()
+        self._get_output()
 
     def _change_color(self) -> None:
         self.signal_color_changed.emit()
     
     def _toggle_visibility(self) -> None:
         self.signal_visibility_changed.emit()
+        self._get_output()
     
-    def _validate_graphical_rect_roi() -> None:
-        ...
+    def _validate_bounds(self) -> None:
+
+        for dim in list(self.bounds.keys()):
+            dim_coords = self.image_data_widget.coords[dim]
+            dim_bounds = self.bounds[dim]
+            if dim_bounds[0] > dim_coords[-1] or dim_bounds[-1] < dim_coords[0]:
+                self.output_image_tool.hide()
+                self.export_output_btn.hide()
+                self.export_output_cbx.hide()
+                return False
+
+        self.output_image_tool.show()
+        self.export_output_btn.show()
+        self.export_output_cbx.show()
+        return True
 
     def _validate_spinboxes(self) -> None:
         t_coords = self.image_data_widget.image_tool.controller.t_coords
@@ -583,31 +624,51 @@ class GraphicalRectROIController(QtWidgets.QWidget):
                 min_sbx.setEnabled(True)
                 max_sbx.setEnabled(True)
 
+    def _validate_spinbox_bounds(self):
+        for min_sbx, max_sbx in zip(self.dim_min_sbxs, self.dim_max_sbxs):
+            if min_sbx.value() >= max_sbx.value():
+                min_sbx.setValue(max_sbx.value())
+            max_sbx.setMinimum(min_sbx.value())
+            min_sbx.setMaximum(max_sbx.value())
+
     def _change_output_dims(self) -> None:
         self._validate_output_dims()
         self._get_output()
+        self._validate_export()
 
     def _validate_output_dims(self) -> None:
         num_checked = 0
         for chkbx in self.dim_output_chkbxs:
             if chkbx.isChecked():
                 num_checked += 1
+
         if num_checked == 0 or num_checked == 3:
-            self.output_image_tool.clear()
-            self.output_image_tool.plot.clear()
-            self.output_image_tool.colorbar.hide()
-            self.output_image_tool.setEnabled(False)
-            self.expand_output_btn.setEnabled(False)
-            self.export_output_btn.setEnabled(False)
+            self.output_image_tool.hide()
+            self.export_output_btn.hide()
+            self.export_output_cbx.hide()
+            return False
         else:
-            self.output_image_tool.setEnabled(True)
-            self.expand_output_btn.setEnabled(True)
-            self.export_output_btn.setEnabled(True)
+            self.output_image_tool.show()
+            self.export_output_btn.show()
+            self.export_output_cbx.show()
+            return True
 
     def _get_output(self) -> None:
+
+        if not self._validate_bounds():
+            return
+        
+        if not self._validate_output_dims():
+            return
+        
+        if not self.visibiity_chkbx.isChecked():
+            self.output_image_tool.hide()
+            self.export_output_btn.hide()
+            self.export_output_cbx.hide()
+
         dims = []
         for chkbx in self.dim_output_chkbxs:
-            if chkbx.isChecked():
+            if chkbx.isChecked() == False:
                 dims.append(chkbx.text())
         output_type = self.output_type_cbx.currentText()
         
@@ -616,6 +677,50 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         self.rect_roi.apply(data=self.image_data_widget.data, coords=self.image_data_widget.coords)
         output = self.rect_roi.get_output()
         self.output_image_tool._plot(output["data"], output["coords"])
+
+    def _validate_export(self) -> None:
+        
+        if self.export_output_cbx.currentText() == "":
+            self.export_output_btn.setEnabled(False)
+        elif self.export_output_cbx.currentText() == "CSV":
+            output = self.rect_roi.get_output()
+            if output["data"].ndim == 1:
+                self.export_output_btn.setEnabled(True)
+            else:
+                self.export_output_btn.setEnabled(False)
+        else:
+            self.export_output_btn.setEnabled(True)
+        
+    def _export_output(self) -> None:
+        self._validate_export()
+        
+        if self.export_output_cbx.currentText() == "CSV":
+            self._export_as_csv()
+        elif self.export_output_cbx.currentText() == "HDF5":
+            self._export_as_hdf5()
+    
+    def _export_as_csv(self) -> None:
+        
+        filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Data", "", "CSV (*.csv)")
+
+        if filename:
+            output = self.rect_roi.get_output()
+            if output["data"].ndim == 1:
+                combined_info = np.column_stack((output["data"], output["coords"][list(output["coords"].keys())[0]]))
+                header = "Value," + list(output["coords"].keys())[0]
+
+            np.savetxt(filename, combined_info, delimiter=",", header=header)
+
+    def _export_as_hdf5(self) -> None:
+
+        filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Data", "", "HDF5 (*.h5)")
+
+        if filename:
+            output = self.rect_roi.get_output()
+            if output["data"].ndim == 1:
+                ...
+            else:
+                ...
 
 class ROIImageTool(pg.ImageView):
     
@@ -721,6 +826,7 @@ class ROIImageTool(pg.ImageView):
         self.setColorMap(colormap=self.colormap)
         self.colorbar.setColorMap(self.colormap)
         self.colorbar.setLevels((0, max))
+
 
 # ================================================================
 '''
