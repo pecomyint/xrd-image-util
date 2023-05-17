@@ -2,11 +2,6 @@
 xrd-image-util
 ==============
 
-.. toctree::
-   :maxdepth: 2
-
-   getting_started
-
 `xrd-image-util` provides users with tools to analyze and visualize 2D detector data from X-ray diffraction experiments.
 This project works as an interface to databroker and bluesky, provding additional functionality while still 
 allowing users to access databroker's `BlueskyCatalog` and `BlueskyRun` objects. In its current form, `xrd-image-util` 

@@ -38,3 +38,6 @@ html_theme_options = {
     'show_toc_level': 1,
     'navbar_include_indices': False,
 }
+html_sidebars = {
+    "<page_pattern>": ["index", "getting_started"]
+}
