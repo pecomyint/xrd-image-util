@@ -37,5 +37,11 @@ html_theme_options = {
     'show_toc_level': 1,
 }
 html_sidebars = {
-    "**": ["index.html", "getting_started.html"]
+    "**": ["index", "getting_started"]
+}
+html_context = {
+    "github_user": "henryjsmith12",
+    "github_repo": "xrd-image-util",
+    "github_version": "main",
+    "doc_path": "docs",
 }
