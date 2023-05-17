@@ -35,7 +35,7 @@ Install the Python package with the shell command below:
 
     pip install xrd-image-util
 
-To import the package inline, use this line:
+To import the package inline, use this Python line:
 
 .. code-block:: python
 
