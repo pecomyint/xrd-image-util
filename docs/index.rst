@@ -13,7 +13,7 @@ is tailored for data gathering at APS beamline 6-ID-B.
     Please report any issues or bugs `here <https://github.com/henryjsmith12/xrd-image-util/issues>`_
 
 .. toctree::
-    maxdepth: 2
+    :maxdepth: 2
 
     tutorials/getting_started
     tutorials/using_rois
