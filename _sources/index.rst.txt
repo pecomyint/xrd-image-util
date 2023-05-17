@@ -26,7 +26,7 @@ Below is an example of unpacking `xrd-image-util`'s sample data catalog.
 `xrd-image-util` requires Python 3.8 or newer (conda installations are preferred).
 
 Initial Steps
----------------
+-------------
 
 Install the Python package with the shell command below:
 
@@ -42,9 +42,7 @@ To import the package inline, use this Python line:
 
 
 .. toctree::
-    :maxdepth: 2
     :caption: Tutorials
-    :class: primary-sidebar
 
     tutorials/getting_started
     tutorials/using_rois
