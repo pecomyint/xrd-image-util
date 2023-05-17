@@ -9,7 +9,7 @@ import pyqtgraph as pg
 import xrayutilities as xu
 
 from xrdimageutil import utils
-from xrdimageutil.gui import image_data_widget, line_data_widget
+from xrdimageutil.gui import image_data_widget
 
 
 class Catalog:

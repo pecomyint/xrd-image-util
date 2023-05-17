@@ -26,7 +26,7 @@ class RectROI:
             "coords": None
         }
     
-    def set_bounds(self, bounds: dict):
+    def set_bounds(self, bounds: dict) -> None:
         """Sets coordinate bounds for the RectROI."""
         
         self.bounds = {dim: bounds[dim] for dim in list(bounds.keys())}
