@@ -37,7 +37,7 @@ html_theme_options = {
     'show_toc_level': 1,
 }
 html_sidebars = {
-    "**": ["index", "getting_started"]
+    "**": ["index", "tutorials/*"]
 }
 html_context = {
     "github_user": "henryjsmith12",
