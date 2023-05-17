@@ -48,6 +48,4 @@ Tutorials
 .. toctree::
     :maxdepth: 2
 
-    tutorials/getting_started
-    tutorials/using_rois
-    tutorials/viewing_image_data
+    tutorials
