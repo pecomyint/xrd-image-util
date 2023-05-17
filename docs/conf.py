@@ -36,12 +36,4 @@ html_theme_options = {
     'navbar_align': 'left',
     'show_toc_level': 1,
 }
-html_sidebars = {
-    "**": ["index", "tutorials/*"]
-}
-html_context = {
-    "github_user": "henryjsmith12",
-    "github_repo": "xrd-image-util",
-    "github_version": "main",
-    "doc_path": "docs",
-}
+
