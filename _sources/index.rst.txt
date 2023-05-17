@@ -1,3 +1,5 @@
+:html_theme.sidebar_secondary.remove:
+
 ==============
 xrd-image-util
 ==============
@@ -40,9 +42,12 @@ To import the package inline, use this Python line:
 
     import xrdimageutil as xiu
 
+Tutorials
+---------
 
 .. toctree::
     :caption: Tutorials
+    :maxdepth: 2
 
     tutorials/getting_started
     tutorials/using_rois
