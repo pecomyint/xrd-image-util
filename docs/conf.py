@@ -34,6 +34,6 @@ html_theme = "pydata_sphinx_theme"
 html_baseurl = '/xrd-image-util/'
 html_theme_options = {
     'navbar_align': 'left',
-    'show_toc_level': 1,
+    'show_toc_level': 2,
 }
 
