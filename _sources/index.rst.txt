@@ -46,7 +46,6 @@ Tutorials
 ---------
 
 .. toctree::
-    :caption: Tutorials
     :maxdepth: 2
 
     tutorials/getting_started
