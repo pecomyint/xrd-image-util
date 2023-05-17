@@ -37,5 +37,5 @@ html_theme_options = {
     'show_toc_level': 1,
 }
 html_sidebars = {
-    "**": ["index.rst", "getting_started.rst"]
+    "**": ["index.html", "getting_started.html"]
 }
