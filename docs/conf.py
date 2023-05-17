@@ -35,5 +35,6 @@ html_baseurl = '/xrd-image-util/'
 html_theme_options = {
     'navbar_align': 'left',
     'show_toc_level': 1,
+    'navbar_include_indices': False,
 }
 
