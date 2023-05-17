@@ -33,6 +33,7 @@ exclude_patterns = []
 html_theme = "pydata_sphinx_theme"
 html_baseurl = '/xrd-image-util/'
 html_theme_options = {
+    'navbar_sidebar_width': "240px",
     'navbar_align': 'left',
     'show_toc_level': 1,
 }
