@@ -12,14 +12,6 @@ is tailored for data gathering at APS beamline 6-ID-B.
     This project is currently under development. 
     Please report any issues or bugs `here <https://github.com/henryjsmith12/xrd-image-util/issues>`_
 
-.. toctree::
-    :maxdepth: 2
-
-    tutorials/getting_started
-    tutorials/using_rois
-    tutorials/viewing_image_data
-
-
 Prerequisites
 -------------
 
@@ -47,3 +39,13 @@ To import the package inline, use this Python line:
 .. code-block:: python
 
     import xrdimageutil as xiu
+
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Tutorials
+    :class: primary-sidebar
+
+    tutorials/getting_started
+    tutorials/using_rois
+    tutorials/viewing_image_data
