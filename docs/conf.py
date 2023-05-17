@@ -33,11 +33,9 @@ exclude_patterns = []
 html_theme = "pydata_sphinx_theme"
 html_baseurl = '/xrd-image-util/'
 html_theme_options = {
-    'navbar_sidebar_width': "240px",
     'navbar_align': 'left',
     'show_toc_level': 1,
-    'navbar_include_indices': False,
 }
 html_sidebars = {
-    "<page_pattern>": ["index", "getting_started"]
+    "**": ["index.rst", "getting_started.rst"]
 }
