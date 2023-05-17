@@ -36,4 +36,5 @@ html_theme_options = {
     'navbar_sidebar_width': "240px",
     'navbar_align': 'left',
     'show_toc_level': 1,
+    'navbar_include_indices': False,
 }
