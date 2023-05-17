@@ -15,6 +15,7 @@ is tailored for data gathering at APS beamline 6-ID-B.
 .. toctree::
     :maxdepth: 2
 
+    index
     tutorials/getting_started
     tutorials/using_rois
     tutorials/viewing_image_data
