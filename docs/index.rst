@@ -2,8 +2,10 @@
 xrd-image-util
 ==============
 
-.. contents::
-   :depth: 2
+.. toctree::
+   :maxdepth: 2
+
+   getting_started
 
 `xrd-image-util` provides users with tools to analyze and visualize 2D detector data from X-ray diffraction experiments.
 This project works as an interface to databroker and bluesky, provding additional functionality while still 
