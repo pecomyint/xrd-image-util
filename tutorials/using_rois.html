@@ -331,7 +331,44 @@ goes as follows:</p>
 </ol>
 <p>A useful characteristic of <code class="docutils literal notranslate"><span class="pre">xrd-image-util</span></code>’s ROI’s is that they are data-independent, meaning
 that you can apply the same ROI to a series of 3D images. Here is a simple example of creating a rectangular ROI,
-applying it to a set of <code class="docutils literal notranslate"><span class="pre">Scan</span></code> objects, and storing the output.</p>
+applying it to a set of <code class="docutils literal notranslate"><span class="pre">Scan</span></code> objects, and storing the output:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Getting a list of scans to analyze</span>
+<span class="n">catalog</span> <span class="o">=</span> <span class="n">xiu</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="s2">&quot;test-catalog&quot;</span><span class="p">)</span>
+<span class="n">scans</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get_scans</span><span class="p">([</span><span class="mi">68</span><span class="p">,</span> <span class="mi">69</span><span class="p">,</span> <span class="mi">70</span><span class="p">])</span>
+
+<span class="c1"># Instantiating the rectangular ROI</span>
+<span class="n">roi</span> <span class="o">=</span> <span class="n">xiu</span><span class="o">.</span><span class="n">roi</span><span class="o">.</span><span class="n">RectROI</span><span class="p">()</span>
+
+<span class="c1"># Bounding the region</span>
+<span class="n">roi</span><span class="o">.</span><span class="n">set_bounds</span><span class="p">(</span>
+    <span class="n">bounds</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;H&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.9</span><span class="p">),</span>
+        <span class="s2">&quot;K&quot;</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="s2">&quot;L&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">3.4</span><span class="p">,</span> <span class="mf">3.45</span><span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+
+<span class="c1"># Setting the output value</span>
+<span class="c1"># In this example, the data is being averaged across all &#39;K&#39; values.</span>
+<span class="c1"># The output arrays will be 2D with axis labels &#39;H&#39; and &#39;L&#39;.</span>
+<span class="n">roi</span><span class="o">.</span><span class="n">set_calculation</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="s2">&quot;average&quot;</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;K&quot;</span><span class="p">])</span>
+
+<span class="n">scan_data</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">scan</span> <span class="ow">in</span> <span class="n">scans</span><span class="p">:</span>
+
+    <span class="c1"># Gridding scan image data</span>
+    <span class="n">scan</span><span class="o">.</span><span class="n">grid_data</span><span class="p">((</span><span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span>
+
+    <span class="c1"># Applying ROI to scan</span>
+    <span class="n">roi</span><span class="o">.</span><span class="n">apply_to_scan</span><span class="p">(</span><span class="n">scan</span><span class="o">=</span><span class="n">scan</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="s2">&quot;gridded&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Adding output to list</span>
+    <span class="n">scan_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">get_output</span><span class="p">())</span>
+
+<span class="nb">print</span><span class="p">([</span><span class="n">s</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">scan_data</span><span class="p">])</span>
+<span class="c1"># Output: [(21, 21), (21, 21), (21, 21)]</span>
+</pre></div>
+</div>
 </section>
 
 
