@@ -22,13 +22,13 @@ Depending on the use case, there are multiple ways to access the GUI:
         # Displays raw image data only
         scan_70.view_image_data()
 
-    .. figure:: images/scan_70_raw.png
+    .. figure:: docs/images/scan_70_raw.png
 
     .. code-block:: python
-    
+
         # Displays raw and gridded image data
         scan_70.grid_data((200, 200, 200))
         scan_70.view_image_data()
 
-    .. figure:: images/scan_70_raw_and_gridded.png
+    .. figure:: docs/images/scan_70_raw_and_gridded.png
 
