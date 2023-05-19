@@ -34,9 +34,10 @@ html_theme = "pydata_sphinx_theme"
 html_baseurl = '/xrd-image-util/'
 html_theme_options = {
     "navbar_center": ["navbar-nav"],
-    "navbar_end": ["navbar-icon-links"],
+    "navbar_end": ["navbar-icon-links", "theme-switcher"],
     "navbar_persistent": ["search-button"],
     "navbar_align": "content",
     "show_toc_level": 2,
+    "content_footer_items": ["copyright", "sphinx-version", "theme-version"],
 }
 
