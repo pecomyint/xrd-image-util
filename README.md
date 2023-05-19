@@ -18,8 +18,6 @@ The package can be imported in-line with the following line of code (the alias o
 
 ```import xrdimageutil as xiu```
 
-See the `demos` subdirectory for basic use cases.
-
 ## License
 See [`LICENSE.txt`](https://github.com/henryjsmith12/xrd-image-util/blob/main/LICENSE) for more information.
 
