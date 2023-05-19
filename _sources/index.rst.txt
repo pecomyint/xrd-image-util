@@ -57,8 +57,8 @@ To import the package inline, use this Python line:
 
     import xrdimageutil as xiu
 
-Tutorials
----------
+Documentation
+-------------
 
 .. toctree::
     :glob:
@@ -66,4 +66,3 @@ Tutorials
 
     tutorials
     api
-
