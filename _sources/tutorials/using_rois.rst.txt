@@ -15,3 +15,4 @@ goes as follows:
 A useful characteristic of ``xrd-image-util``'s ROI's is that they are data-independent, meaning 
 that you can apply the same ROI to a series of 3D images. Here is a simple example of creating a rectangular ROI,
 applying it to a set of ``Scan`` objects, and storing the output.
+
