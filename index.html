@@ -276,6 +276,17 @@ document.write(`
 This project works as an interface to databroker and bluesky, provding additional functionality while still
 allowing users to access databroker’s <cite>BlueskyCatalog</cite> and <cite>BlueskyRun</cite> objects. In its current form, <cite>xrd-image-util</cite>
 is tailored for data gathering at APS beamline 6-ID-B.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">xrdimageutil</span> <span class="k">as</span> <span class="nn">xiu</span>
+
+<span class="n">catalog</span> <span class="o">=</span> <span class="n">xiu</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="s2">&quot;test-catalog&quot;</span><span class="p">)</span>
+
+<span class="n">scan_70</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get_scan</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">70</span><span class="p">)</span>
+<span class="n">scan_70</span><span class="o">.</span><span class="n">grid_data</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">70</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">70</span><span class="p">))</span>
+
+<span class="n">scan_70</span><span class="o">.</span><span class="n">view_image_data</span><span class="p">()</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/image_data_gui_1.png"><img alt="_images/image_data_gui_1.png" class="align-center" src="_images/image_data_gui_1.png" style="width: 75%;" /></a>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>This project is currently under development.

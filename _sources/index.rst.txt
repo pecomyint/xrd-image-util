@@ -9,6 +9,21 @@ This project works as an interface to databroker and bluesky, provding additiona
 allowing users to access databroker's `BlueskyCatalog` and `BlueskyRun` objects. In its current form, `xrd-image-util` 
 is tailored for data gathering at APS beamline 6-ID-B.
 
+.. code-block:: python
+
+    import xrdimageutil as xiu
+
+    catalog = xiu.Catalog("test-catalog")
+
+    scan_70 = catalog.get_scan(id=70)
+    scan_70.grid_data(shape=(70, 70, 70))
+
+    scan_70.view_image_data()
+
+.. image:: ./images/image_data_gui_1.png
+   :width: 75%
+   :align: center
+
 .. warning::
 
     This project is currently under development. 

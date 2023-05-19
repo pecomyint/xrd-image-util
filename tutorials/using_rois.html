@@ -301,6 +301,19 @@ document.write(`
                   
   <section id="using-roi-s">
 <h1>Using ROI’s<a class="headerlink" href="#using-roi-s" title="Permalink to this heading">#</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">xrd-image-util</span></code> also provides ROI’s to retrieve information from subsections of a 3D dataset.
+Currently, the only ROI class available is <code class="docutils literal notranslate"><span class="pre">xiu.roi.RectROI</span></code>. The general workflow for an ROI
+goes as follows:</p>
+<ol class="arabic simple">
+<li><p>Creating the ROI</p></li>
+<li><p>Setting coordinate bounds for the ROI</p></li>
+<li><p>Setting the output calculations for the ROI</p></li>
+<li><p>Applying the ROI to a 3D dataset</p></li>
+<li><p>Retreiving the output data and coordinates</p></li>
+</ol>
+<p>A useful characteristic of <code class="docutils literal notranslate"><span class="pre">xrd-image-util</span></code>’s ROI’s is that they are data-independent, meaning
+that you can apply the same ROI to a series of 3D images. Here is a simple example of creating a rectangular ROI,
+applying it to a set of <code class="docutils literal notranslate"><span class="pre">Scan</span></code> objects, and storing the output.</p>
 </section>
 
 
