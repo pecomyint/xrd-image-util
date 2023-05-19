@@ -118,20 +118,8 @@ class Catalog:
 
         return scan_list
 
-    def view_line_data(self) -> None:
-        # TODO: Revisit functionality for LineDataGUI
-        '''
-        self.app = pg.mkQApp()
-        self.window = line_data_widget.CatalogLineDataWidget(catalog=self)
-        self.window.raise_()
-        self.window.show()
-        self.window.raise_()
-        self.app.exec_()'''
-        ...
-
-
 class Scan(object):
-    # TODO: Class docstring
+    """Houses data from a singular Bluesky run and additional image data."""
 
     catalog = None # Parent Catalog
     uid = None # UID for scan; given by bluesky
@@ -277,4 +265,3 @@ class Scan(object):
         self.gui_window.show()
         self.gui_window.raise_()
         self.app.exec_()
-        
