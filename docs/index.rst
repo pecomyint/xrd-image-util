@@ -64,8 +64,6 @@ Tutorials
     :glob:
     :maxdepth: 2
 
-    tutorials/getting_started
-    tutorials/viewing_image_data
-    tutorials/using_rois
-    API api
+    tutorials
+    api
 
