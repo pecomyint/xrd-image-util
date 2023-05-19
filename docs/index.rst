@@ -67,5 +67,5 @@ Tutorials
     tutorials/getting_started
     tutorials/viewing_image_data
     tutorials/using_rois
-    api
+    API api
 

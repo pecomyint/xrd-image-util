@@ -9,4 +9,3 @@ API Documentation
     api/catalog
     api/scan
     api/rectroi
-    
