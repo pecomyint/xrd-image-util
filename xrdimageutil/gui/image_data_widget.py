@@ -247,9 +247,9 @@ class ImageToolController(QtWidgets.QWidget):
         self.colormap_max_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.colormap_max_sbx = QtWidgets.QDoubleSpinBox()
         self.colormap_max_sbx.setMinimum(1)
-        self.colormap_max_sbx.setMaximum(1000000)
-        self.colormap_max_sbx.setSingleStep(1)
-        self.colormap_max_sbx.setValue(100)
+        self.colormap_max_sbx.setMaximum(np.amax(self.t_data) * 2)
+        self.colormap_max_sbx.setSingleStep(np.amax(self.t_data) / 100)
+        self.colormap_max_sbx.setValue(np.amax(self.t_data) / 2)
         self.colormap_gamma_lbl = QtWidgets.QLabel("CMap Gamma:")
         self.colormap_gamma_lbl.hide()
         self.colormap_gamma_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
@@ -670,7 +670,7 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         output_type = self.output_type_cbx.currentText()
         
         self.rect_roi.set_bounds(self.bounds)
-        self.rect_roi.set_output_type(output=output_type, dims=dims)
+        self.rect_roi.set_calculation(output=output_type, dims=dims)
         self.rect_roi.apply(data=self.image_data_widget.data, coords=self.image_data_widget.coords)
         output = self.rect_roi.get_output()
         self.output_image_tool._plot(output["data"], output["coords"])
@@ -703,8 +703,8 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         if filename:
             output = self.rect_roi.get_output()
             if output["data"].ndim == 1:
-                combined_info = np.column_stack((output["data"], output["coords"][list(output["coords"].keys())[0]]))
-                header = "Value," + list(output["coords"].keys())[0]
+                combined_info = np.column_stack((output["coords"][list(output["coords"].keys())[0]], output["data"]))
+                header = list(output["coords"].keys())[0] + ",Value"
 
             np.savetxt(filename, combined_info, delimiter=",", header=header)
 
