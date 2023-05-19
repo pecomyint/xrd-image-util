@@ -23,6 +23,8 @@ Depending on the use case, there are multiple ways to access the GUI:
         scan_70.view_image_data()
 
     .. figure:: ../images/scan_70_raw.png
+        :width: 50 %
+        :align: center
 
     .. code-block:: python
 
@@ -31,4 +33,6 @@ Depending on the use case, there are multiple ways to access the GUI:
         scan_70.view_image_data()
 
     .. figure:: ../images/scan_70_raw_and_gridded.png
+        :width: 50 %
+        :align: center
 
