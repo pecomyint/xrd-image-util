@@ -302,6 +302,36 @@ document.write(`
                   
   <section id="viewing-image-data">
 <h1>Viewing Image Data<a class="headerlink" href="#viewing-image-data" title="Permalink to this heading">#</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">xrd-image-util</span></code>’s <code class="docutils literal notranslate"><span class="pre">ImageDataGUI</span></code> provides an lightweight, interactive way for users to visualize 3D image data.</p>
+<section id="accessing-the-imagedatagui">
+<h2>Accessing the <code class="docutils literal notranslate"><span class="pre">ImageDataGUI</span></code><a class="headerlink" href="#accessing-the-imagedatagui" title="Permalink to this heading">#</a></h2>
+<p>Depending on the use case, there are multiple ways to access the GUI:</p>
+<ol class="arabic">
+<li><p>Scans</p>
+<blockquote>
+<div><p>The raw data for a <code class="docutils literal notranslate"><span class="pre">Scan</span></code> object can be visualized by simply calling the <code class="docutils literal notranslate"><span class="pre">Scan.view_image_data</span></code> function. To view
+a scan’s gridded reciprocal space mapped image, you must ensure that the <code class="docutils literal notranslate"><span class="pre">Scan</span></code> object’s gridded data has been set up
+with the <code class="docutils literal notranslate"><span class="pre">Scan.grid_data</span></code> function. After gridding the data, the <code class="docutils literal notranslate"><span class="pre">Scan.view_image_data</span></code> function will reveal a GUI
+with two separate tabs: “Raw” and “Gridded”.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Displays raw image data only</span>
+<span class="n">scan_70</span><span class="o">.</span><span class="n">view_image_data</span><span class="p">()</span>
+</pre></div>
+</div>
+<figure class="align-default">
+<img alt="tutorials/images/scan_70_raw.png" src="tutorials/images/scan_70_raw.png" />
+</figure>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Displays raw and gridded image data</span>
+<span class="n">scan_70</span><span class="o">.</span><span class="n">grid_data</span><span class="p">((</span><span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">))</span>
+<span class="n">scan_70</span><span class="o">.</span><span class="n">view_image_data</span><span class="p">()</span>
+</pre></div>
+</div>
+<figure class="align-default">
+<img alt="tutorials/images/scan_70_raw_and_gridded.png" src="tutorials/images/scan_70_raw_and_gridded.png" />
+</figure>
+</div></blockquote>
+</li>
+</ol>
+</section>
 </section>
 
 
@@ -335,6 +365,16 @@ document.write(`
             
               
                 <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#accessing-the-imagedatagui">Accessing the <code class="docutils literal notranslate"><span class="pre">ImageDataGUI</span></code></a></li>
+</ul>
+  </nav></div>
 
   <div class="sidebar-secondary-item">
   <div class="tocsection sourcelink">

@@ -348,7 +348,7 @@ with the function <code class="docutils literal notranslate"><span class="pre">C
 <h2>Scans<a class="headerlink" href="#scans" title="Permalink to this heading">#</a></h2>
 <p>A singular <code class="docutils literal notranslate"><span class="pre">Scan</span></code> object accomplishes a few different tasks. Firstly, it acts as an interface for the <code class="docutils literal notranslate"><span class="pre">databroker.BlueskyRun</span></code>
 class. Secondly, it provides easier access to 2D detector data with the <code class="docutils literal notranslate"><span class="pre">Scan.raw_data</span></code> attribute. Where the <code class="docutils literal notranslate"><span class="pre">Scan</span></code> class is
-unique, however, is that it provides users the ability to convert raw scan images into a 3D reciprocal space model with the <code class="docutils literal notranslate"><span class="pre">Scan.grid_data</span></code> function.
+true power lies, however, is that it provides users the ability to convert raw scan images into a 3D reciprocal space model with the <code class="docutils literal notranslate"><span class="pre">Scan.grid_data</span></code> function.
 The parameters for the reciprocal space mapping come from the Bluesky run. <strong>In its current form, ``xrd-image-util`` is tailored for 4-circle setups at
 APS beamline 6-ID-B.</strong> Here is the workflow for generating a 200-by-200-by-200 reciprocal space model of a scan:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Using scan_70 from the code block above</span>

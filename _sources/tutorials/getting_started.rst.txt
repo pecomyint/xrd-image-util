@@ -62,7 +62,7 @@ Scans
 
 A singular ``Scan`` object accomplishes a few different tasks. Firstly, it acts as an interface for the ``databroker.BlueskyRun``
 class. Secondly, it provides easier access to 2D detector data with the ``Scan.raw_data`` attribute. Where the ``Scan`` class is 
-unique, however, is that it provides users the ability to convert raw scan images into a 3D reciprocal space model with the ``Scan.grid_data`` function.
+true power lies, however, is that it provides users the ability to convert raw scan images into a 3D reciprocal space model with the ``Scan.grid_data`` function.
 The parameters for the reciprocal space mapping come from the Bluesky run. **In its current form, ``xrd-image-util`` is tailored for 4-circle setups at 
 APS beamline 6-ID-B.** Here is the workflow for generating a 200-by-200-by-200 reciprocal space model of a scan:
 
