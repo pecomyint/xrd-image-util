@@ -39,4 +39,3 @@ html_theme_options = {
     "navbar_align": "content",
     "show_toc_level": 2
 }
-
