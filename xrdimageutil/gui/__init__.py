@@ -27,14 +27,12 @@ def view_image_data(data: np.ndarray, coords: dict=None) -> None:
     else:
         if type(coords) != dict:
             raise TypeError("'coords' must be a dictionary.")
-        if len(list(coords.keys)) != 3:
+        if len(list(coords.keys())) != 3:
             raise ValueError("'coords' must have keys for all three dimensions.")
-        for dim in list(coords.keys):
-            if coords[dim] is None:
-                coords[dim] == (None, None)
-            if type(coords[dim]) != list and type(coords[dim]) != tuple:
+        for dim, dim_len in zip(list(coords.keys()), data.shape):
+            if type(coords[dim]) != list and type(coords[dim]) != np.ndarray:
                 raise ValueError("Invalid 'coords' provided.")
-            if len(coords[dim]) != 2:
+            if len(coords[dim]) != dim_len:
                 raise ValueError("Invalid 'coords' provided.")
             
 
