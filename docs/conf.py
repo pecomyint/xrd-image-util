@@ -37,7 +37,6 @@ html_theme_options = {
     "navbar_end": ["navbar-icon-links", "theme-switcher"],
     "navbar_persistent": ["search-button"],
     "navbar_align": "content",
-    "show_toc_level": 2,
-    "content_footer_items": ["copyright", "sphinx-version", "theme-version"],
+    "show_toc_level": 2
 }
 
