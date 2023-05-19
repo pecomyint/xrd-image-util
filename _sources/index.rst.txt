@@ -47,7 +47,7 @@ Tutorials
 
 .. toctree::
     :glob:
-    :hidden:
     :maxdepth: 2
 
-    tutorials/*
+    tutorials/getting_started
+    tutorials/viewing_image_data

@@ -42,7 +42,7 @@
     <link rel="canonical" href="/xrd-image-util/tutorials/getting_started.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Using ROI’s" href="using_rois.html" />
+    <link rel="next" title="Viewing Image Data" href="viewing_image_data.html" />
     <link rel="prev" title="xrd-image-util" href="../index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -128,13 +128,6 @@
                     <li class="nav-item current active">
                       <a class="nav-link nav-internal" href="#">
                         Getting Started
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="using_rois.html">
-                        Using ROI’s
                       </a>
                     </li>
                 
@@ -230,13 +223,6 @@ document.write(`
                 
 
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="using_rois.html">
-                        Using ROI’s
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
                       <a class="nav-link nav-internal" href="viewing_image_data.html">
                         Viewing Image Data
                       </a>
@@ -317,7 +303,7 @@ document.write(`
                   
   <section id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this heading">#</a></h1>
-<p>This tutorial will go through the basic steps to load the sample data <a class="reference external" href="https://github.com/henryjsmith12/xrd-image-util/issues">found in the GitHub repository</a>.</p>
+<p>This tutorial will go through the basic steps to load the sample data <a class="reference external" href="https://github.com/henryjsmith12/xrd-image-util">found in the GitHub repository</a>.</p>
 <p>The first step is to ensure that the databroker catalog is unpacked on your machine. This can be accomplished with the following Bash command:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">databroker-unpack inplace data/singh test-catalog</span>
 </pre></div>
@@ -329,18 +315,17 @@ At the top of the Python file, import <code class="docutils literal notranslate"
 </pre></div>
 </div>
 <p>For the sake of brevity, every usage of <code class="docutils literal notranslate"><span class="pre">xrdimageutil</span></code> inline will be aliased to <code class="docutils literal notranslate"><span class="pre">xiu</span></code> in these tutorials.</p>
-<section id="catalogs-and-scans">
-<h2>Catalogs and Scans<a class="headerlink" href="#catalogs-and-scans" title="Permalink to this heading">#</a></h2>
+<section id="catalogs">
+<h2>Catalogs<a class="headerlink" href="#catalogs" title="Permalink to this heading">#</a></h2>
 <p>The backbone of <code class="docutils literal notranslate"><span class="pre">xrd-image-util</span></code> relies on the <code class="docutils literal notranslate"><span class="pre">Catalog</span></code> and <code class="docutils literal notranslate"><span class="pre">Scan</span></code> classes. A <code class="docutils literal notranslate"><span class="pre">Catalog</span></code> object respresents an interface for the databroker.BlueskyCatalog class, providing a simpler way to
 retrieve commonly used values and 2D detector data from individual experiment runs. Here is how to instantiate a Catalog object for the provided sample data:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">catalog</span> <span class="o">=</span> <span class="n">xiu</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">local_name</span><span class="o">=</span><span class="s2">&quot;test-catalog&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The keyword argument <code class="docutils literal notranslate"><span class="pre">local_name</span></code> corresponds to whatever name you gave to the databroker catalog when unpacking it locally.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">Catalog</span></code> class accomplishes a few different tasks. First, it holds a dictionary of <code class="docutils literal notranslate"><span class="pre">xiu.Scan</span></code> objects that correspond
-to each of the catalog’s individual runs. These <code class="docutils literal notranslate"><span class="pre">Scan</span></code> objects can be searched through and filtered using
-<code class="docutils literal notranslate"><span class="pre">xiu.Catalog.search</span></code>, <code class="docutils literal notranslate"><span class="pre">xiu.Catalog.get_scan</span></code>, and <code class="docutils literal notranslate"><span class="pre">xiu.Catalog.get_scans</span></code>. A formatted of all <code class="docutils literal notranslate"><span class="pre">Scan</span></code> objects can be generated
-with the function <code class="docutils literal notranslate"><span class="pre">xiu.Catalog.list_scans</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Catalog</span></code> class holds a dictionary of <code class="docutils literal notranslate"><span class="pre">Scan</span></code> objects that correspond to each of the catalog’s individual runs. These <code class="docutils literal notranslate"><span class="pre">Scan</span></code> objects can be searched through and filtered using
+<code class="docutils literal notranslate"><span class="pre">Catalog.search</span></code>, <code class="docutils literal notranslate"><span class="pre">Catalog.get_scan</span></code>, and <code class="docutils literal notranslate"><span class="pre">Catalog.get_scans</span></code>. A formatted list of all <code class="docutils literal notranslate"><span class="pre">Scan</span></code> objects can be generated
+with the function <code class="docutils literal notranslate"><span class="pre">Catalog.list_scans</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Prints basic info about all scans in the catalog</span>
 <span class="n">catalog</span><span class="o">.</span><span class="n">list_scans</span><span class="p">()</span>
 
@@ -355,6 +340,29 @@ with the function <code class="docutils literal notranslate"><span class="pre">x
 
 <span class="c1"># Returns the xiu.Scan object for every run in the given list of UID&#39;s</span>
 <span class="n">scans_erte3</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get_scans</span><span class="p">(</span><span class="n">cat_uids_erte3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Additionally, the raw Bluesky data from a catalog can be accessed using the class attribute <code class="docutils literal notranslate"><span class="pre">Catalog.bluesky_data</span></code>.</p>
+</section>
+<section id="scans">
+<h2>Scans<a class="headerlink" href="#scans" title="Permalink to this heading">#</a></h2>
+<p>A singular <code class="docutils literal notranslate"><span class="pre">Scan</span></code> object accomplishes a few different tasks. Firstly, it acts as an interface for the <code class="docutils literal notranslate"><span class="pre">databroker.BlueskyRun</span></code>
+class. Secondly, it provides easier access to 2D detector data with the <code class="docutils literal notranslate"><span class="pre">Scan.raw_data</span></code> attribute. Where the <code class="docutils literal notranslate"><span class="pre">Scan</span></code> class is
+unique, however, is that it provides users the ability to convert raw scan images into a 3D reciprocal space model with the <code class="docutils literal notranslate"><span class="pre">Scan.grid_data</span></code> function.
+The parameters for the reciprocal space mapping come from the Bluesky run. <strong>In its current form, ``xrd-image-util`` is tailored for 4-circle setups at
+APS beamline 6-ID-B.</strong> Here is the workflow for generating a 200-by-200-by-200 reciprocal space model of a scan:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Using scan_70 from the code block above</span>
+<span class="n">scan_70</span><span class="o">.</span><span class="n">grid_data</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">))</span>
+
+<span class="c1"># Accessing the image data</span>
+<span class="n">scan_70</span><span class="o">.</span><span class="n">gridded_data</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span>
+
+<span class="c1"># Accessing the image coordinates</span>
+<span class="n">scan_70</span><span class="o">.</span><span class="n">gridded_data</span><span class="p">[</span><span class="s2">&quot;coords&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>An interactive GUI is also available to view a <code class="docutils literal notranslate"><span class="pre">Scan</span></code> object’s image data:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">scan_70</span><span class="o">.</span><span class="n">view_image_data</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>
@@ -381,11 +389,11 @@ with the function <code class="docutils literal notranslate"><span class="pre">x
       </div>
     </a>
     <a class="right-next"
-       href="using_rois.html"
+       href="viewing_image_data.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Using ROI’s</p>
+        <p class="prev-next-title">Viewing Image Data</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -407,7 +415,8 @@ with the function <code class="docutils literal notranslate"><span class="pre">x
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#catalogs-and-scans">Catalogs and Scans</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#catalogs">Catalogs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scans">Scans</a></li>
 </ul>
   </nav></div>
 
