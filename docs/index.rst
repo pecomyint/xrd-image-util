@@ -65,3 +65,4 @@ Documentation
     :maxdepth: 2
 
     tutorials
+    api
