@@ -1,6 +1,6 @@
-===============
-``xiu.Catalog``
-===============
+=======
+Catalog
+=======
 
 :mod:`xrdimageutil.Catalog`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -8,5 +8,5 @@
 .. currentmodule:: xrdimageutil
 
 .. automodule:: Catalog
-     :members:
+     :members: __init__, search
     
