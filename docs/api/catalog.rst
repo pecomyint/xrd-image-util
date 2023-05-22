@@ -8,5 +8,10 @@ Catalog
 .. currentmodule:: xrdimageutil
 
 .. automodule:: Catalog
-     :members: __init__, search
+    :members: 
+
+    .. py:var:: local_name
+
+        Name given to unpacked databroker catalog.
+
     
