@@ -10,8 +10,9 @@ Catalog
 .. automodule:: Catalog
     :members: 
 
-    .. py:var:: local_name
+.. py:attribute:: local_name
+    :type: str
 
-        Name given to unpacked databroker catalog.
+    Name given to unpacked databroker catalog.
 
     
