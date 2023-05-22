@@ -322,9 +322,22 @@ document.write(`
 <section id="xrdimageutil-catalog">
 <h2><code class="xref py py-mod docutils literal notranslate"><span class="pre">xrdimageutil.Catalog</span></code><a class="headerlink" href="#xrdimageutil-catalog" title="Permalink to this heading">#</a></h2>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="xrdimageutil.local_name">
-<span class="sig-prename descclassname"><span class="pre">xrdimageutil.</span></span><span class="sig-name descname"><span class="pre">local_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#xrdimageutil.local_name" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="xrdimageutil.Catalog.local_name">
+<span class="sig-prename descclassname"><span class="pre">xrdimageutil.Catalog.</span></span><span class="sig-name descname"><span class="pre">local_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#xrdimageutil.Catalog.local_name" title="Permalink to this definition">#</a></dt>
 <dd><p>Name given to unpacked databroker catalog.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="xrdimageutil.Catalog.bluesky_catalog">
+<span class="sig-prename descclassname"><span class="pre">xrdimageutil.Catalog.</span></span><span class="sig-name descname"><span class="pre">bluesky_catalog</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">databroker.Catalog</span></em><a class="headerlink" href="#xrdimageutil.Catalog.bluesky_catalog" title="Permalink to this definition">#</a></dt>
+<dd><p>Bluesky catalog with run data. See dataroker documentation for more information.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="xrdimageutil.Catalog.scan_uid_dict">
+<span class="sig-prename descclassname"><span class="pre">xrdimageutil.Catalog.</span></span><span class="sig-name descname"><span class="pre">scan_uid_dict</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dictionary</span></em><a class="headerlink" href="#xrdimageutil.Catalog.scan_uid_dict" title="Permalink to this definition">#</a></dt>
+<dd><p>Dictionary that holds a <code class="docutils literal notranslate"><span class="pre">xrdimageutil.Scan</span></code> object for every run in a catalog. The
+scans are accessible by their UID’s.</p>
 </dd></dl>
 
 </section>
@@ -378,7 +391,9 @@ document.write(`
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil-catalog"><code class="xref py py-mod docutils literal notranslate"><span class="pre">xrdimageutil.Catalog</span></code></a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.local_name"><code class="docutils literal notranslate"><span class="pre">local_name</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.Catalog.local_name"><code class="docutils literal notranslate"><span class="pre">local_name</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.Catalog.bluesky_catalog"><code class="docutils literal notranslate"><span class="pre">bluesky_catalog</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.Catalog.scan_uid_dict"><code class="docutils literal notranslate"><span class="pre">scan_uid_dict</span></code></a></li>
 </ul>
 </li>
 </ul>
