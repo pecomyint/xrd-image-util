@@ -7,6 +7,9 @@ Catalog
 
 .. currentmodule:: xrdimageutil.Catalog
 
+Attributes
+^^^^^^^^^^
+
 .. py:attribute:: local_name
     :type: str
 
@@ -22,4 +25,17 @@ Catalog
 
     Dictionary that holds a ``xrdimageutil.Scan`` object for every run in a catalog. The
     scans are accessible by their UID's.
+
+Functions
+^^^^^^^^^
+
+.. py:function:: __init__(self, local_name)
+
+.. py:function:: search(self, sample=None, proposal_id=None, user=None)
+
+.. py:function:: list_scans(self)
+
+.. py:function:: get_scan(self, id)
+
+.. py:function:: get_scans(self, ids: list)
     
