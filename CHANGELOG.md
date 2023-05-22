@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## [1.0.0] - 2023-05-22
+First official release
+
 ## [0.5.0] - 2023-03-06
 
 ### Added

@@ -12,7 +12,7 @@
     - GUI to interact with scan image data
 - [X] v0.4.0
     - GUI to interact with catalog 1D data variables
-- [ ] v0.5.0
+- [X] v0.5.0
     - Sector 4 compatability
     - Upgrades/fixes for catalog 1D data GUI
     - ROI tool for scan image data GUI
