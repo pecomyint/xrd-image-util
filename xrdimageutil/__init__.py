@@ -13,12 +13,7 @@ from xrdimageutil.gui import image_data_widget
 
 
 class Catalog:
-    """Houses functionality to filter and return xrdimageutil.Scan objects.
-    
-    This class acts as the entry point for all xrdimageutil use cases. Provided
-    a local name for an unpacked databroker catalog, the xrdimageutil.Catalog 
-    class provides a simpler way to view scans.
-    """
+    """Houses functionality to filter and return xrdimageutil.Scan objects."""
     
     local_name = None
     bluesky_catalog = None # Bluesky dictionary-like catalog
