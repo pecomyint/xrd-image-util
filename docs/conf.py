@@ -35,6 +35,7 @@ exclude_patterns = []
 html_theme = "pydata_sphinx_theme"
 html_baseurl = '/xrd-image-util/'
 html_theme_options = {
+    "github_url": "https://github.com/henryjsmith12/xrd-image-util",
     "navbar_center": ["navbar-nav"],
     "navbar_end": ["navbar-icon-links", "theme-switcher"],
     "navbar_persistent": ["search-button"],
