@@ -709,6 +709,12 @@ class GraphicalRectROIController(QtWidgets.QWidget):
             np.savetxt(filename, combined_info, delimiter=",", header=header)
 
 
+class GraphicalLineROI(pg.LineSegmentROI):
+    ...
+
+class GraphicalRectROIController(QtWidgets.QWidget):
+    ...
+    
 class ROIImageTool(pg.ImageView):
     
     graphical_roi = None
