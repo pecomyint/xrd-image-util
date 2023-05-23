@@ -186,3 +186,27 @@ class RectROI:
         """Returns the output from the most recent apply() run."""
         
         return self.output
+
+class LineROI:
+
+    def __init__() -> None:
+        ...
+
+    def set_endpoints() -> None:
+        ...
+
+    def set_calculation() -> None:
+        """
+        values: [] -> 1D, HKL vs value | [H] -> 2D, All H between bounds vs KL
+        average: [] -> Scalar | [H] -> 1D, H vs value
+        """
+        ...
+
+    def apply() -> None:
+        ...
+
+    def apply_to_scan() -> None:
+        ...
+
+    def get_output() -> None:
+        ...
