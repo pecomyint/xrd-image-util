@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## [1.1.0] - 2023-06
+Advanced line ROI's
+
 ## [1.0.0] - 2023-05-22
 First official release
 
