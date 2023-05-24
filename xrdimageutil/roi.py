@@ -3,6 +3,7 @@ See LICENSE file.
 """
 
 import numpy as np
+from skimage.draw import line_nd
 
 class RectROI:
     """A rectangular region of interest that can be applied to 3D dataset.
@@ -189,24 +190,268 @@ class RectROI:
 
 class LineROI:
 
-    def __init__() -> None:
-        ...
+    endpoints = None
+    calculation = None
+    output = None
 
-    def set_endpoints() -> None:
-        ...
+    def __init__(self, dims: list=None) -> None:
 
-    def set_calculation() -> None:
+        if dims is None:
+            self.endpoints = {
+                "A": {
+                    "x": None,
+                    "y": None,
+                    "z": None
+                },
+                "B": {
+                    "x": None,
+                    "y": None,
+                    "z": None
+                },
+                    
+            }
+        else:
+            if len(dims) != 3:
+                raise ValueError("Invalid dims provided.")
+            self.endpoints = {
+                "A": dict((dim, None) for dim in dims),
+                "B": dict((dim, None) for dim in dims)
+            }
+            
+        
+        self.calculation = {
+            "output_data": None,
+            "dims": None
+        }
+
+        self.output = {
+            "data": None,
+            "coords": None
+        }
+
+    def set_endpoints(self, endpoint_A: dict, endpoint_B: dict) -> None:
+
+        if type(endpoint_A) != dict or type(endpoint_B) != dict:
+            raise ValueError("Invalid bounds provided.")
+        if len(list(endpoint_A.keys())) != 3 or len(list(endpoint_B.keys())) != 3:
+            raise ValueError("Invalid bounds provided.")
+        if list(endpoint_A.keys()) != list(endpoint_B.keys()):
+            raise ValueError("Invalid bounds provided.")
+        
+        self.endpoints["A"].clear()
+        self.endpoints["B"].clear()
+
+        for dim in list(endpoint_A.keys()):
+            dim_endpoint_A, dim_endpoint_B = endpoint_A[dim], endpoint_B[dim]
+
+            if type(dim_endpoint_A) is None:
+                self.endpoints["A"][dim] == None
+
+            if type(dim_endpoint_B) is None:
+                self.endpoints["B"][dim] == None
+
+            if type(dim_endpoint_A) != int and type(dim_endpoint_A) != float and dim_endpoint_A is not None:
+                raise ValueError("Invalid bounds provided.")
+            
+            if type(dim_endpoint_B) != int and type(dim_endpoint_B) != float and dim_endpoint_B is not None:
+                raise ValueError("Invalid bounds provided.")
+            
+            self.endpoints["A"][dim] = dim_endpoint_A
+            self.endpoints["B"][dim] = dim_endpoint_B
+
+    def set_calculation(self, output: str, dims: list) -> None:
         """
         values: [] -> 1D, HKL vs value | [H] -> 2D, All H between bounds vs KL
         average: [] -> Scalar | [H] -> 1D, H vs value
         """
-        ...
+        if dims is not None:
+            if not set(list(self.endpoints["A"].keys())).issuperset(set(dims)):
+                raise ValueError("Invalid dimension list provided.")
+            if not set(list(self.endpoints["B"].keys())).issuperset(set(dims)):
+                raise ValueError("Invalid dimension list provided.")
+        
+        if output not in ["values", "average", "max"]:
+            raise ValueError("Invalid output type provided. Accepted values are 'average' and 'max'.")
+        
+        self.calculation = {
+            "output": output,
+            "dims": dims
+        }
 
-    def apply() -> None:
-        ...
+    def apply(self, data, coords) -> None:
 
-    def apply_to_scan() -> None:
-        ...
+        output_dims = self.calculation["dims"]
+        output_type = self.calculation["output"]
+        dim_list = list(self.endpoints["A"].keys())
+        
+        if output_dims is None:
+            output_dims = []
+        if output_type is None:
+            raise ValueError("No output type found. Please add a output type using 'set_calculation'.")
 
-    def get_output() -> None:
-        ...
+        coords = coords.copy()
+
+        roi_coords = {}
+        roi_pixels = self._get_pixels(coords)
+        dim_coord_pixels = roi_pixels.T
+
+        if output_type == "values":
+
+            if len(output_dims) == 0:
+
+                output_data = data[roi_pixels[:, 0], roi_pixels[:, 1], roi_pixels[:, 2]]
+
+                output_coords_label = f"{', '.join(dim_list)}"
+                output_coords_list = []
+                for dim, dcp in zip(dim_list, dim_coord_pixels):
+                    dim_coords = coords[dim]
+                    roi_coords_for_dim = np.array([dim_coords[i] for i in dcp])
+                    output_coords_list.append(roi_coords_for_dim)
+                output_coords_list = np.array(output_coords_list).T
+
+                output_coords = {output_coords_label: output_coords_list}
+
+            elif len(output_dims) == 1:
+
+                if dim_list.index(output_dims[0]) == 0:
+                    output_data = data[:, roi_pixels[:, 1], roi_pixels[:, 2]]
+                elif dim_list.index(output_dims[0]) == 1:
+                    output_data = data[roi_pixels[:, 0], :, roi_pixels[:, 2]]
+                elif dim_list.index(output_dims[0]) == 2:
+                    output_data = data[roi_pixels[:, 0], roi_pixels[:, 1], :]
+                else:   
+                    raise ValueError("Invalid dimension list.")
+                
+                output_coords_x_label = None
+                output_coords_y_label = []
+                output_coords_x_list = []
+                output_coords_y_list = []
+
+                for dim, dcp in zip(dim_list, dim_coord_pixels):
+                    dim_coords = coords[dim]
+                    roi_coords_for_dim = np.array([dim_coords[i] for i in dcp])
+                    
+                    if dim in output_dims:
+                        output_coords_x_label = dim
+                        output_coords_x_list = roi_coords_for_dim
+                    else:
+                        output_coords_y_label.append(dim)
+                        output_coords_y_list.append(roi_coords_for_dim)
+
+                output_coords_y_label = f"{', '.join(output_coords_y_label)}"
+                output_coords_x_list = np.array(output_coords_x_list)
+                output_coords_y_list = np.array(output_coords_y_list).T
+
+                output_coords = {
+                    output_coords_x_label: output_coords_x_list,
+                    output_coords_y_label: output_coords_y_list
+                }
+
+            else:
+                raise ValueError("Invalid dimension list.")
+
+            self.output["data"] = output_data
+            self.output["coords"] = output_coords
+
+        elif output_type == "average":
+            
+            if len(output_dims) == 0:
+                output_data = np.mean(data[roi_pixels[:, 0], roi_pixels[:, 1], roi_pixels[:, 2]])
+                output_coords = None
+            elif len(output_dims) == 1:
+                if dim_list.index(output_dims[0]) == 0:
+                    output_data = np.mean(data[:, roi_pixels[:, 1], roi_pixels[:, 2]], axis=0)
+                elif dim_list.index(output_dims[0]) == 1:
+                    output_data = np.mean(data[roi_pixels[:, 0], :, roi_pixels[:, 2]], axis=1)
+                elif dim_list.index(output_dims[0]) == 2:
+                    output_data = np.mean(data[roi_pixels[:, 0], roi_pixels[:, 1], :], axis=2)
+                else:   
+                    raise ValueError("Invalid dimension list.")
+                
+                dim_coords = coords[output_dims[0]]
+                roi_coords_for_dim = np.array([dim_coords[i] for i in dim_coord_pixels[dim_list.index(output_dims[0])]])
+                output_coords = {output_dims[0]: roi_coords_for_dim}
+            else:
+                raise ValueError("Invalid dimension list.")
+            
+            self.output["data"] = output_data
+            self.output["coords"] = output_coords
+
+        elif output_type == "max":
+            
+            if len(output_dims) == 0:
+                output_data = np.amax(data[roi_pixels[:, 0], roi_pixels[:, 1], roi_pixels[:, 2]])
+                output_coords = None
+            elif len(output_dims) == 1:
+                if dim_list.index(output_dims[0]) == 0:
+                    output_data = np.amax(data[:, roi_pixels[:, 1], roi_pixels[:, 2]], axis=0)
+                elif dim_list.index(output_dims[0]) == 1:
+                    output_data = np.amax(data[roi_pixels[:, 0], :, roi_pixels[:, 2]], axis=1)
+                elif dim_list.index(output_dims[0]) == 2:
+                    output_data = np.amax(data[roi_pixels[:, 0], roi_pixels[:, 1], :], axis=2)
+                else:   
+                    raise ValueError("Invalid dimension list.")
+                
+                dim_coords = coords[output_dims[0]]
+                roi_coords_for_dim = np.array([dim_coords[i] for i in dim_coord_pixels[dim_list.index(output_dims[0])]])
+                output_coords = {output_dims[0]: roi_coords_for_dim}
+            else:
+                raise ValueError("Invalid dimension list.")
+            
+            self.output["data"] = output_data
+            self.output["coords"] = output_coords
+
+    def apply_to_scan(self, scan, data_type) -> None:
+
+        if data_type == "raw":
+            data = scan.raw_data["data"]
+            coords = scan.raw_data["coords"]
+        elif data_type == "gridded":
+            data = scan.gridded_data["data"]
+            coords = scan.gridded_data["coords"]
+        else:
+            raise("Invalid data type provided.")
+        
+        self.apply(data, coords)
+
+    def _get_pixels(self, coords) -> list:
+        """Utilizes Bresenham's line algorithm to pull out pixels that the line ROI intersects."""
+
+        endpoints = self.endpoints
+        dim_list = list(coords.keys())
+        
+        A_coords, B_coords = [], []
+
+        for dim in dim_list:
+            dim_pixel_A, dim_pixel_B = None, None
+            dim_coords = coords[dim]
+            pixel_size = dim_coords[1] - dim_coords[0]
+
+            dim_endpoint_A, dim_endpoint_B = endpoints["A"][dim], endpoints["B"][dim]
+
+            if dim_endpoint_A is None:
+                dim_pixel_A = 0
+            else:
+                dim_pixel_A = int((dim_endpoint_A - dim_coords[0]) / pixel_size) 
+            if dim_endpoint_B is None:
+                dim_pixel_B = len(dim_coords)
+            else:
+                dim_pixel_B = int((dim_endpoint_B - dim_coords[0]) / pixel_size)
+
+            A_coords.append(dim_pixel_A)
+            B_coords.append(dim_pixel_B)
+
+        A_coords = np.array(A_coords).astype(int)
+        B_coords = np.array(B_coords).astype(int)
+
+        points = np.transpose(line_nd(A_coords, B_coords))
+
+        grid_shape = points[-1]
+
+        valid_indices = np.all((points >= 0) & (points < grid_shape), axis=1)
+        valid_points = points[valid_indices]
+
+        return valid_points
+    
+    def get_output(self) -> None:
+        return self.output
