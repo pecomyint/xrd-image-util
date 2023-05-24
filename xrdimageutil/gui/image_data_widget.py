@@ -8,7 +8,7 @@ import pyqtgraph as pg
 from pyqtgraph.dockarea import Dock, DockArea
 
 from xrdimageutil import utils
-from xrdimageutil.roi import RectROI
+from xrdimageutil.roi import LineROI, RectROI
 
 
 class ScanImageDataGUI(QtWidgets.QWidget):
@@ -61,7 +61,7 @@ class ImageDataWidget(DockArea):
     graphical_rect_roi_docks = None
 
     graphical_line_rois = None # List of two GraphicalLineROI's associated with widget
-    graphical_rect_roi_docks = None
+    graphical_line_roi_docks = None
 
     def __init__(self, data: np.ndarray, coords: dict) -> None:
         super(ImageDataWidget, self).__init__()  
@@ -90,11 +90,23 @@ class ImageDataWidget(DockArea):
             Dock(name="Rect ROI #2", size=(5, 5), widget=self.graphical_rect_rois[1].controller, hideTitle=False)
         ]
 
+        # GraphicalLineROIs
+        self.graphical_line_rois = [
+            GraphicalLineROI(positions=((0, 0), (1, 1)), image_data_widget=self), 
+            GraphicalLineROI(positions=((0, 0), (1, 1)), image_data_widget=self)
+        ]
+        self.graphical_line_roi_docks = [
+            Dock(name="Line ROI #1", size=(5, 5), widget=self.graphical_line_rois[0].controller, hideTitle=False),
+            Dock(name="Line ROI #2", size=(5, 5), widget=self.graphical_line_rois[1].controller, hideTitle=False)
+        ]
+
         # Organizes dock area
         self.addDock(self.image_tool_dock)
         self.addDock(self.image_tool_controller_dock)
         self.addDock(self.graphical_rect_roi_docks[0], "right", self.image_tool_dock)
         self.addDock(self.graphical_rect_roi_docks[1], "below", self.graphical_rect_roi_docks[0])
+        self.addDock(self.graphical_line_roi_docks[0], "below", self.graphical_rect_roi_docks[1])
+        self.addDock(self.graphical_line_roi_docks[1], "below", self.graphical_line_roi_docks[0])
         self.moveDock(self.image_tool_controller_dock, "left", self.graphical_rect_roi_docks[1])
         self.moveDock(self.image_tool_controller_dock, "bottom", self.image_tool_dock)
 
@@ -710,11 +722,229 @@ class GraphicalRectROIController(QtWidgets.QWidget):
 
 
 class GraphicalLineROI(pg.LineSegmentROI):
-    ...
-
-class GraphicalRectROIController(QtWidgets.QWidget):
-    ...
     
+    image_data_widget = None
+    controller = None
+    color = None
+
+    def __init__(self, positions, image_data_widget: ImageDataWidget) -> None:
+        super(GraphicalLineROI, self).__init__(positions)
+
+        self.image_data_widget = image_data_widget
+        self.image_data_widget.image_tool.addItem(self)
+        self.hide()
+        self.color = (0, 255, 0)
+        self.setPen(pg.mkPen(self.color, width=3))
+
+        self.controller = GraphicalLineROIController(graphical_line_roi=self, image_data_widget=image_data_widget)
+
+        self.controller.signal_visibility_changed.connect(self._set_visibility)
+        self.controller.signal_color_changed.connect(self._set_color)
+
+    def _set_color(self) -> None:
+        
+        self.color = self.controller.color_btn.color()
+        self.setPen(pg.mkPen(self.color, width=3))
+
+    def _set_visibility(self) -> None:
+        
+        if self.controller.visibiity_chkbx.isChecked():
+            self.show()
+        else:
+            self.hide()
+
+
+class GraphicalLineROIController(QtWidgets.QWidget):
+    
+    # Visual ROI
+    graphical_line_roi = None
+
+    # Computational ROI
+    line_roi = None
+
+    endpoints = None # Dict of ROI constraints
+
+    # PyQt Signals
+    signal_visibility_changed = QtCore.pyqtSignal()
+    signal_color_changed = QtCore.pyqtSignal()
+
+    # PyQt Components
+    visibiity_chkbx = None
+    reset_btn = None
+    color_btn = None
+
+    dim_lbls = None
+    dim_A_sbxs = None
+    dim_B_sbxs = None
+    dim_reset_btns = None
+
+    output_type_cbx = None
+    dim_output_chkbxs = None
+    output_image_tool = None
+    export_output_btn = None
+    export_output_cbx = None
+    
+    layout = None
+
+    def __init__(self, graphical_line_roi: GraphicalRectROI, image_data_widget: ImageDataWidget) -> None:
+        super(GraphicalLineROIController, self).__init__()
+
+        self.graphical_line_roi = graphical_line_roi
+        self.image_data_widget = image_data_widget
+
+        self.line_roi = LineROI(dims=list(self.image_data_widget.coords.keys()))
+        self.endpoints = self.line_roi.endpoints
+        
+        self.layout = QtWidgets.QGridLayout()
+        self.setLayout(self.layout)
+
+        self.visibiity_chkbx = QtWidgets.QCheckBox("Show")
+        self.reset_btn = QtWidgets.QPushButton("Reset Endpoints")
+        self.color_btn = pg.ColorButton(color=(0, 255, 0))
+
+        dims = list(self.image_data_widget.coords.keys())
+        self.point_A_lbl = QtWidgets.QLabel("Point A")
+        self.point_A_lbl.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
+        self.point_B_lbl = QtWidgets.QLabel("Point B")
+        self.point_B_lbl.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
+        self.dim_lbls = [QtWidgets.QLabel(dim) for dim in dims]
+        self.dim_A_sbxs = [QtWidgets.QDoubleSpinBox() for dim in dims]
+        self.dim_B_sbxs = [QtWidgets.QDoubleSpinBox() for dim in dims]
+        self.dim_reset_btns = [QtWidgets.QPushButton("Reset") for dim in dims]
+        for sbx in self.dim_A_sbxs + self.dim_B_sbxs:
+            sbx.setDecimals(5)
+            sbx.setSingleStep(0.5)
+            sbx.setRange(-1000, 1000)
+            sbx.setDecimals(3)
+            sbx.valueChanged.connect(self._set_endpoints_from_spinboxes)
+
+        self.output_type_cbx = QtWidgets.QComboBox()
+        self.output_type_cbx.addItems(["values", "average", "max"])
+        self.dim_output_chkbxs = [QtWidgets.QCheckBox(dim) for dim in dims]
+
+        self.output_image_tool = ROIImageTool(graphical_roi=self.graphical_line_roi, view=pg.PlotItem())
+        self.export_output_btn = QtWidgets.QPushButton("Export")
+        self.export_output_btn.setEnabled(False)
+        self.export_output_cbx = QtWidgets.QComboBox()
+        self.export_output_cbx.addItems(["", "CSV"])
+
+        self.layout.addWidget(self.visibiity_chkbx, 0, 0, 1, 2)
+        self.layout.addWidget(self.reset_btn, 0, 2, 1, 8)
+        self.layout.addWidget(self.color_btn, 1, 0, 1, 10)
+        self.layout.addWidget(self.point_A_lbl, 2, 1, 1, 3)
+        self.layout.addWidget(self.point_B_lbl, 2, 4, 1, 3)
+        self.layout.addWidget(self.dim_lbls[0], 3, 0, 1, 1)
+        self.layout.addWidget(self.dim_lbls[1], 4, 0, 1, 1)
+        self.layout.addWidget(self.dim_lbls[2], 5, 0, 1, 1)
+        self.layout.addWidget(self.dim_A_sbxs[0], 3, 1, 1, 3)
+        self.layout.addWidget(self.dim_A_sbxs[1], 4, 1, 1, 3)
+        self.layout.addWidget(self.dim_A_sbxs[2], 5, 1, 1, 3)
+        self.layout.addWidget(self.dim_B_sbxs[0], 3, 4, 1, 3)
+        self.layout.addWidget(self.dim_B_sbxs[1], 4, 4, 1, 3)
+        self.layout.addWidget(self.dim_B_sbxs[2], 5, 4, 1, 3)
+        self.layout.addWidget(self.dim_reset_btns[0], 3, 7, 1, 3)
+        self.layout.addWidget(self.dim_reset_btns[1], 4, 7, 1, 3)
+        self.layout.addWidget(self.dim_reset_btns[2], 5, 7, 1, 3)
+        self.layout.addWidget(self.output_type_cbx, 6, 0, 1, 4)
+        self.layout.addWidget(self.dim_output_chkbxs[0], 6, 4, 1, 2)
+        self.layout.addWidget(self.dim_output_chkbxs[1], 6, 6, 1, 2)
+        self.layout.addWidget(self.dim_output_chkbxs[2], 6, 8, 1, 2)
+        self.layout.addWidget(self.output_image_tool, 7, 0, 3, 10)
+        self.layout.addWidget(self.export_output_cbx, 10, 0, 1, 3)
+        self.layout.addWidget(self.export_output_btn, 10, 3, 1, 7)
+
+        for i in range(self.layout.columnCount()):
+            self.layout.setColumnStretch(i, 10)
+        for i in range(self.layout.rowCount()):
+            self.layout.setRowStretch(i, 10)
+        self.layout.setRowStretch(2, 1)
+
+        self.visibiity_chkbx.stateChanged.connect(self._toggle_visibility)
+        self.color_btn.sigColorChanged.connect(self._change_color)
+        self.reset_btn.clicked.connect(self._center)
+        self.image_data_widget.image_tool.controller.signal_data_transposed.connect(self._center)
+        self.graphical_line_roi.sigRegionChanged.connect(self._set_endpoints_from_graphical_line_roi)
+
+        self._center()
+
+    def _set_endpoints_from_graphical_line_roi(self) -> None:
+        """Sets endpoints according to the current graphical ROI endpoints."""
+        t_coords = self.image_data_widget.image_tool.controller.t_coords
+
+        handle_1, handle_2 = self.graphical_line_roi.getSceneHandlePositions()
+        pos_1 = self.graphical_line_roi.mapSceneToParent(handle_1[1])
+        pos_2 = self.graphical_line_roi.mapSceneToParent(handle_2[1])
+
+        x_1, y_1 = pos_1.x(), pos_1.y()
+        x_2, y_2 = pos_2.x(), pos_2.y()
+
+        x_dim, y_dim = list(t_coords.keys())[1], list(t_coords.keys())[2]
+
+        self.endpoints["A"][x_dim] = x_1
+        self.endpoints["A"][y_dim] = y_1
+        self.endpoints["B"][x_dim] = x_2
+        self.endpoints["B"][y_dim] = y_2
+
+        self._update_spinboxes()
+
+    def _update_graphical_line_roi(self) -> None:
+        """Applies endpoint changes to line ROI."""
+
+        x_1, y_1, x_2, y_2 = None, None, None, None
+
+        t_coords = self.image_data_widget.image_tool.controller.t_coords
+        x_dim, y_dim = list(t_coords.keys())[1], list(t_coords.keys())[2]
+
+        x_1, y_1 = self.endpoints["A"][x_dim], self.endpoints["A"][y_dim]
+        x_2, y_2 = self.endpoints["B"][x_dim], self.endpoints["B"][y_dim]
+
+        print(x_1, y_1, x_2, y_2)
+        self.graphical_line_roi.blockSignals(True)
+        self.graphical_line_roi.movePoint(self.graphical_line_roi.getHandles()[0], (x_1, y_1))
+        self.graphical_line_roi.movePoint(self.graphical_line_roi.getHandles()[1], (x_2, y_2))
+        self.graphical_line_roi.blockSignals(False)
+
+    def _set_endpoints_from_spinboxes(self) -> None:  
+        for dim, A_sbx, B_sbx in zip(list(self.endpoints["A"].keys()), self.dim_A_sbxs, self.dim_B_sbxs):
+                self.endpoints["A"][dim] = A_sbx.value()
+                self.endpoints["B"][dim] = B_sbx.value()
+
+        self._update_graphical_line_roi()
+    
+    def _update_spinboxes(self) -> None:
+        """Applies endpoint changes to spinboxes."""
+        
+        
+        for dim, A_sbx, B_sbx in zip(list(self.endpoints["A"].keys()), self.dim_A_sbxs, self.dim_B_sbxs):
+            A_sbx.blockSignals(True)
+            B_sbx.blockSignals(True)
+            A_point = self.endpoints["A"][dim]
+            B_point = self.endpoints["B"][dim]
+            A_sbx.setValue(A_point)
+            B_sbx.setValue(B_point)
+            A_sbx.blockSignals(False)
+            B_sbx.blockSignals(False)
+
+    def _center(self) -> None:
+        """Resets bounds to outline full image in each dimension."""
+
+        coords = self.image_data_widget.coords
+        for dim in list(coords.keys()):
+            dim_coords = coords[dim]
+            self.endpoints["A"].update({dim: dim_coords[0]})
+            self.endpoints["B"].update({dim: dim_coords[-1]})
+
+        self._update_spinboxes()
+        self._update_graphical_line_roi()
+        self.image_data_widget.image_tool.autoRange()
+
+    def _change_color(self) -> None:
+        self.signal_color_changed.emit()
+    
+    def _toggle_visibility(self) -> None:
+        self.signal_visibility_changed.emit()
+
+
 class ROIImageTool(pg.ImageView):
     
     graphical_roi = None
