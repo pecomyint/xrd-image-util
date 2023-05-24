@@ -238,8 +238,8 @@ class LineROI:
         if list(endpoint_A.keys()) != list(endpoint_B.keys()):
             raise ValueError("Invalid bounds provided.")
         
-        self.endpoints["A"].clear()
-        self.endpoints["B"].clear()
+        self.endpoints["A"] = dict((dim, None) for dim in list(endpoint_A.keys()))
+        self.endpoints["B"] = dict((dim, None) for dim in list(endpoint_A.keys()))
 
         for dim in list(endpoint_A.keys()):
             dim_endpoint_A, dim_endpoint_B = endpoint_A[dim], endpoint_B[dim]
@@ -250,12 +250,6 @@ class LineROI:
             if type(dim_endpoint_B) is None:
                 self.endpoints["B"][dim] == None
 
-            if type(dim_endpoint_A) != int and type(dim_endpoint_A) != float and dim_endpoint_A is not None:
-                raise ValueError("Invalid bounds provided.")
-            
-            if type(dim_endpoint_B) != int and type(dim_endpoint_B) != float and dim_endpoint_B is not None:
-                raise ValueError("Invalid bounds provided.")
-            
             self.endpoints["A"][dim] = dim_endpoint_A
             self.endpoints["B"][dim] = dim_endpoint_B
 

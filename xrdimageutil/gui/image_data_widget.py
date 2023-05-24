@@ -828,6 +828,9 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         self.export_output_cbx = QtWidgets.QComboBox()
         self.export_output_cbx.addItems(["", "CSV"])
 
+        for chkbx in self.dim_output_chkbxs:
+            chkbx.stateChanged.connect(self._change_output_dims)
+
         self.layout.addWidget(self.visibiity_chkbx, 0, 0, 1, 2)
         self.layout.addWidget(self.reset_btn, 0, 2, 1, 8)
         self.layout.addWidget(self.color_btn, 1, 0, 1, 10)
@@ -866,6 +869,7 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         self.graphical_line_roi.sigRegionChanged.connect(self._set_endpoints_from_graphical_line_roi)
 
         self._center()
+        self._get_output()
 
     def _set_endpoints_from_graphical_line_roi(self) -> None:
         """Sets endpoints according to the current graphical ROI endpoints."""
@@ -886,6 +890,7 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         self.endpoints["B"][y_dim] = y_2
 
         self._update_spinboxes()
+        self._get_output()
 
     def _update_graphical_line_roi(self) -> None:
         """Applies endpoint changes to line ROI."""
@@ -906,10 +911,11 @@ class GraphicalLineROIController(QtWidgets.QWidget):
 
     def _set_endpoints_from_spinboxes(self) -> None:  
         for dim, A_sbx, B_sbx in zip(list(self.endpoints["A"].keys()), self.dim_A_sbxs, self.dim_B_sbxs):
-                self.endpoints["A"][dim] = A_sbx.value()
-                self.endpoints["B"][dim] = B_sbx.value()
+            self.endpoints["A"][dim] = A_sbx.value()
+            self.endpoints["B"][dim] = B_sbx.value()
 
         self._update_graphical_line_roi()
+        self._get_output()
     
     def _update_spinboxes(self) -> None:
         """Applies endpoint changes to spinboxes."""
@@ -936,6 +942,7 @@ class GraphicalLineROIController(QtWidgets.QWidget):
 
         self._update_spinboxes()
         self._update_graphical_line_roi()
+        self._get_output()
         self.image_data_widget.image_tool.autoRange()
 
     def _change_color(self) -> None:
@@ -943,7 +950,57 @@ class GraphicalLineROIController(QtWidgets.QWidget):
     
     def _toggle_visibility(self) -> None:
         self.signal_visibility_changed.emit()
+        self._get_output()
 
+    def _change_output_dims(self) -> None:
+        self._validate_output_dims()
+        self._get_output()
+
+    def _validate_output_dims(self) -> None:
+        num_checked = 0
+        for chkbx in self.dim_output_chkbxs:
+            if chkbx.isChecked():
+                num_checked += 1
+
+        if num_checked > 1:
+            self.output_image_tool.hide()
+            self.export_output_btn.hide()
+            self.export_output_cbx.hide()
+            return False
+        elif num_checked == 0 and self.output_type_cbx.currentText() in ["average", "max"]:
+            self.output_image_tool.hide()
+            self.export_output_btn.hide()
+            self.export_output_cbx.hide()
+            return False
+        else:
+            self.output_image_tool.show()
+            self.export_output_btn.show()
+            self.export_output_cbx.show()
+            return True
+
+    def _get_output(self) -> None:
+
+        if not self._validate_output_dims():
+            return
+        
+        if not self.visibiity_chkbx.isChecked():
+            self.output_image_tool.hide()
+            self.export_output_btn.hide()
+            self.export_output_cbx.hide()
+
+        dims = []
+        for chkbx in self.dim_output_chkbxs:
+            if chkbx.isChecked():
+                dims.append(chkbx.text())
+        output_type = self.output_type_cbx.currentText()
+        
+        self.line_roi.set_endpoints(self.endpoints["A"], self.endpoints["B"])
+        self.line_roi.set_calculation(output=output_type, dims=dims)
+        self.line_roi.apply(data=self.image_data_widget.data, coords=self.image_data_widget.coords)
+        output = self.line_roi.get_output()
+
+        print(output["data"].shape)
+        self.output_image_tool._plot(output["data"], output["coords"])
 
 class ROIImageTool(pg.ImageView):
     
@@ -998,16 +1055,18 @@ class ROIImageTool(pg.ImageView):
         self.view.setLabel("bottom", list(coords.keys())[0])
         self.view.setLabel("left", "")
 
-        if self.plot is None:
-            self.plot = self.view.plot(list(coords.values())[0], data) 
-        else:
-            self.plot.setData(list(coords.values())[0], data)
-
+        if list(coords.values())[0].shape == 1:
+            if self.plot is None:
+                self.plot = self.view.plot(list(coords.values())[0], data) 
+            else:
+                self.plot.setData(list(coords.values())[0], data)
+            
         self.view.autoRange()
 
     def _plot_2D_data(self, data, coords) -> None:
         self.view.invertY(True)
 
+        scale, pos = None, None
         if self.plot is not None:
             self.plot.clear()
         self.getImageItem().show()
@@ -1016,11 +1075,12 @@ class ROIImageTool(pg.ImageView):
         self.view.setLabel("bottom", list(coords.keys())[0])
         self.view.setLabel("left", list(coords.keys())[1])
 
-        scale = (
-            coords[list(coords.keys())[0]][1] - coords[list(coords.keys())[0]][0],
-            coords[list(coords.keys())[1]][1] - coords[list(coords.keys())[1]][0]
-        )
-        pos = [coords[list(coords.keys())[0]][0], coords[list(coords.keys())[1]][0]]
+        if list(coords.values())[0].shape == 1:
+            scale = (
+                coords[list(coords.keys())[0]][1] - coords[list(coords.keys())[0]][0],
+                coords[list(coords.keys())[1]][1] - coords[list(coords.keys())[1]][0]
+            )
+            pos = [coords[list(coords.keys())[0]][0], coords[list(coords.keys())[1]][0]]
 
         # Sets image
         self.setImage(
