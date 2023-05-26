@@ -430,28 +430,73 @@ class LineROI:
 
     def _get_average(self, data, coords) -> tuple:
         
-        '''if len(output_dims) == 0:
+        output_dims = self.calculation["dims"]
+        dim_list = list(self.endpoints["A"].keys())
+
+        if output_dims is None:
+            output_dims = []
+
+        coords = coords.copy()
+
+        # Retreives the pixels that the ROI crosses through
+        roi_pixels = self._get_pixels(data, coords)
+        dim_coord_pixels = roi_pixels.T
+
+        if len(output_dims) == 0:
                 output_data = np.mean(data[roi_pixels[:, 0], roi_pixels[:, 1], roi_pixels[:, 2]])
                 output_coords = None
-            elif len(output_dims) == 1:
-                if dim_list.index(output_dims[0]) == 0:
-                    output_data = np.mean(data[:, roi_pixels[:, 1], roi_pixels[:, 2]], axis=0)
-                elif dim_list.index(output_dims[0]) == 1:
-                    output_data = np.mean(data[roi_pixels[:, 0], :, roi_pixels[:, 2]], axis=1)
-                elif dim_list.index(output_dims[0]) == 2:
-                    output_data = np.mean(data[roi_pixels[:, 0], roi_pixels[:, 1], :], axis=2)
-                else:   
-                    raise ValueError("Invalid dimension list.")
-                
-                dim_coords = coords[output_dims[0]]
-                roi_coords_for_dim = np.array([dim_coords[i] for i in dim_coord_pixels[dim_list.index(output_dims[0])]])
-                output_coords = {output_dims[0]: roi_coords_for_dim}
-            else:
-                raise ValueError("Invalid dimension list.")'''
-        ...
+        elif len(output_dims) == 1:
+            if dim_list.index(output_dims[0]) == 0:
+                output_data = np.mean(data[:, roi_pixels[:, 1], roi_pixels[:, 2]], axis=0)
+            elif dim_list.index(output_dims[0]) == 1:
+                output_data = np.mean(data[roi_pixels[:, 0], :, roi_pixels[:, 2]], axis=1)
+            elif dim_list.index(output_dims[0]) == 2:
+                output_data = np.mean(data[roi_pixels[:, 0], roi_pixels[:, 1], :], axis=2)
+            else:   
+                raise ValueError("Invalid dimension list.")
+            
+            dim_coords = coords[output_dims[0]]
+            roi_coords_for_dim = np.array([dim_coords[i] for i in dim_coord_pixels[dim_list.index(output_dims[0])]])
+            output_coords = {output_dims[0]: roi_coords_for_dim}
+        else:
+            raise ValueError("Invalid dimension list.")
+        
+        return (output_data, output_coords)
 
     def get_max(self, data, coords) -> tuple:
-        ...
+
+        output_dims = self.calculation["dims"]
+        dim_list = list(self.endpoints["A"].keys())
+
+        if output_dims is None:
+            output_dims = []
+
+        coords = coords.copy()
+
+        # Retreives the pixels that the ROI crosses through
+        roi_pixels = self._get_pixels(data, coords)
+        dim_coord_pixels = roi_pixels.T
+
+        if len(output_dims) == 0:
+                output_data = np.amax(data[roi_pixels[:, 0], roi_pixels[:, 1], roi_pixels[:, 2]])
+                output_coords = None
+        elif len(output_dims) == 1:
+            if dim_list.index(output_dims[0]) == 0:
+                output_data = np.amax(data[:, roi_pixels[:, 1], roi_pixels[:, 2]], axis=0)
+            elif dim_list.index(output_dims[0]) == 1:
+                output_data = np.amax(data[roi_pixels[:, 0], :, roi_pixels[:, 2]], axis=1)
+            elif dim_list.index(output_dims[0]) == 2:
+                output_data = np.amax(data[roi_pixels[:, 0], roi_pixels[:, 1], :], axis=2)
+            else:   
+                raise ValueError("Invalid dimension list.")
+            
+            dim_coords = coords[output_dims[0]]
+            roi_coords_for_dim = np.array([dim_coords[i] for i in dim_coord_pixels[dim_list.index(output_dims[0])]])
+            output_coords = {output_dims[0]: roi_coords_for_dim}
+        else:
+            raise ValueError("Invalid dimension list.")
+        
+        return (output_data, output_coords)
 
     def get_output(self) -> None:
         return self.output
