@@ -865,7 +865,8 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         self.visibiity_chkbx.stateChanged.connect(self._toggle_visibility)
         self.color_btn.sigColorChanged.connect(self._change_color)
         self.reset_btn.clicked.connect(self._center)
-        self.image_data_widget.image_tool.controller.signal_data_transposed.connect(self._center)
+        self.image_data_widget.image_tool.controller.signal_data_transposed.connect(self._update_graphical_line_roi)
+        self.image_data_widget.image_tool.controller.signal_data_transposed.connect(self.image_data_widget.image_tool.autoRange)
         self.graphical_line_roi.sigRegionChanged.connect(self._set_endpoints_from_graphical_line_roi)
 
         self._center()
@@ -903,7 +904,6 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         x_1, y_1 = self.endpoints["A"][x_dim], self.endpoints["A"][y_dim]
         x_2, y_2 = self.endpoints["B"][x_dim], self.endpoints["B"][y_dim]
 
-        print(x_1, y_1, x_2, y_2)
         self.graphical_line_roi.blockSignals(True)
         self.graphical_line_roi.movePoint(self.graphical_line_roi.getHandles()[0], (x_1, y_1))
         self.graphical_line_roi.movePoint(self.graphical_line_roi.getHandles()[1], (x_2, y_2))
@@ -999,8 +999,7 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         self.line_roi.apply(data=self.image_data_widget.data, coords=self.image_data_widget.coords)
         output = self.line_roi.get_output()
 
-        print(output["data"].shape)
-        self.output_image_tool._plot(output["data"], output["coords"])
+        self.output_image_tool._plot(output["data"], None)
 
 class ROIImageTool(pg.ImageView):
     
@@ -1045,25 +1044,31 @@ class ROIImageTool(pg.ImageView):
         else:
             self._plot_2D_data(data, coords)
 
-    def _plot_1D_data(self, data, coords) -> None:
+    def _plot_1D_data(self, data, coords=None) -> None:
         self.view.invertY(False)
 
         self.getImageItem().hide()
         self.clear()
 
         self.colorbar.hide()
-        self.view.setLabel("bottom", list(coords.keys())[0])
-        self.view.setLabel("left", "")
-
-        if list(coords.values())[0].shape == 1:
+        
+        if coords:
+            self.view.setLabel("bottom", list(coords.keys())[0])
+            self.view.setLabel("left", "")
             if self.plot is None:
                 self.plot = self.view.plot(list(coords.values())[0], data) 
             else:
                 self.plot.setData(list(coords.values())[0], data)
-            
+
+        else:
+            if self.plot is None:
+                self.plot = self.view.plot(data) 
+            else:
+                self.plot.setData(data)
+
         self.view.autoRange()
 
-    def _plot_2D_data(self, data, coords) -> None:
+    def _plot_2D_data(self, data, coords=None) -> None:
         self.view.invertY(True)
 
         scale, pos = None, None
@@ -1072,10 +1077,11 @@ class ROIImageTool(pg.ImageView):
         self.getImageItem().show()
 
         self.colorbar.show()
-        self.view.setLabel("bottom", list(coords.keys())[0])
-        self.view.setLabel("left", list(coords.keys())[1])
+        
 
-        if list(coords.values())[0].shape == 1:
+        if coords:
+            self.view.setLabel("bottom", list(coords.keys())[0])
+            self.view.setLabel("left", list(coords.keys())[1])
             scale = (
                 coords[list(coords.keys())[0]][1] - coords[list(coords.keys())[0]][0],
                 coords[list(coords.keys())[1]][1] - coords[list(coords.keys())[1]][0]
