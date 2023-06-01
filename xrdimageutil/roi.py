@@ -500,3 +500,4 @@ class LineROI:
 
     def get_output(self) -> None:
         return self.output
+        

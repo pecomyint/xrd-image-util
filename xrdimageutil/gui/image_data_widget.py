@@ -999,7 +999,7 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         self.line_roi.apply(data=self.image_data_widget.data, coords=self.image_data_widget.coords)
         output = self.line_roi.get_output()
 
-        self.output_image_tool._plot(output["data"], None)
+        self.output_image_tool._plot(output["data"], output["coords"])
 
 class ROIImageTool(pg.ImageView):
     
@@ -1028,8 +1028,38 @@ class ROIImageTool(pg.ImageView):
         self.getView().ctrlMenu = None
         self.view.invertY(True)
         self.view.enableAutoRange(True)
-        self.plot = None
 
+        self.plot = self.view.plot()
+
+        self.plot_2 = pg.ViewBox()
+        self.x_axis_2 = pg.AxisItem("bottom")
+        self.getView().layout.addItem(self.x_axis_2, 4, 1)
+        self.getView().scene().addItem(self.plot_2)
+        self.x_axis_2.linkToView(self.plot_2)
+        #self.plot_2.setXLink(self.getView())
+        self.x_axis_2.setZValue(-10000)
+        self.x_axis_2.setLabel("x_2")
+        self.y_axis_2 = pg.AxisItem("right")
+        self.getView().layout.addItem(self.y_axis_2, 2, 3)
+        self.y_axis_2.linkToView(self.plot_2)
+        self.plot_2.setYLink(self.getView())
+        self.y_axis_2.setZValue(-10000)
+        self.y_axis_2.setLabel("y_2")
+
+        self.plot_3 = pg.ViewBox()
+        self.x_axis_3 = pg.AxisItem("bottom")
+        self.getView().layout.addItem(self.x_axis_3, 5, 1)
+        self.getView().scene().addItem(self.plot_3)
+        self.x_axis_3.linkToView(self.plot_3)
+        #self.plot_3.setXLink(self.getView())
+        self.x_axis_3.setZValue(-10000)
+        self.x_axis_3.setLabel("x_3")
+
+        self.x_axis_2.hide()
+        self.x_axis_3.hide()
+        self.y_axis_2.hide()
+
+        # Color mapping
         self.colormap = utils._create_colormap(name="magma", scale="log", max=100)
         self.setColorMap(colormap=self.colormap)
         self.colorbar = pg.ColorBarItem(values=(0, 100), cmap=self.colormap, interactive=False, width=15, orientation="v")
@@ -1045,27 +1075,68 @@ class ROIImageTool(pg.ImageView):
             self._plot_2D_data(data, coords)
 
     def _plot_1D_data(self, data, coords=None) -> None:
-        self.view.invertY(False)
 
+        # Preliminary steps
+        self.view.invertY(False)
         self.getImageItem().hide()
         self.clear()
-
         self.colorbar.hide()
         
-        if coords:
-            self.view.setLabel("bottom", list(coords.keys())[0])
-            self.view.setLabel("left", "")
-            if self.plot is None:
-                self.plot = self.view.plot(list(coords.values())[0], data) 
-            else:
-                self.plot.setData(list(coords.values())[0], data)
+        # Coordinates and labels for plot
+        x_coords = list(coords.values())[0]
+ 
+        if type(x_coords[0]) == np.ndarray:
+            if x_coords.shape[-1] == 3:
+
+                self.x_axis_2.show()
+                self.x_axis_3.show()
+                self.y_axis_2.hide()
+
+                self.view.setMouseEnabled(False, False)
+                self.plot_2.setMouseEnabled(False, False)
+                self.plot_3.setMouseEnabled(False, False)
+                
+                # Labels
+                axis_labels = list(coords.keys())[0].split(",")
+                axis_1_label = axis_labels[0]
+                axis_2_label = axis_labels[1]
+                axis_3_label = axis_labels[2]
+                self.view.setLabel("bottom", axis_1_label)
+                self.view.setLabel("left", "")
+                self.x_axis_2.setLabel(axis_2_label)
+                self.x_axis_3.setLabel(axis_3_label)
+
+                # Coords
+                axis_1_coords = x_coords[:, 0]
+                axis_2_coords = x_coords[:, 1]
+                axis_3_coords = x_coords[:, 2]
+
+                if axis_2_coords[0] > axis_2_coords[-1]:
+                    self.plot_2.invertX(True)
+                else:
+                    self.plot_2.invertX(False)
+
+                if axis_3_coords[0] > axis_3_coords[-1]:
+                    self.plot_3.invertX(True)
+                else:
+                    self.plot_3.invertX(False)
+                    
+
+                self.plot.setData(axis_1_coords, data)
+                self.plot_2.setXRange(axis_2_coords[0], axis_2_coords[-1])
+                self.plot_3.setXRange(axis_3_coords[0], axis_3_coords[-1])
 
         else:
-            if self.plot is None:
-                self.plot = self.view.plot(data) 
-            else:
-                self.plot.setData(data)
+            self.x_axis_2.hide()
+            self.x_axis_3.hide()
+            self.y_axis_2.hide()
+            self.view.setMouseEnabled(True, True)
+            self.plot_2.setMouseEnabled(True, True)
+            self.plot_3.setMouseEnabled(True, True)
+            
+            self.plot.setData(x_coords, data)
 
+        # Resets view in plot to display full 1D curve
         self.view.autoRange()
 
     def _plot_2D_data(self, data, coords=None) -> None:
@@ -1078,8 +1149,12 @@ class ROIImageTool(pg.ImageView):
 
         self.colorbar.show()
         
+        x_coords, y_coords = None, None
 
-        if coords:
+        if type(list(coords.values())[1][0]) == np.ndarray:
+            if list(coords.values())[1].shape[-1] == 2:
+                return
+        else:
             self.view.setLabel("bottom", list(coords.keys())[0])
             self.view.setLabel("left", list(coords.keys())[1])
             scale = (
