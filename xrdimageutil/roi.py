@@ -309,7 +309,7 @@ class LineROI:
         A_endpoint_pixels, B_endpoint_pixels = [], []
 
         # Loops through each dimension
-        for dim in dim_list:
+        for i, dim in enumerate(dim_list):
             
             # Will hold index that corresponds to endpoint value for specific dimension
             dim_pixel_A, dim_pixel_B = None, None
@@ -321,7 +321,7 @@ class LineROI:
             dim_coords = coords[dim]
 
             # Size of each pixel
-            pixel_size = dim_coords[1] - dim_coords[0]
+            pixel_size = (dim_coords[-1] - dim_coords[0]) / data.shape[i]
 
             # Finds index for endpoint A
             if dim_endpoint_A is None:
@@ -343,6 +343,10 @@ class LineROI:
         A_endpoint_pixels = np.array(A_endpoint_pixels).astype(int)
         B_endpoint_pixels = np.array(B_endpoint_pixels).astype(int)
 
+        print(A_endpoint_pixels)
+        print(B_endpoint_pixels)
+        print()
+
         # Line drawing step
         points = np.transpose(line_nd(A_endpoint_pixels, B_endpoint_pixels))
 
@@ -350,6 +354,8 @@ class LineROI:
         valid_indices = np.all((points >= 0) & (points < data.shape), axis=1)
         valid_points = points[valid_indices]
 
+        print(valid_points)
+        print()
         return valid_points
     
     def _get_values(self, data, coords) -> tuple:
@@ -463,7 +469,7 @@ class LineROI:
         
         return (output_data, output_coords)
 
-    def get_max(self, data, coords) -> tuple:
+    def _get_max(self, data, coords) -> tuple:
 
         output_dims = self.calculation["dims"]
         dim_list = list(self.endpoints["A"].keys())

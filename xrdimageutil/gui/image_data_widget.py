@@ -811,11 +811,12 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         self.dim_A_sbxs = [QtWidgets.QDoubleSpinBox() for dim in dims]
         self.dim_B_sbxs = [QtWidgets.QDoubleSpinBox() for dim in dims]
         self.dim_reset_btns = [QtWidgets.QPushButton("Reset") for dim in dims]
-        for sbx in self.dim_A_sbxs + self.dim_B_sbxs:
+        sbxs = self.dim_A_sbxs + self.dim_B_sbxs
+        for sbx, dim in zip(sbxs, dims + dims):
+            dim_coords = self.image_data_widget.coords[dim]
             sbx.setDecimals(5)
-            sbx.setSingleStep(0.5)
+            sbx.setSingleStep(abs(dim_coords[1] - dim_coords[0]))
             sbx.setRange(-1000, 1000)
-            sbx.setDecimals(3)
             sbx.valueChanged.connect(self._set_endpoints_from_spinboxes)
 
         self.output_type_cbx = QtWidgets.QComboBox()
@@ -1036,13 +1037,11 @@ class ROIImageTool(pg.ImageView):
         self.getView().layout.addItem(self.x_axis_2, 4, 1)
         self.getView().scene().addItem(self.plot_2)
         self.x_axis_2.linkToView(self.plot_2)
-        #self.plot_2.setXLink(self.getView())
         self.x_axis_2.setZValue(-10000)
         self.x_axis_2.setLabel("x_2")
         self.y_axis_2 = pg.AxisItem("right")
         self.getView().layout.addItem(self.y_axis_2, 2, 3)
         self.y_axis_2.linkToView(self.plot_2)
-        self.plot_2.setYLink(self.getView())
         self.y_axis_2.setZValue(-10000)
         self.y_axis_2.setLabel("y_2")
 
@@ -1051,7 +1050,6 @@ class ROIImageTool(pg.ImageView):
         self.getView().layout.addItem(self.x_axis_3, 5, 1)
         self.getView().scene().addItem(self.plot_3)
         self.x_axis_3.linkToView(self.plot_3)
-        #self.plot_3.setXLink(self.getView())
         self.x_axis_3.setZValue(-10000)
         self.x_axis_3.setLabel("x_3")
 
@@ -1111,6 +1109,11 @@ class ROIImageTool(pg.ImageView):
                 axis_2_coords = x_coords[:, 1]
                 axis_3_coords = x_coords[:, 2]
 
+                if axis_1_coords[0] > axis_1_coords[-1]:
+                    self.view.invertX(True)
+                else:
+                    self.view.invertX(False)
+
                 if axis_2_coords[0] > axis_2_coords[-1]:
                     self.plot_2.invertX(True)
                 else:
@@ -1121,8 +1124,8 @@ class ROIImageTool(pg.ImageView):
                 else:
                     self.plot_3.invertX(False)
                     
-
-                self.plot.setData(axis_1_coords, data)
+                self.plot.setData(np.linspace(axis_1_coords[0], axis_1_coords[-1], data.shape[0], endpoint=True), data)
+                self.getView().setXRange(axis_1_coords[0], axis_1_coords[-1])
                 self.plot_2.setXRange(axis_2_coords[0], axis_2_coords[-1])
                 self.plot_3.setXRange(axis_3_coords[0], axis_3_coords[-1])
 
@@ -1149,12 +1152,59 @@ class ROIImageTool(pg.ImageView):
 
         self.colorbar.show()
         
-        x_coords, y_coords = None, None
+        x_coords, y_coords = list(coords.values())[0], list(coords.values())[1]
 
-        if type(list(coords.values())[1][0]) == np.ndarray:
-            if list(coords.values())[1].shape[-1] == 2:
-                return
+        if type(y_coords[0]) == np.ndarray:
+            if y_coords.shape[-1] == 2:
+                self.x_axis_2.hide()
+                self.x_axis_3.hide()
+                self.y_axis_2.show()
+
+                self.view.setMouseEnabled(False, False)
+                self.plot_2.setMouseEnabled(False, False)
+                self.plot_3.setMouseEnabled(False, False)
+
+                y_axis_labels = list(coords.keys())[1].split(",")
+                y_axis_1_label = y_axis_labels[0]
+                y_axis_2_label = y_axis_labels[1]
+
+                self.view.setLabel("bottom", list(coords.keys())[0])
+                self.view.setLabel("left", y_axis_1_label)
+                self.y_axis_2.setLabel(y_axis_2_label)
+
+                # Coords
+                x_axis_coords = x_coords
+                y_axis_1_coords = y_coords[:, 0]
+                y_axis_2_coords = y_coords[:, 1]
+
+                if x_axis_coords[0] > x_axis_coords[-1]:
+                    self.view.invertX(True)
+                else:
+                    self.view.invertX(False)
+
+                if y_axis_1_coords[0] > y_axis_1_coords[-1]:
+                    self.view.invertY(False)
+                else:
+                    self.view.invertY(True)
+
+                if y_axis_2_coords[0] > y_axis_2_coords[-1]:
+                    self.plot_2.invertY(False)
+                else:
+                    self.plot_2.invertY(True)
+
+                scale = (
+                    abs(x_axis_coords[-1] - x_axis_coords[0]) / data.shape[0],
+                    abs(y_axis_1_coords[-1] - y_axis_1_coords[0]) / data.shape[1]
+                )
+                pos = [x_axis_coords[0], y_axis_1_coords[0]]
+
+                self.plot_2.setYRange(y_axis_2_coords[0], y_axis_2_coords[-1])
+        
         else:
+            self.x_axis_2.hide()
+            self.x_axis_3.hide()
+            self.y_axis_2.hide()
+
             self.view.setLabel("bottom", list(coords.keys())[0])
             self.view.setLabel("left", list(coords.keys())[1])
             scale = (
@@ -1171,6 +1221,8 @@ class ROIImageTool(pg.ImageView):
             autoRange=True
         )
         self._set_colormap()
+
+        self.view.autoRange()
 
     def _set_colormap(self) -> None:
         name = self.image_data_widget.image_tool.controller.colormap_cbx.currentText()
