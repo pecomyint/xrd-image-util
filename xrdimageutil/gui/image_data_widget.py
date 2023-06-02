@@ -874,6 +874,8 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         self.image_data_widget.image_tool.controller.signal_colormap_changed.connect(self._get_output)
         self.graphical_line_roi.sigRegionChanged.connect(self._set_endpoints_from_graphical_line_roi)
         self.output_type_cbx.currentIndexChanged.connect(self._get_output)
+        self.export_output_cbx.currentIndexChanged.connect(self._validate_export)
+        self.export_output_btn.clicked.connect(self._export_output)
 
         self._center()
         self._get_output()
@@ -1019,6 +1021,39 @@ class GraphicalLineROIController(QtWidgets.QWidget):
 
         self.output_image_tool._plot(output["data"], output["coords"])
 
+    def _validate_export(self) -> None:
+        
+        if self.export_output_cbx.currentText() == "":
+            self.export_output_btn.setEnabled(False)
+        elif self.export_output_cbx.currentText() == "CSV":
+            output = self.line_roi.get_output()
+            if output["data"].ndim == 1:
+                self.export_output_btn.setEnabled(True)
+            else:
+                self.export_output_btn.setEnabled(False)
+        else:
+            self.export_output_btn.setEnabled(True)
+        
+    def _export_output(self) -> None:
+        self._validate_export()
+        
+        if self.export_output_cbx.currentText() == "CSV":
+            self._export_as_csv()
+        elif self.export_output_cbx.currentText() == "HDF5":
+            self._export_as_hdf5()
+    
+    def _export_as_csv(self) -> None:
+        
+        filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Data", "", "CSV (*.csv)")
+
+        if filename:
+            output = self.line_roi.get_output()
+            if output["data"].ndim == 1:
+                combined_info = np.column_stack((output["coords"][list(output["coords"].keys())[0]], output["data"]))
+                header = list(output["coords"].keys())[0] + ",Value"
+
+            np.savetxt(filename, combined_info, delimiter=",", header=header)
+
 
 class ROIImageTool(pg.ImageView):
     
@@ -1129,19 +1164,37 @@ class ROIImageTool(pg.ImageView):
                 axis_3_coords = x_coords[:, 2]
 
                 if axis_1_coords[0] > axis_1_coords[-1]:
+                    self.view.getAxis("bottom").setStyle(showValues=True)
                     self.view.invertX(True)
-                else:
+                elif axis_2_coords[0] < axis_2_coords[-1]:
+                    self.view.getAxis("bottom").setStyle(showValues=True)
                     self.view.invertX(False)
+                else:
+                    self.view.getAxis("bottom").setStyle(showValues=False)
+                    self.view.invertX(False)
+                    self.view.getAxis("bottom").setLabel(f"{axis_1_label} = {round(axis_1_coords[0], 5)}")
 
                 if axis_2_coords[0] > axis_2_coords[-1]:
+                    self.x_axis_2.setStyle(showValues=True)
                     self.plot_2.invertX(True)
-                else:
+                elif axis_2_coords[0] < axis_2_coords[-1]:
+                    self.x_axis_2.setStyle(showValues=True)
                     self.plot_2.invertX(False)
+                else:
+                    self.x_axis_2.setStyle(showValues=False)
+                    self.plot_2.invertX(False)
+                    self.x_axis_2.setLabel(f"{axis_2_label} = {round(axis_2_coords[0], 5)}")
 
                 if axis_3_coords[0] > axis_3_coords[-1]:
+                    self.x_axis_3.setStyle(showValues=True)
                     self.plot_3.invertX(True)
-                else:
+                elif axis_3_coords[0] < axis_3_coords[-1]:
+                    self.x_axis_3.setStyle(showValues=True)
                     self.plot_3.invertX(False)
+                else:
+                    self.x_axis_3.setStyle(showValues=False)
+                    self.plot_3.invertX(False)
+                    self.x_axis_3.setLabel(f"{axis_3_label} = {round(axis_3_coords[0], 5)}")
                     
                 self.plot.setData(np.linspace(axis_1_coords[0], axis_1_coords[-1], data.shape[0], endpoint=False), data)
                 self.getView().setXRange(axis_1_coords[0], axis_1_coords[-1])
