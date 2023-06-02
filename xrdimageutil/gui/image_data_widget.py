@@ -1155,6 +1155,9 @@ class ROIImageTool(pg.ImageView):
             self.view.setMouseEnabled(True, True)
             self.plot_2.setMouseEnabled(True, True)
             self.plot_3.setMouseEnabled(True, True)
+
+            self.view.setLabel("bottom", list(coords.keys())[0])
+            self.view.setLabel("left", "")
             
             self.plot.setData(x_coords, data)
 

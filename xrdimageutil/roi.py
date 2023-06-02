@@ -451,7 +451,7 @@ class LineROI:
             elif dim_list.index(output_dims[0]) == 1:
                 output_data = np.mean(data[roi_pixels[:, 0], :, roi_pixels[:, 2]], axis=1)
             elif dim_list.index(output_dims[0]) == 2:
-                output_data = np.mean(data[roi_pixels[:, 0], roi_pixels[:, 1], :], axis=2)
+                output_data = np.mean(data[roi_pixels[:, 0], roi_pixels[:, 1], :], axis=1)
             else:   
                 raise ValueError("Invalid dimension list.")
             
@@ -486,13 +486,15 @@ class LineROI:
             elif dim_list.index(output_dims[0]) == 1:
                 output_data = np.amax(data[roi_pixels[:, 0], :, roi_pixels[:, 2]], axis=1)
             elif dim_list.index(output_dims[0]) == 2:
-                output_data = np.amax(data[roi_pixels[:, 0], roi_pixels[:, 1], :], axis=2)
+                output_data = np.amax(data[roi_pixels[:, 0], roi_pixels[:, 1], :], axis=1)
             else:   
                 raise ValueError("Invalid dimension list.")
+            
             
             dim_coords = coords[output_dims[0]]
             roi_coords_for_dim = np.array([dim_coords[i] for i in dim_coord_pixels[dim_list.index(output_dims[0])]])
             output_coords = {output_dims[0]: roi_coords_for_dim}
+
         else:
             raise ValueError("Invalid dimension list.")
         
