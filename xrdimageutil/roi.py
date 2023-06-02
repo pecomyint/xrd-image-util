@@ -343,10 +343,6 @@ class LineROI:
         A_endpoint_pixels = np.array(A_endpoint_pixels).astype(int)
         B_endpoint_pixels = np.array(B_endpoint_pixels).astype(int)
 
-        print(A_endpoint_pixels)
-        print(B_endpoint_pixels)
-        print()
-
         # Line drawing step
         points = np.transpose(line_nd(A_endpoint_pixels, B_endpoint_pixels))
 
@@ -354,8 +350,6 @@ class LineROI:
         valid_indices = np.all((points >= 0) & (points < data.shape), axis=1)
         valid_points = points[valid_indices]
 
-        print(valid_points)
-        print()
         return valid_points
     
     def _get_values(self, data, coords) -> tuple:

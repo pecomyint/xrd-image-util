@@ -86,8 +86,8 @@ class ImageDataWidget(DockArea):
             GraphicalRectROI((0, 0), (1, 1), image_data_widget=self)
         ]
         self.graphical_rect_roi_docks = [
-            Dock(name="Rect ROI #1", size=(5, 5), widget=self.graphical_rect_rois[0].controller, hideTitle=False),
-            Dock(name="Rect ROI #2", size=(5, 5), widget=self.graphical_rect_rois[1].controller, hideTitle=False)
+            Dock(name="Box ROI #1", size=(5, 5), widget=self.graphical_rect_rois[0].controller, hideTitle=False),
+            Dock(name="Box ROI #2", size=(5, 5), widget=self.graphical_rect_rois[1].controller, hideTitle=False)
         ]
 
         # GraphicalLineROIs
@@ -109,7 +109,7 @@ class ImageDataWidget(DockArea):
         self.addDock(self.graphical_line_roi_docks[1], "below", self.graphical_line_roi_docks[0])
         self.moveDock(self.image_tool_controller_dock, "left", self.graphical_rect_roi_docks[1])
         self.moveDock(self.image_tool_controller_dock, "bottom", self.image_tool_dock)
-
+        self.addDock(self.graphical_rect_roi_docks[0], "above", self.graphical_rect_roi_docks[1])
 
 class ImageTool(pg.ImageView):
     """A customized pyqtgraph ImageView widget."""
@@ -365,13 +365,13 @@ class GraphicalRectROI(pg.RectROI):
     color = None
 
     def __init__(self, pos, size, image_data_widget: ImageDataWidget) -> None:
-        super(GraphicalRectROI, self).__init__(pos, size)
+        super(GraphicalRectROI, self).__init__(pos, size, hoverPen=pg.mkPen((255, 0, 255), width=7), handlePen=pg.mkPen((255, 255, 0), width=7), handleHoverPen=pg.mkPen((255, 255, 0), width=7))
 
         self.image_data_widget = image_data_widget
         self.image_data_widget.image_tool.addItem(self)
         self.hide()
         self.color = (0, 255, 0)
-        self.setPen(pg.mkPen(self.color, width=3))
+        self.setPen(pg.mkPen(self.color, width=7))
         self.addScaleHandle((0, 0), (1, 1), index=0)
         self.addScaleHandle((1, 1), (0, 0), index=1)
         self.addScaleHandle((0, 1), (1, 0), index=2)
@@ -385,7 +385,7 @@ class GraphicalRectROI(pg.RectROI):
     def _set_color(self) -> None:
         
         self.color = self.controller.color_btn.color()
-        self.setPen(pg.mkPen(self.color, width=3))
+        self.setPen(pg.mkPen(self.color, width=7))
 
     def _set_visibility(self) -> None:
         
@@ -728,13 +728,13 @@ class GraphicalLineROI(pg.LineSegmentROI):
     color = None
 
     def __init__(self, positions, image_data_widget: ImageDataWidget) -> None:
-        super(GraphicalLineROI, self).__init__(positions)
+        super(GraphicalLineROI, self).__init__(positions, hoverPen=pg.mkPen((255, 0, 255), width=7), handlePen=pg.mkPen((255, 255, 0), width=7), handleHoverPen=pg.mkPen((255, 255, 0), width=7))
 
         self.image_data_widget = image_data_widget
         self.image_data_widget.image_tool.addItem(self)
         self.hide()
         self.color = (0, 255, 0)
-        self.setPen(pg.mkPen(self.color, width=3))
+        self.setPen(pg.mkPen(self.color, width=7))
 
         self.controller = GraphicalLineROIController(graphical_line_roi=self, image_data_widget=image_data_widget)
 
@@ -744,7 +744,7 @@ class GraphicalLineROI(pg.LineSegmentROI):
     def _set_color(self) -> None:
         
         self.color = self.controller.color_btn.color()
-        self.setPen(pg.mkPen(self.color, width=3))
+        self.setPen(pg.mkPen(self.color, width=7))
 
     def _set_visibility(self) -> None:
         
@@ -815,9 +815,12 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         for sbx, dim in zip(sbxs, dims + dims):
             dim_coords = self.image_data_widget.coords[dim]
             sbx.setDecimals(5)
-            sbx.setSingleStep(abs(dim_coords[1] - dim_coords[0]))
+            sbx.setSingleStep(abs(dim_coords[-1] - dim_coords[0]) / len(dim_coords))
             sbx.setRange(-1000, 1000)
             sbx.valueChanged.connect(self._set_endpoints_from_spinboxes)
+
+        for btn in self.dim_reset_btns:
+            btn.clicked.connect(self._center_single_dimension)
 
         self.output_type_cbx = QtWidgets.QComboBox()
         self.output_type_cbx.addItems(["values", "average", "max"])
@@ -868,7 +871,9 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         self.reset_btn.clicked.connect(self._center)
         self.image_data_widget.image_tool.controller.signal_data_transposed.connect(self._update_graphical_line_roi)
         self.image_data_widget.image_tool.controller.signal_data_transposed.connect(self.image_data_widget.image_tool.autoRange)
+        self.image_data_widget.image_tool.controller.signal_colormap_changed.connect(self._get_output)
         self.graphical_line_roi.sigRegionChanged.connect(self._set_endpoints_from_graphical_line_roi)
+        self.output_type_cbx.currentIndexChanged.connect(self._get_output)
 
         self._center()
         self._get_output()
@@ -946,6 +951,18 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         self._get_output()
         self.image_data_widget.image_tool.autoRange()
 
+    def _center_single_dimension(self) -> None:
+        i = self.dim_reset_btns.index(self.sender())
+        dim = list(self.endpoints["A"].keys())[i]
+        coords = self.image_data_widget.coords
+        dim_coords = coords[dim]
+        self.endpoints["A"].update({dim: dim_coords[0]})
+        self.endpoints["B"].update({dim: dim_coords[-1]})
+
+        self._update_spinboxes()
+        self._update_graphical_line_roi()
+        self._get_output()
+
     def _change_color(self) -> None:
         self.signal_color_changed.emit()
     
@@ -1002,6 +1019,7 @@ class GraphicalLineROIController(QtWidgets.QWidget):
 
         self.output_image_tool._plot(output["data"], output["coords"])
 
+
 class ROIImageTool(pg.ImageView):
     
     graphical_roi = None
@@ -1027,10 +1045,11 @@ class ROIImageTool(pg.ImageView):
         self.ui.menuBtn.hide()
         self.getView().setAspectLocked(False)
         self.getView().ctrlMenu = None
+
         self.view.invertY(True)
         self.view.enableAutoRange(True)
 
-        self.plot = self.view.plot()
+        self.plot = self.view.plot(pen=pg.mkPen((255, 255, 255), width=2))
 
         self.plot_2 = pg.ViewBox()
         self.x_axis_2 = pg.AxisItem("bottom")
@@ -1124,7 +1143,7 @@ class ROIImageTool(pg.ImageView):
                 else:
                     self.plot_3.invertX(False)
                     
-                self.plot.setData(np.linspace(axis_1_coords[0], axis_1_coords[-1], data.shape[0], endpoint=True), data)
+                self.plot.setData(np.linspace(axis_1_coords[0], axis_1_coords[-1], data.shape[0], endpoint=False), data)
                 self.getView().setXRange(axis_1_coords[0], axis_1_coords[-1])
                 self.plot_2.setXRange(axis_2_coords[0], axis_2_coords[-1])
                 self.plot_3.setXRange(axis_3_coords[0], axis_3_coords[-1])
