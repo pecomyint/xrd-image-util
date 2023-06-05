@@ -1166,7 +1166,7 @@ class ROIImageTool(pg.ImageView):
                 if axis_1_coords[0] > axis_1_coords[-1]:
                     self.view.getAxis("bottom").setStyle(showValues=True)
                     self.view.invertX(True)
-                elif axis_2_coords[0] < axis_2_coords[-1]:
+                elif axis_1_coords[0] < axis_1_coords[-1]:
                     self.view.getAxis("bottom").setStyle(showValues=True)
                     self.view.invertX(False)
                 else:
@@ -1195,8 +1195,14 @@ class ROIImageTool(pg.ImageView):
                     self.x_axis_3.setStyle(showValues=False)
                     self.plot_3.invertX(False)
                     self.x_axis_3.setLabel(f"{axis_3_label} = {round(axis_3_coords[0], 5)}")
-                    
-                self.plot.setData(np.linspace(axis_1_coords[0], axis_1_coords[-1], data.shape[0], endpoint=False), data)
+
+                if axis_1_coords[0] != axis_1_coords[-1]:
+                    self.plot.setData(np.linspace(axis_1_coords[0], axis_1_coords[-1], data.shape[0], endpoint=False), data)
+                elif axis_2_coords[0] != axis_2_coords[-1]:
+                    self.plot.setData(np.linspace(axis_2_coords[0], axis_2_coords[-1], data.shape[0], endpoint=False), data)
+                else:
+                    self.plot.setData(np.linspace(axis_3_coords[0], axis_3_coords[-1], data.shape[0], endpoint=False), data)
+
                 self.getView().setXRange(axis_1_coords[0], axis_1_coords[-1])
                 self.plot_2.setXRange(axis_2_coords[0], axis_2_coords[-1])
                 self.plot_3.setXRange(axis_3_coords[0], axis_3_coords[-1])
