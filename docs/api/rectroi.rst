@@ -24,12 +24,14 @@ Attributes
 .. py:attribute:: bounds
     :type: dict
 
-    Coordinate bounds for region
+    Coordinate bounds for the rectangular region. These can be defined by using the 
+    ``set_bounds`` function.
     
 .. py:attribute:: calculation
     :type: dict
 
-    Output calculation and the dims to calculate across.
+    Output calculation and the dims to calculate across. This can be defined by using
+    the ``set_calculation`` function.
 
 .. py:attribute:: output
     :type: dict
