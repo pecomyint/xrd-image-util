@@ -13,7 +13,7 @@ calculation to be carried out on the selected region, and then apply the ROI
 to multple datasets. This tool is scriptable, and the region bounds/calculation 
 can be modified at any point.
 
-In the Image GUI widget (refer to the :ref:`../tutorials/viewing_image_data` tutorial),
+In the Image GUI widget (refer to the :doc:`../tutorials/viewing_image_data` tutorial),
 there is a graphical version of the ``RectROI`` object that is built on the backend
 class, but it does not provide the same scriptability, only being available for single
 datasets at a time.
