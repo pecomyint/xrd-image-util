@@ -354,6 +354,15 @@ document.write(`
 <h1>RectROI<a class="headerlink" href="#rectroi" title="Permalink to this heading">#</a></h1>
 <section id="xrdimageutil-roi-rectroi">
 <h2><code class="xref py py-mod docutils literal notranslate"><span class="pre">xrdimageutil.roi.RectROI</span></code><a class="headerlink" href="#xrdimageutil-roi-rectroi" title="Permalink to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">RectROI</span></code> class provides a 3D “box” region of interest that can be applied
+to 3D datasets. Users can define the coordinate bounds for the region, define a
+calculation to be carried out on the selected region, and then apply the ROI
+to multple datasets. This tool is scriptable, and the region bounds/calculation
+can be modified at any point.</p>
+<p>In the Image GUI widget (refer to the <span class="xref std std-ref">../tutorials/viewing_image_data</span> tutorial),
+there is a graphical version of the <code class="docutils literal notranslate"><span class="pre">RectROI</span></code> object that is built on the backend
+class, but it does not provide the same scriptability, only being available for single
+datasets at a time.</p>
 <section id="attributes">
 <h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this heading">#</a></h3>
 <dl class="py attribute">
