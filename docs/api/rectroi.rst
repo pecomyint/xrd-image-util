@@ -7,6 +7,17 @@ RectROI
 
 .. currentmodule:: xrdimageutil.roi.RectROI
 
+The ``RectROI`` class provides a 3D "box" region of interest that can be applied
+to 3D datasets. Users can define the coordinate bounds for the region, define a
+calculation to be carried out on the selected region, and then apply the ROI
+to multple datasets. This tool is scriptable, and the region bounds/calculation 
+can be modified at any point.
+
+In the Image GUI widget (refer to the :ref:`../tutorials/viewing_image_data` tutorial),
+there is a graphical version of the ``RectROI`` object that is built on the backend
+class, but it does not provide the same scriptability, only being available for single
+datasets at a time.
+
 Attributes
 ^^^^^^^^^^
 
