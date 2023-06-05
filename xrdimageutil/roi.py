@@ -6,10 +6,7 @@ import numpy as np
 from skimage.draw import line_nd
 
 class RectROI:
-    """A rectangular region of interest that can be applied to 3D dataset.
-    
-    
-    """
+    """A rectangular region of interest that can be applied to 3D dataset."""
 
     bounds = None
     calculation = None
@@ -78,7 +75,7 @@ class RectROI:
         }
     
     def apply(self, data, coords) -> None:
-        """Carries out a calculation (see the 'output_type' attribute) on a dataset."""
+        """Carries out an ROI's selected calculation (see the 'output_type' attribute) on a dataset."""
 
         output_dims = self.calculation["dims"]
         output_type = self.calculation["output"]
@@ -189,6 +186,7 @@ class RectROI:
         return self.output
 
 class LineROI:
+    """A line segment region of interest that can be applied to a 3D dataset."""
 
     endpoints = None
     calculation = None
@@ -230,7 +228,9 @@ class LineROI:
         }
 
     def set_endpoints(self, endpoint_A: dict, endpoint_B: dict) -> None:
+        """Sets the endpoint coordinates for the region."""
 
+        # Ensuring that the function parameters are valid dictionaries
         if type(endpoint_A) != dict or type(endpoint_B) != dict:
             raise ValueError("Invalid bounds provided.")
         if len(list(endpoint_A.keys())) != 3 or len(list(endpoint_B.keys())) != 3:
@@ -254,10 +254,12 @@ class LineROI:
             self.endpoints["B"][dim] = dim_endpoint_B
 
     def set_calculation(self, output: str, dims: list) -> None:
+        """ Sets the calculation type for the region of interest.
+        
+        This is not necessarily a dataset-specific function -- the selected 
+        calculation can be applied to a series of datasets.
         """
-        values: [] -> 1D, HKL vs value | [H] -> 2D, All H between bounds vs KL
-        average: [] -> Scalar | [H] -> 1D, H vs value
-        """
+
         if dims is not None:
             if not set(list(self.endpoints["A"].keys())).issuperset(set(dims)):
                 raise ValueError("Invalid dimension list provided.")
@@ -273,6 +275,7 @@ class LineROI:
         }
 
     def apply(self, data, coords) -> None:
+        """Applies the selected calculation to a dataset."""
 
         output_type = self.calculation["output"]
 
@@ -287,6 +290,7 @@ class LineROI:
         self.output["coords"] = output_coords
 
     def apply_to_scan(self, scan, data_type) -> None:
+        """Applies the selected calculation to a scan dataset."""
 
         if data_type == "raw":
             data = scan.raw_data["data"]
@@ -353,6 +357,7 @@ class LineROI:
         return valid_points
     
     def _get_values(self, data, coords) -> tuple:
+        """Retreives dataset values from provided coordinate bounds."""
 
         output_dims = self.calculation["dims"]
         dim_list = list(self.endpoints["A"].keys())
@@ -429,6 +434,7 @@ class LineROI:
         return (output_data, output_coords)
 
     def _get_average(self, data, coords) -> tuple:
+        """Retreives the average dataset values from provided coordinate bounds."""
         
         output_dims = self.calculation["dims"]
         dim_list = list(self.endpoints["A"].keys())
@@ -464,7 +470,8 @@ class LineROI:
         return (output_data, output_coords)
 
     def _get_max(self, data, coords) -> tuple:
-
+        """Retreives the max dataset values from provided coordinate bounds."""
+                
         output_dims = self.calculation["dims"]
         dim_list = list(self.endpoints["A"].keys())
 
@@ -501,5 +508,7 @@ class LineROI:
         return (output_data, output_coords)
 
     def get_output(self) -> None:
+        """Returns the output dictionary."""
+        
         return self.output
         
