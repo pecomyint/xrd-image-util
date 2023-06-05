@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>&lt;no title&gt; &#8212; xrd-image-util  documentation</title>
+    <title>LineROI &#8212; xrd-image-util  documentation</title>
   
   
   
@@ -287,10 +287,11 @@ document.write(`
         <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="catalog.html">Catalog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scan.html">Scan</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rectroi.html">RectROI</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">LineROI</a></li>
 </ul>
 </div>
 </nav></div>
@@ -331,7 +332,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">&lt;no title&gt;</li>
+    <li class="breadcrumb-item active" aria-current="page">LineROI</li>
   </ul>
 </nav>
 </div>
@@ -348,7 +349,67 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article" role="main">
                   
-  
+  <section id="lineroi">
+<h1>LineROI<a class="headerlink" href="#lineroi" title="Permalink to this heading">#</a></h1>
+<section id="xrdimageutil-roi-lineroi">
+<h2><code class="xref py py-mod docutils literal notranslate"><span class="pre">xrdimageutil.roi.LineROI</span></code><a class="headerlink" href="#xrdimageutil-roi-lineroi" title="Permalink to this heading">#</a></h2>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this heading">#</a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="xrdimageutil.roi.LineROI.endpoints">
+<span class="sig-prename descclassname"><span class="pre">xrdimageutil.roi.LineROI.</span></span><span class="sig-name descname"><span class="pre">endpoints</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#xrdimageutil.roi.LineROI.endpoints" title="Permalink to this definition">#</a></dt>
+<dd><p>Coordinate endpoints for line segment.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="xrdimageutil.roi.LineROI.calculation">
+<span class="sig-prename descclassname"><span class="pre">xrdimageutil.roi.LineROI.</span></span><span class="sig-name descname"><span class="pre">calculation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#xrdimageutil.roi.LineROI.calculation" title="Permalink to this definition">#</a></dt>
+<dd><p>Output calculation and the dims to calculate across.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="xrdimageutil.roi.LineROI.output">
+<span class="sig-prename descclassname"><span class="pre">xrdimageutil.roi.LineROI.</span></span><span class="sig-name descname"><span class="pre">output</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#xrdimageutil.roi.LineROI.output" title="Permalink to this definition">#</a></dt>
+<dd><p>Output data and coordinates.</p>
+</dd></dl>
+
+</section>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this heading">#</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="xrdimageutil.roi.LineROI.__init__">
+<span class="sig-prename descclassname"><span class="pre">xrdimageutil.roi.LineROI.</span></span><span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#xrdimageutil.roi.LineROI.__init__" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrdimageutil.roi.LineROI.set_endpoints">
+<span class="sig-prename descclassname"><span class="pre">xrdimageutil.roi.LineROI.</span></span><span class="sig-name descname"><span class="pre">set_endpoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint_A</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint_B</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#xrdimageutil.roi.LineROI.set_endpoints" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrdimageutil.roi.LineROI.set_calculation">
+<span class="sig-prename descclassname"><span class="pre">xrdimageutil.roi.LineROI.</span></span><span class="sig-name descname"><span class="pre">set_calculation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#xrdimageutil.roi.LineROI.set_calculation" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrdimageutil.roi.LineROI.apply">
+<span class="sig-prename descclassname"><span class="pre">xrdimageutil.roi.LineROI.</span></span><span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#xrdimageutil.roi.LineROI.apply" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrdimageutil.roi.LineROI.apply_to_scan">
+<span class="sig-prename descclassname"><span class="pre">xrdimageutil.roi.LineROI.</span></span><span class="sig-name descname"><span class="pre">apply_to_scan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#xrdimageutil.roi.LineROI.apply_to_scan" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrdimageutil.roi.LineROI.get_output">
+<span class="sig-prename descclassname"><span class="pre">xrdimageutil.roi.LineROI.</span></span><span class="sig-name descname"><span class="pre">get_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#xrdimageutil.roi.LineROI.get_output" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+</section>
+
 
                 </article>
               
@@ -386,9 +447,26 @@ document.write(`
     <i class="fa-solid fa-list"></i> On this page
   </div>
   <nav class="bd-toc-nav page-toc">
-    <ul class="simple visible nav section-nav flex-column">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil-roi-lineroi"><code class="xref py py-mod docutils literal notranslate"><span class="pre">xrdimageutil.roi.LineROI</span></code></a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.roi.LineROI.endpoints"><code class="docutils literal notranslate"><span class="pre">endpoints</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.roi.LineROI.calculation"><code class="docutils literal notranslate"><span class="pre">calculation</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.roi.LineROI.output"><code class="docutils literal notranslate"><span class="pre">output</span></code></a></li>
 </ul>
-
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.roi.LineROI.__init__"><code class="docutils literal notranslate"><span class="pre">__init__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.roi.LineROI.set_endpoints"><code class="docutils literal notranslate"><span class="pre">set_endpoints()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.roi.LineROI.set_calculation"><code class="docutils literal notranslate"><span class="pre">set_calculation()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.roi.LineROI.apply"><code class="docutils literal notranslate"><span class="pre">apply()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.roi.LineROI.apply_to_scan"><code class="docutils literal notranslate"><span class="pre">apply_to_scan()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.roi.LineROI.get_output"><code class="docutils literal notranslate"><span class="pre">get_output()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
   </nav></div>
 
   <div class="sidebar-secondary-item">
