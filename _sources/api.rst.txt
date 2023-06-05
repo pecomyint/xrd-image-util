@@ -9,3 +9,4 @@ API
     api/catalog
     api/scan
     api/rectroi
+    api/lineroi
