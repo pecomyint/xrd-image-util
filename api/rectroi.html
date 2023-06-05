@@ -363,18 +363,21 @@ can be modified at any point.</p>
 there is a graphical version of the <code class="docutils literal notranslate"><span class="pre">RectROI</span></code> object that is built on the backend
 class, but it does not provide the same scriptability, only being available for single
 datasets at a time.</p>
+<p>Tutorial: <a class="reference internal" href="../tutorials/using_rois.html"><span class="doc">Using ROI’s</span></a></p>
 <section id="attributes">
 <h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this heading">#</a></h3>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="xrdimageutil.roi.RectROI.bounds">
 <span class="sig-prename descclassname"><span class="pre">xrdimageutil.roi.RectROI.</span></span><span class="sig-name descname"><span class="pre">bounds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#xrdimageutil.roi.RectROI.bounds" title="Permalink to this definition">#</a></dt>
-<dd><p>Coordinate bounds for region</p>
+<dd><p>Coordinate bounds for the rectangular region. These can be defined by using the
+<code class="docutils literal notranslate"><span class="pre">set_bounds</span></code> function.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="xrdimageutil.roi.RectROI.calculation">
 <span class="sig-prename descclassname"><span class="pre">xrdimageutil.roi.RectROI.</span></span><span class="sig-name descname"><span class="pre">calculation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#xrdimageutil.roi.RectROI.calculation" title="Permalink to this definition">#</a></dt>
-<dd><p>Output calculation and the dims to calculate across.</p>
+<dd><p>Output calculation and the dims to calculate across. This can be defined by using
+the <code class="docutils literal notranslate"><span class="pre">set_calculation</span></code> function.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -389,32 +392,40 @@ datasets at a time.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="xrdimageutil.roi.RectROI.__init__">
 <span class="sig-prename descclassname"><span class="pre">xrdimageutil.roi.RectROI.</span></span><span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#xrdimageutil.roi.RectROI.__init__" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>If <code class="docutils literal notranslate"><span class="pre">dims</span></code> is not specified, the dimensions of the ROI will default
+to “x”, “y”, and “z” respectively. Order matters.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="xrdimageutil.roi.RectROI.set_bounds">
 <span class="sig-prename descclassname"><span class="pre">xrdimageutil.roi.RectROI.</span></span><span class="sig-name descname"><span class="pre">set_bounds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#xrdimageutil.roi.RectROI.set_bounds" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Defines the ROI coordinate bounds.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="xrdimageutil.roi.RectROI.set_calculation">
 <span class="sig-prename descclassname"><span class="pre">xrdimageutil.roi.RectROI.</span></span><span class="sig-name descname"><span class="pre">set_calculation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#xrdimageutil.roi.RectROI.set_calculation" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Defines the calculation to be applied.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="xrdimageutil.roi.RectROI.apply">
 <span class="sig-prename descclassname"><span class="pre">xrdimageutil.roi.RectROI.</span></span><span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#xrdimageutil.roi.RectROI.apply" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Applies the set calculation to a dataset and its defined coordinates.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="xrdimageutil.roi.RectROI.apply_to_scan">
 <span class="sig-prename descclassname"><span class="pre">xrdimageutil.roi.RectROI.</span></span><span class="sig-name descname"><span class="pre">apply_to_scan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#xrdimageutil.roi.RectROI.apply_to_scan" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Applies the set calculation to a dataset for a <code class="docutils literal notranslate"><span class="pre">xiu.Scan</span></code> object,
+defining the data type by either “raw” or “gridded”.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="xrdimageutil.roi.RectROI.get_output">
 <span class="sig-prename descclassname"><span class="pre">xrdimageutil.roi.RectROI.</span></span><span class="sig-name descname"><span class="pre">get_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#xrdimageutil.roi.RectROI.get_output" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Returns the output data and coordinates.</p>
+</dd></dl>
 
 </section>
 </section>
