@@ -1,0 +1,1 @@
+.. currentmodule:: xrdimageutil.roi.LineROI
