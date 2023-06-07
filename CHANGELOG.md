@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [1.1.0] - 2023-06-*
+## [1.1.0] - 2023-06-07
 Advanced line ROI's.
 
 ### Added
