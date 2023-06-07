@@ -1,5 +1,3 @@
-.. _line_roi:
-
 =======
 LineROI
 =======
@@ -8,10 +6,6 @@ LineROI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. currentmodule:: xrdimageutil.roi.LineROI
-
-The ``LineROI`` class provides a line segment region of interest that can be applied to
-a 3D dataset. The region is defined by the pixels that the line segment intersects 
-(see Bresenham's algorithm).
 
 Attributes
 ^^^^^^^^^^

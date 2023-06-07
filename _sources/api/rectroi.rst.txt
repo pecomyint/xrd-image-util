@@ -1,5 +1,3 @@
-.. _rect_roi:
-
 =======
 RectROI
 =======
@@ -48,7 +46,7 @@ Functions
 .. py:function:: __init__(self, dims: list=None)
 
     If ``dims`` is not specified, the dimensions of the ROI will default
-    to "x", "y", and "z" respectively.
+    to "x", "y", and "z" respectively. Order matters.
 
 .. py:function:: set_bounds(self, bounds: dict)
 
