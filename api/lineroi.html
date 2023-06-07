@@ -353,6 +353,15 @@ document.write(`
 <h1>LineROI<a class="headerlink" href="#lineroi" title="Permalink to this heading">#</a></h1>
 <section id="xrdimageutil-roi-lineroi">
 <h2><code class="xref py py-mod docutils literal notranslate"><span class="pre">xrdimageutil.roi.LineROI</span></code><a class="headerlink" href="#xrdimageutil-roi-lineroi" title="Permalink to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">LineROI</span></code> class provides a 1D line segment region that can be applied
+to 3D datasets. Users can define the coordinate enpoints for the region, define a
+calculation to be carried out on the selected region, and then apply the ROI
+to multple datasets. This tool is scriptable, and the region endpoints/calculation
+can be modified at any point.</p>
+<p>In the Image GUI widget (refer to the <a class="reference internal" href="../tutorials/viewing_image_data.html"><span class="doc">Viewing Image Data</span></a> tutorial),
+there is a graphical version of the <code class="docutils literal notranslate"><span class="pre">LineROI</span></code> object that is built on the backend
+class, but it does not provide the same scriptability, only being available for single
+datasets at a time.</p>
 <section id="attributes">
 <h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this heading">#</a></h3>
 <dl class="py attribute">
