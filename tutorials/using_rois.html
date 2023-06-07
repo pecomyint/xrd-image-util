@@ -351,9 +351,10 @@ document.write(`
                   
   <section id="using-roi-s">
 <h1>Using ROI’s<a class="headerlink" href="#using-roi-s" title="Permalink to this heading">#</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">xrd-image-util</span></code> also provides ROI’s to retrieve information from subsections of a 3D dataset.
-Currently, the only ROI class available is <code class="docutils literal notranslate"><span class="pre">xiu.roi.RectROI</span></code>. The general workflow for an ROI
-goes as follows:</p>
+<p><code class="docutils literal notranslate"><span class="pre">xrd-image-util</span></code> also provides ROI’s to retrieve information from subregions of a 3D dataset.
+There are currently two ROI types available: rectangular ROI’s (<code class="docutils literal notranslate"><span class="pre">xiu.roi.RectROI</span></code>) and line
+segment ROI’s (<code class="docutils literal notranslate"><span class="pre">xiu.roi.LineROI</span></code>).</p>
+<p>The general workflow for utilizing these is as follows:</p>
 <ol class="arabic simple">
 <li><p>Creating the ROI</p></li>
 <li><p>Setting coordinate bounds for the ROI</p></li>
@@ -361,9 +362,12 @@ goes as follows:</p>
 <li><p>Applying the ROI to a 3D dataset</p></li>
 <li><p>Retreiving the output data and coordinates</p></li>
 </ol>
-<p>A useful characteristic of <code class="docutils literal notranslate"><span class="pre">xrd-image-util</span></code>’s ROI’s is that they are data-independent, meaning
-that you can apply the same ROI to a series of 3D images. Here is a simple example of creating a rectangular ROI,
-applying it to a set of <code class="docutils literal notranslate"><span class="pre">Scan</span></code> objects, and storing the output:</p>
+<p>A useful characteristic of <code class="docutils literal notranslate"><span class="pre">xrd-image-util</span></code>’s ROI’s is that they are dataset-independent, meaning
+that you can apply the same ROI to a series of 3D datasets.</p>
+<section id="rectangular-roi">
+<h2>Rectangular ROI<a class="headerlink" href="#rectangular-roi" title="Permalink to this heading">#</a></h2>
+<p>Here is a simple example of creating a <code class="docutils literal notranslate"><span class="pre">RectROI</span></code>, applying it to a set of <code class="docutils literal notranslate"><span class="pre">Scan</span></code>
+objects, and storing the output:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Getting a list of scans to analyze</span>
 <span class="n">catalog</span> <span class="o">=</span> <span class="n">xiu</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="s2">&quot;test-catalog&quot;</span><span class="p">)</span>
 <span class="n">scans</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get_scans</span><span class="p">([</span><span class="mi">68</span><span class="p">,</span> <span class="mi">69</span><span class="p">,</span> <span class="mi">70</span><span class="p">])</span>
@@ -401,6 +405,7 @@ applying it to a set of <code class="docutils literal notranslate"><span class="
 <span class="c1"># Output: [(21, 21), (21, 21), (21, 21)]</span>
 </pre></div>
 </div>
+</section>
 </section>
 
 
@@ -443,6 +448,16 @@ applying it to a set of <code class="docutils literal notranslate"><span class="
             
               
                 <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rectangular-roi">Rectangular ROI</a></li>
+</ul>
+  </nav></div>
 
   <div class="sidebar-secondary-item">
   <div class="tocsection sourcelink">
