@@ -2,5 +2,7 @@
 Catalog
 =======
 
-.. automodule:: xrdimageutil
+.. currentmodule:: xrdimageutil.Catalog
+
+.. autosummary::
     :members:
