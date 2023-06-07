@@ -62,10 +62,7 @@ Documentation
 
 .. automodule:: xrdimageutil
     :members:
-    
-.. toctree::
-    :glob:
-    :maxdepth: 1
 
-    tutorials/index
-    api/index
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
