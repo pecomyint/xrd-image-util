@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xrd-image-util"
-version = "1.0.0"
+version = "1.1.0"
 authors = [
     {name = "Henry Smith", email = "henryjsmith12@outlook.com"},
 ]
