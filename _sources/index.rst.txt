@@ -64,5 +64,5 @@ Documentation
     :glob:
     :maxdepth: 1
 
-    tutorials
-    api
+    tutorials/index
+    api/index
