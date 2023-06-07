@@ -7,6 +7,17 @@ LineROI
 
 .. currentmodule:: xrdimageutil.roi.LineROI
 
+The ``LineROI`` class provides a 1D line segment region that can be applied
+to 3D datasets. Users can define the coordinate enpoints for the region, define a
+calculation to be carried out on the selected region, and then apply the ROI
+to multple datasets. This tool is scriptable, and the region endpoints/calculation 
+can be modified at any point.
+
+In the Image GUI widget (refer to the :doc:`../tutorials/viewing_image_data` tutorial),
+there is a graphical version of the ``LineROI`` object that is built on the backend
+class, but it does not provide the same scriptability, only being available for single
+datasets at a time.
+
 Attributes
 ^^^^^^^^^^
 
