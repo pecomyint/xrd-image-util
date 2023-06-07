@@ -2,6 +2,9 @@
 Catalog
 =======
 
-.. automodule:: xrdimageutil.Catalog
+.. automodule:: xrdimageutil
     :members:
+    :imported-members:
+    :undoc-members:
+    :show-inheritance:
 
