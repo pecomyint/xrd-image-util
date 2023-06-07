@@ -60,6 +60,9 @@ To import the package inline, use this Python line:
 Documentation
 -------------
 
+.. automodule:: xrdimageutil
+    :members:
+    
 .. toctree::
     :glob:
     :maxdepth: 1
