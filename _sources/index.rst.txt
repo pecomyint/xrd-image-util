@@ -59,10 +59,10 @@ To import the package inline, use this Python line:
 
 Documentation
 -------------
-
-.. automodule:: xrdimageutil
-    :members:
-
+   
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+    :glob:
+    :maxdepth: 1
+
+    tutorials/index
+    api/index

@@ -2,7 +2,7 @@
 Catalog
 =======
 
-.. autoclass:: xrdimageutil.Catalog
-    :members:
-    :undoc-members:
+.. autosummary::
+
+    ~xrdimageutil.Catalog
 
