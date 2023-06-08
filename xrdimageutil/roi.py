@@ -216,7 +216,6 @@ class LineROI:
                 "B": dict((dim, None) for dim in dims)
             }
             
-        
         self.calculation = {
             "output_data": None,
             "dims": None
@@ -306,55 +305,17 @@ class LineROI:
     def _get_pixels(self, data, coords) -> list:
         """Utilizes Bresenham's line algorithm to pull out pixels that the line ROI intersects."""
 
-        endpoints = self.endpoints # Endpoint coordinates for ROI
-        dim_list = list(coords.keys()) # Ordered list of dimension names/labels
-        
         # Defines endpoint pixel indicies
-        A_endpoint_pixels, B_endpoint_pixels = [], []
-
-        # Loops through each dimension
-        for i, dim in enumerate(dim_list):
-            
-            # Will hold index that corresponds to endpoint value for specific dimension
-            dim_pixel_A, dim_pixel_B = None, None
-
-            # Endpoint value for each dimension
-            dim_endpoint_A, dim_endpoint_B = endpoints["A"][dim], endpoints["B"][dim]
-
-            # Coordinates for dimension
-            dim_coords = coords[dim]
-
-            # Size of each pixel
-            pixel_size = (dim_coords[-1] - dim_coords[0]) / data.shape[i]
-
-            # Finds index for endpoint A
-            if dim_endpoint_A is None:
-                dim_pixel_A = 0
-            else:
-                dim_pixel_A = int((dim_endpoint_A - dim_coords[0]) / pixel_size) 
-
-            A_endpoint_pixels.append(dim_pixel_A)
-            
-            # Finds index for endpoint B
-            if dim_endpoint_B is None:
-                dim_pixel_B = len(dim_coords)
-            else:
-                dim_pixel_B = int((dim_endpoint_B - dim_coords[0]) / pixel_size)
-
-            B_endpoint_pixels.append(dim_pixel_B)
-
-        # Converts each list of indicies to a 1D numpy array for line drawing step
-        A_endpoint_pixels = np.array(A_endpoint_pixels).astype(int)
-        B_endpoint_pixels = np.array(B_endpoint_pixels).astype(int)
-
-        # Line drawing step
-        points = np.transpose(line_nd(A_endpoint_pixels, B_endpoint_pixels))
-
-        # Finds the valid indicies with respect to the bounds 
-        valid_indices = np.all((points >= 0) & (points < data.shape), axis=1)
-        valid_points = points[valid_indices]
-
-        return valid_points
+        endpoint_A_pixels = self._get_endpoint_pixel_indicies(coords=coords, endpoint=self.endpoints["A"])
+        endpoint_B_pixels = self._get_endpoint_pixel_indicies(coords=coords, endpoint=self.endpoints["B"])
+        
+        # Bresenham line drawing step
+        intersected_pixels = self._bresenham_3d(endpoint_A_pixels, endpoint_B_pixels)
+        
+        # Determines which pixels lie within the shape of the dataset
+        valid_intersected_pixels = self._get_valid_pixels(pixels=intersected_pixels, data=data)
+        
+        return valid_intersected_pixels
     
     def _get_values(self, data, coords) -> tuple:
         """Retreives dataset values from provided coordinate bounds."""
@@ -512,3 +473,51 @@ class LineROI:
         
         return self.output
         
+    def _get_endpoint_pixel_indicies(self, coords: list, endpoint: dict) -> list:
+        """Returns the pixel indicies that correspond with an endpoint."""
+
+        endpoint_pixel_idxs = [] # Will hold pixel indicies
+
+        dim_list = list(coords.keys()) # Ordered list of dimension labels (e.g. ["H", "K", "L"])
+
+        # Loops through all three dimensions
+        for dim in dim_list:
+
+            dim_coords = coords[dim] # Full coordinates for given dimension
+            dim_endpoint_coord = endpoint[dim] # Coordinate of endpoint for given dimension
+            dim_endpoint_pixel_idx = None # Will hold pixel index for given dimension
+
+            # Denotes width of pixels for a given dimension
+            pixel_size = (dim_coords[-1] - dim_coords[0]) / len(dim_coords)
+
+            # Checks if endpoint was specified
+            if dim_endpoint_coord is None:
+                dim_endpoint_pixel_idx = 0
+            else:
+                dim_endpoint_pixel_idx = int((dim_endpoint_coord - dim_coords[0]) / pixel_size)
+
+            endpoint_pixel_idxs.append(dim_endpoint_pixel_idx)
+
+        return endpoint_pixel_idxs
+
+    def _bresenham_3d(self, endpoint_1_pixel_idxs: list, endpoint_2_pixel_idxs: list) -> np.ndarray:
+        
+        return np.transpose(line_nd(endpoint_1_pixel_idxs, endpoint_2_pixel_idxs))
+    
+    def _get_valid_pixels(self, pixels: np.ndarray, data: np.ndarray) -> np.ndarray:
+
+        valid_indices = np.all((pixels >= 0) & (pixels < data.shape), axis=1)
+        valid_pixels = pixels[valid_indices] 
+
+        self._mask_pixels_for_validity(pixels, data)
+
+        return valid_pixels
+    
+    def _mask_pixels_for_validity(self, pixels: np.ndarray, data: np.ndarray) -> np.ndarray:
+        
+        mask = np.all((pixels >= 0) & (pixels < data.shape), axis=1)
+        mask = np.column_stack((mask, mask, mask))
+        
+        masked_pixels = np.ma.array(pixels, mask=~mask)
+
+        return masked_pixels
