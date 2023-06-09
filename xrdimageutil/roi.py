@@ -302,8 +302,15 @@ class LineROI:
         
         self.apply(data, coords)
 
-    def _get_pixels(self, data, coords) -> list:
+    def get_output(self) -> None:
+        """Returns the output dictionary."""
+        
+        return self.output
+    
+    def _get_pixels(self, data: np.ndarray, coords: dict) -> list:
         """Utilizes Bresenham's line algorithm to pull out pixels that the line ROI intersects."""
+
+        coords = coords.copy()
 
         # Defines endpoint pixel indicies
         endpoint_A_pixels = self._get_endpoint_pixel_indicies(coords=coords, endpoint=self.endpoints["A"])
@@ -317,163 +324,7 @@ class LineROI:
         
         return valid_intersected_pixels
     
-    def _get_values(self, data, coords) -> tuple:
-        """Retreives dataset values from provided coordinate bounds."""
-
-        output_dims = self.calculation["dims"]
-        dim_list = list(self.endpoints["A"].keys())
-
-        if output_dims is None:
-            output_dims = []
-
-        coords = coords.copy()
-
-        # Retreives the pixels that the ROI crosses through
-        roi_pixels = self._get_pixels(data, coords)
-        dim_coord_pixels = roi_pixels.T
-
-        if len(output_dims) == 0:
-            
-            # Retreives data values
-            output_data = data[roi_pixels[:, 0], roi_pixels[:, 1], roi_pixels[:, 2]]
-
-            # Retreives corresponding coordinates
-            output_coords_label = f"{', '.join(dim_list)}"
-            output_coords_list = []
-            for dim, dcp in zip(dim_list, dim_coord_pixels):
-                dim_coords = coords[dim]
-                roi_coords_for_dim = np.array([dim_coords[i] for i in dcp])
-                output_coords_list.append(roi_coords_for_dim)
-            output_coords_list = np.array(output_coords_list).T
-            output_coords = {output_coords_label: output_coords_list}
-
-        elif len(output_dims) == 1:
-
-            # Retreives data values, ignoring dim in dim list
-            # For example, if the dim list is ["x"],
-            # the output will contain the specified "y" and "z"
-            # coordinates for every "x" in between the provided
-            # "x" endpoints
-            if dim_list.index(output_dims[0]) == 0:
-                output_data = data[:, roi_pixels[:, 1], roi_pixels[:, 2]]
-            elif dim_list.index(output_dims[0]) == 1:
-                output_data = data[roi_pixels[:, 0], :, roi_pixels[:, 2]]
-            elif dim_list.index(output_dims[0]) == 2:
-                output_data = data[roi_pixels[:, 0], roi_pixels[:, 1], :]
-            else:   
-                raise ValueError("Invalid dimension list.")
-            
-            # Retreives respective coordinates
-            output_coords_x_label = None
-            output_coords_y_label = []
-            output_coords_x_list = []
-            output_coords_y_list = []
-
-            for dim, dcp in zip(dim_list, dim_coord_pixels):
-                dim_coords = coords[dim]
-                roi_coords_for_dim = np.array([dim_coords[i] for i in dcp])
-                
-                if dim in output_dims:
-                    output_coords_x_label = dim
-                    output_coords_x_list = roi_coords_for_dim
-                else:
-                    output_coords_y_label.append(dim)
-                    output_coords_y_list.append(roi_coords_for_dim)
-
-            output_coords_y_label = f"{', '.join(output_coords_y_label)}"
-            output_coords_x_list = np.array(output_coords_x_list)
-            output_coords_y_list = np.array(output_coords_y_list).T
-
-            output_coords = {
-                output_coords_x_label: output_coords_x_list,
-                output_coords_y_label: output_coords_y_list
-            }
-
-        else:
-            raise ValueError("Invalid dimension list.")
-
-        return (output_data, output_coords)
-
-    def _get_average(self, data, coords) -> tuple:
-        """Retreives the average dataset values from provided coordinate bounds."""
-        
-        output_dims = self.calculation["dims"]
-        dim_list = list(self.endpoints["A"].keys())
-
-        if output_dims is None:
-            output_dims = []
-
-        coords = coords.copy()
-
-        # Retreives the pixels that the ROI crosses through
-        roi_pixels = self._get_pixels(data, coords)
-        dim_coord_pixels = roi_pixels.T
-
-        if len(output_dims) == 0:
-                output_data = np.mean(data[roi_pixels[:, 0], roi_pixels[:, 1], roi_pixels[:, 2]])
-                output_coords = None
-        elif len(output_dims) == 1:
-            if dim_list.index(output_dims[0]) == 0:
-                output_data = np.mean(data[:, roi_pixels[:, 1], roi_pixels[:, 2]], axis=0)
-            elif dim_list.index(output_dims[0]) == 1:
-                output_data = np.mean(data[roi_pixels[:, 0], :, roi_pixels[:, 2]], axis=1)
-            elif dim_list.index(output_dims[0]) == 2:
-                output_data = np.mean(data[roi_pixels[:, 0], roi_pixels[:, 1], :], axis=1)
-            else:   
-                raise ValueError("Invalid dimension list.")
-            
-            dim_coords = coords[output_dims[0]]
-            roi_coords_for_dim = np.array([dim_coords[i] for i in dim_coord_pixels[dim_list.index(output_dims[0])]])
-            output_coords = {output_dims[0]: roi_coords_for_dim}
-        else:
-            raise ValueError("Invalid dimension list.")
-        
-        return (output_data, output_coords)
-
-    def _get_max(self, data, coords) -> tuple:
-        """Retreives the max dataset values from provided coordinate bounds."""
-                
-        output_dims = self.calculation["dims"]
-        dim_list = list(self.endpoints["A"].keys())
-
-        if output_dims is None:
-            output_dims = []
-
-        coords = coords.copy()
-
-        # Retreives the pixels that the ROI crosses through
-        roi_pixels = self._get_pixels(data, coords)
-        dim_coord_pixels = roi_pixels.T
-
-        if len(output_dims) == 0:
-                output_data = np.amax(data[roi_pixels[:, 0], roi_pixels[:, 1], roi_pixels[:, 2]])
-                output_coords = None
-        elif len(output_dims) == 1:
-            if dim_list.index(output_dims[0]) == 0:
-                output_data = np.amax(data[:, roi_pixels[:, 1], roi_pixels[:, 2]], axis=0)
-            elif dim_list.index(output_dims[0]) == 1:
-                output_data = np.amax(data[roi_pixels[:, 0], :, roi_pixels[:, 2]], axis=1)
-            elif dim_list.index(output_dims[0]) == 2:
-                output_data = np.amax(data[roi_pixels[:, 0], roi_pixels[:, 1], :], axis=1)
-            else:   
-                raise ValueError("Invalid dimension list.")
-            
-            
-            dim_coords = coords[output_dims[0]]
-            roi_coords_for_dim = np.array([dim_coords[i] for i in dim_coord_pixels[dim_list.index(output_dims[0])]])
-            output_coords = {output_dims[0]: roi_coords_for_dim}
-
-        else:
-            raise ValueError("Invalid dimension list.")
-        
-        return (output_data, output_coords)
-
-    def get_output(self) -> None:
-        """Returns the output dictionary."""
-        
-        return self.output
-        
-    def _get_endpoint_pixel_indicies(self, coords: list, endpoint: dict) -> list:
+    def _get_endpoint_pixel_indicies(self, coords: dict, endpoint: dict) -> list:
         """Returns the pixel indicies that correspond with an endpoint."""
 
         endpoint_pixel_idxs = [] # Will hold pixel indicies
@@ -521,3 +372,140 @@ class LineROI:
         masked_pixels = np.ma.array(pixels, mask=~mask)
 
         return masked_pixels
+    
+    def _get_data_from_pixels(self, pixels: np.ndarray, data: np.ndarray) -> np.ndarray:
+
+        output_dims = self.calculation["dims"]
+        dim_list = list(self.endpoints["A"].keys())
+
+        if output_dims is None or len(output_dims) == 0:
+            output_data = data[pixels[:, 0], pixels[:, 1], pixels[:, 2]]
+
+        elif len(output_dims) == 1:
+            if dim_list.index(output_dims[0]) == 0:
+                output_data = data[:, pixels[:, 1], pixels[:, 2]]
+            elif dim_list.index(output_dims[0]) == 1:
+                output_data = data[pixels[:, 0], :, pixels[:, 2]]
+            elif dim_list.index(output_dims[0]) == 2:
+                output_data = data[pixels[:, 0], pixels[:, 1], :]
+            else:   
+                raise ValueError("Invalid dimension list.") 
+        
+        else:
+            raise ValueError("Invalid dimension list.")
+        
+        return output_data
+
+    def _get_output_coords_from_pixels(self, pixels: np.ndarray, coords: dict) -> dict:
+        
+        output_type = self.calculation["output"]
+        output_dims = self.calculation["dims"]
+        dim_list = list(self.endpoints["A"].keys())
+
+        if output_dims is None:
+            output_dims = []
+
+        coords = coords.copy()
+        output_coords = None
+
+        if len(output_dims) == 0:
+
+            if output_type == "values":
+
+                output_coords_label = f"{', '.join(dim_list)}"
+
+                output_coords_list = []
+
+                for dim, px in zip(dim_list, pixels.T):
+                    dim_coords = coords[dim]
+                    roi_coords_for_dim = [dim_coords[i] for i in px]
+                    output_coords_list.append(roi_coords_for_dim)
+
+                output_coords_list = np.array(output_coords_list).T
+
+                output_coords = {output_coords_label: output_coords_list}
+
+        elif len(output_dims) == 1:
+
+            if output_type == "values":
+
+                # 1 x variable and 2 y variables
+                output_coords_x_label, output_coords_y_label = None, []
+                output_coords_x_list, output_coords_y_list = [], []
+                
+                for dim, px in zip(dim_list, pixels.T):
+                    dim_coords = coords[dim]
+                    roi_coords_for_dim = [dim_coords[i] for i in px]
+                    
+                    if dim in output_dims:
+                        output_coords_x_label = dim
+                        output_coords_x_list = roi_coords_for_dim
+                    else:
+                        output_coords_y_label.append(dim)
+                        output_coords_y_list.append(roi_coords_for_dim)
+
+                output_coords_y_label = f"{', '.join(output_coords_y_label)}"
+                output_coords_x_list = np.array(output_coords_x_list)
+                output_coords_y_list = np.array(output_coords_y_list).T
+
+                output_coords = {
+                    output_coords_x_label: output_coords_x_list,
+                    output_coords_y_label: output_coords_y_list
+                }
+
+            elif output_type == "average" or output_type == "max":
+
+                x_dim = output_dims[0]
+                x_dim_coords = coords[x_dim]
+                roi_coords_for_dim = np.array([x_dim_coords[i] for i in pixels.T[dim_list.index(x_dim)]])
+                output_coords = {x_dim: roi_coords_for_dim}
+
+        else:
+            raise ValueError("Invalid dimension list.")
+
+        return output_coords
+
+    def _get_values(self, data, coords) -> tuple:
+        """Retreives dataset values from provided coordinate bounds."""
+
+        # Retreives the pixels that the ROI crosses through
+        roi_pixels = self._get_pixels(data, coords)
+
+        output_data = self._get_data_from_pixels(pixels=roi_pixels, data=data)
+        output_coords = self._get_output_coords_from_pixels(pixels=roi_pixels, coords=coords)
+
+        return (output_data, output_coords)
+
+    def _get_average(self, data, coords) -> tuple:
+        """Retreives the average dataset values from provided coordinate bounds."""
+        
+        value_data, output_coords = self._get_values(data=data, coords=coords)
+        
+        output_dims = self.calculation["dims"]
+        dim_list = list(self.endpoints["A"].keys())
+
+        if output_dims is None or len(output_dims) == 0:
+            output_data = np.mean(value_data)
+        elif len(output_dims) == 1:
+            output_data = np.mean(value_data, axis=dim_list.index(output_dims[0]))
+
+        return (output_data, output_coords)
+    
+    def _get_max(self, data, coords) -> tuple:
+        """Retreives the max dataset values from provided coordinate bounds."""
+                
+        value_data, output_coords = self._get_values(data=data, coords=coords)
+        
+        output_dims = self.calculation["dims"]
+        dim_list = list(self.endpoints["A"].keys())
+
+        if output_dims is None or len(output_dims) == 0:
+
+            output_data = np.mean(value_data)
+
+        elif len(output_dims) == 1:
+
+            output_data = np.amax(value_data, axis=dim_list.index(output_dims[0]))
+
+        return (output_data, output_coords)
+    
