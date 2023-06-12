@@ -218,7 +218,8 @@ class LineROI:
             
         self.calculation = {
             "output_data": None,
-            "dims": None
+            "dims": None,
+            "smoothing_radius": 0
         }
 
         self.output = {
@@ -252,7 +253,7 @@ class LineROI:
             self.endpoints["A"][dim] = dim_endpoint_A
             self.endpoints["B"][dim] = dim_endpoint_B
 
-    def set_calculation(self, output: str, dims: list) -> None:
+    def set_calculation(self, output: str, dims: list, smoothing_radius=0) -> None:
         """ Sets the calculation type for the region of interest.
         
         This is not necessarily a dataset-specific function -- the selected 
@@ -270,7 +271,8 @@ class LineROI:
         
         self.calculation = {
             "output": output,
-            "dims": dims
+            "dims": dims,
+            "smoothing_radius": smoothing_radius
         }
 
     def apply(self, data, coords) -> None:
@@ -307,6 +309,53 @@ class LineROI:
         
         return self.output
     
+    def _get_values(self, data, coords) -> tuple:
+        """Retreives dataset values from provided coordinate bounds."""
+
+        # Retreives the pixels that the ROI crosses through
+        roi_pixels = self._get_pixels(data, coords)
+
+        if self.calculation["smoothing_radius"] == 1:
+            output_data = self._get_data_from_pixels(pixels=roi_pixels, data=data)
+        else:
+            output_data = self._get_smoothed_data(pixels=roi_pixels, data=data)
+        output_coords = self._get_output_coords_from_pixels(pixels=roi_pixels, coords=coords)
+
+        return (output_data, output_coords)
+
+    def _get_average(self, data, coords) -> tuple:
+        """Retreives the average dataset values from provided coordinate bounds."""
+        
+        value_data, output_coords = self._get_values(data=data, coords=coords)
+        
+        output_dims = self.calculation["dims"]
+        dim_list = list(self.endpoints["A"].keys())
+
+        if output_dims is None or len(output_dims) == 0:
+            output_data = np.mean(value_data)
+        elif len(output_dims) == 1:
+            output_data = np.mean(value_data, axis=dim_list.index(output_dims[0]))
+
+        return (output_data, output_coords)
+    
+    def _get_max(self, data, coords) -> tuple:
+        """Retreives the max dataset values from provided coordinate bounds."""
+                
+        value_data, output_coords = self._get_values(data=data, coords=coords)
+        
+        output_dims = self.calculation["dims"]
+        dim_list = list(self.endpoints["A"].keys())
+
+        if output_dims is None or len(output_dims) == 0:
+
+            output_data = np.mean(value_data)
+
+        elif len(output_dims) == 1:
+
+            output_data = np.amax(value_data, axis=dim_list.index(output_dims[0]))
+
+        return (output_data, output_coords)
+
     def _get_pixels(self, data: np.ndarray, coords: dict) -> list:
         """Utilizes Bresenham's line algorithm to pull out pixels that the line ROI intersects."""
 
@@ -357,10 +406,12 @@ class LineROI:
     
     def _get_valid_pixels(self, pixels: np.ndarray, data: np.ndarray) -> np.ndarray:
 
-        valid_indices = np.all((pixels >= 0) & (pixels < data.shape), axis=1)
+        valid_indices = np.all(
+            (pixels >= 0) & (pixels < data.shape),
+            axis=1
+        )
         valid_pixels = pixels[valid_indices] 
 
-        self._mask_pixels_for_validity(pixels, data)
 
         return valid_pixels
     
@@ -395,6 +446,28 @@ class LineROI:
             raise ValueError("Invalid dimension list.")
         
         return output_data
+
+    def _get_smoothed_data(self, data, pixels) -> np.ndarray:
+        smoothing_radius = self.calculation["smoothing_radius"]
+
+        if smoothing_radius > 3:
+            raise ValueError("Too large of a smoothing radius")
+        
+        smoothing_radius = 2
+        smoothed_data = []
+
+        for i, px in enumerate(pixels):
+            pixels_to_average = []
+            for x_offset in range(-smoothing_radius, smoothing_radius + 1):
+                for y_offset in range(-smoothing_radius, smoothing_radius + 1):
+                    for z_offset in range(-smoothing_radius, smoothing_radius + 1):
+                        pixels_to_average.append(px + [x_offset, y_offset, z_offset])
+            
+            valid_pixels = self._get_valid_pixels(np.array(pixels_to_average), data)
+            smoothed_data_point = np.mean(data[valid_pixels[:, 0], valid_pixels[:, 1], valid_pixels[:, 2]])
+            smoothed_data.append(smoothed_data_point)
+            
+        return np.array(np.array(smoothed_data))
 
     def _get_output_coords_from_pixels(self, pixels: np.ndarray, coords: dict) -> dict:
         
@@ -465,47 +538,4 @@ class LineROI:
 
         return output_coords
 
-    def _get_values(self, data, coords) -> tuple:
-        """Retreives dataset values from provided coordinate bounds."""
-
-        # Retreives the pixels that the ROI crosses through
-        roi_pixels = self._get_pixels(data, coords)
-
-        output_data = self._get_data_from_pixels(pixels=roi_pixels, data=data)
-        output_coords = self._get_output_coords_from_pixels(pixels=roi_pixels, coords=coords)
-
-        return (output_data, output_coords)
-
-    def _get_average(self, data, coords) -> tuple:
-        """Retreives the average dataset values from provided coordinate bounds."""
-        
-        value_data, output_coords = self._get_values(data=data, coords=coords)
-        
-        output_dims = self.calculation["dims"]
-        dim_list = list(self.endpoints["A"].keys())
-
-        if output_dims is None or len(output_dims) == 0:
-            output_data = np.mean(value_data)
-        elif len(output_dims) == 1:
-            output_data = np.mean(value_data, axis=dim_list.index(output_dims[0]))
-
-        return (output_data, output_coords)
-    
-    def _get_max(self, data, coords) -> tuple:
-        """Retreives the max dataset values from provided coordinate bounds."""
-                
-        value_data, output_coords = self._get_values(data=data, coords=coords)
-        
-        output_dims = self.calculation["dims"]
-        dim_list = list(self.endpoints["A"].keys())
-
-        if output_dims is None or len(output_dims) == 0:
-
-            output_data = np.mean(value_data)
-
-        elif len(output_dims) == 1:
-
-            output_data = np.amax(value_data, axis=dim_list.index(output_dims[0]))
-
-        return (output_data, output_coords)
     
