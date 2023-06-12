@@ -315,7 +315,7 @@ class LineROI:
         # Retreives the pixels that the ROI crosses through
         roi_pixels = self._get_pixels(data, coords)
 
-        if self.calculation["smoothing_radius"] == 1:
+        if self.calculation["smoothing_radius"] == 0:
             output_data = self._get_data_from_pixels(pixels=roi_pixels, data=data)
         else:
             output_data = self._get_smoothed_data(pixels=roi_pixels, data=data)
