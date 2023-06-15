@@ -780,6 +780,8 @@ class GraphicalLineROIController(QtWidgets.QWidget):
 
     output_type_cbx = None
     dim_output_chkbxs = None
+    smoothing_radius_lbl = None
+    smoothing_radius_sbx = None
     output_image_tool = None
     export_output_btn = None
     export_output_cbx = None
@@ -826,6 +828,12 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         self.output_type_cbx.addItems(["values", "average", "max"])
         self.dim_output_chkbxs = [QtWidgets.QCheckBox(dim) for dim in dims]
 
+        self.smoothing_radius_lbl = QtWidgets.QLabel("Smoothing Radius (px):")
+        self.smoothing_radius_sbx = QtWidgets.QSpinBox()
+        self.smoothing_radius_sbx.setMinimum(0)
+        self.smoothing_radius_sbx.setMaximum(5)
+        self.smoothing_radius_sbx.setValue(0)
+
         self.output_image_tool = ROIImageTool(graphical_roi=self.graphical_line_roi, view=pg.PlotItem())
         self.export_output_btn = QtWidgets.QPushButton("Export")
         self.export_output_btn.setEnabled(False)
@@ -856,9 +864,11 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         self.layout.addWidget(self.dim_output_chkbxs[0], 6, 4, 1, 2)
         self.layout.addWidget(self.dim_output_chkbxs[1], 6, 6, 1, 2)
         self.layout.addWidget(self.dim_output_chkbxs[2], 6, 8, 1, 2)
-        self.layout.addWidget(self.output_image_tool, 7, 0, 3, 10)
-        self.layout.addWidget(self.export_output_cbx, 10, 0, 1, 3)
-        self.layout.addWidget(self.export_output_btn, 10, 3, 1, 7)
+        self.layout.addWidget(self.smoothing_radius_lbl, 7, 0, 1, 4)
+        self.layout.addWidget(self.smoothing_radius_sbx, 7, 4, 1, 2)
+        self.layout.addWidget(self.output_image_tool, 8, 0, 3, 10)
+        self.layout.addWidget(self.export_output_cbx, 11, 0, 1, 3)
+        self.layout.addWidget(self.export_output_btn, 11, 3, 1, 7)
 
         for i in range(self.layout.columnCount()):
             self.layout.setColumnStretch(i, 10)
@@ -986,16 +996,29 @@ class GraphicalLineROIController(QtWidgets.QWidget):
             self.output_image_tool.hide()
             self.export_output_btn.hide()
             self.export_output_cbx.hide()
+            self.smoothing_radius_lbl.hide()
+            self.smoothing_radius_sbx.hide()
             return False
         elif num_checked == 0 and self.output_type_cbx.currentText() in ["average", "max"]:
             self.output_image_tool.hide()
             self.export_output_btn.hide()
             self.export_output_cbx.hide()
+            self.smoothing_radius_lbl.hide()
+            self.smoothing_radius_sbx.hide()
             return False
+        elif num_checked == 1:
+            self.output_image_tool.show()
+            self.export_output_btn.show()
+            self.export_output_cbx.show()
+            self.smoothing_radius_lbl.hide()
+            self.smoothing_radius_sbx.hide()
+            return True
         else:
             self.output_image_tool.show()
             self.export_output_btn.show()
             self.export_output_cbx.show()
+            self.smoothing_radius_lbl.show()
+            self.smoothing_radius_sbx.show()
             return True
 
     def _get_output(self) -> None:
