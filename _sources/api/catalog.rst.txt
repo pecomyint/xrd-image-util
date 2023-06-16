@@ -7,6 +7,8 @@ Catalog
 
 .. currentmodule:: xrdimageutil.Catalog
 
+.. autosummary::
+
 Attributes
 ^^^^^^^^^^
 
