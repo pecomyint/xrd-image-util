@@ -1,6 +1,6 @@
 import os
 
-from xrdimageutil import Catalog, Scan
+from xrdimageutil.structures import Catalog, Scan
 
 class TestScan:
 

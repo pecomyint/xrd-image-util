@@ -1,6 +1,6 @@
 import os
 
-from xrdimageutil import Catalog
+from xrdimageutil.structures import Catalog
 
 class TestCatalog:
 
