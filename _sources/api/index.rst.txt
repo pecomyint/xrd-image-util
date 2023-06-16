@@ -6,6 +6,8 @@ API
 
 .. autosummary::
 
+    Catalog
+
 .. toctree::
     :glob:
     :maxdepth: 1
