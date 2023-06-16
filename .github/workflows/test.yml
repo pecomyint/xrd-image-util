@@ -1,6 +1,16 @@
+# This workflow runs tests found in the "tests" subdirectory
 name: Test
 
 on: [push, pull_request]
+
+  Can be triggered manually through the GitHub Actions section of the repository
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Run Tests'
+        type: boolean
+        required: true
+        default: false
 
 jobs:
   test:
