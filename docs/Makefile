@@ -3,7 +3,7 @@
 # You can set these variables to customize the behavior of Sphinx
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-SOURCEDIR     = .
+SOURCEDIR     = source
 BUILDDIR      = _build
 
 # Build the HTML output of your documentation
