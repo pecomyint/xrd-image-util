@@ -1,3 +1,4 @@
+# This workflow releases a new version of the Python package to PyPi
 name: Release
 
 on:

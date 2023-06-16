@@ -1,3 +1,4 @@
+# This workflow publishes documentation to github.io site
 name: Publish Docs
 
 on: 
@@ -8,6 +9,7 @@ on:
     tags:
       - '*'  # all tags
 
+  # Can be triggered manually through the GitHub Actions section of the repository
   workflow_dispatch:
     inputs:
       deploy:
