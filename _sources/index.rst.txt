@@ -16,4 +16,4 @@ Documentation
     :glob:
     :maxdepth: 2
 
-    api
+    api/*
