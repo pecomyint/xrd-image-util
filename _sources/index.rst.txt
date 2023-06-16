@@ -8,3 +8,12 @@ xrd-image-util
 This project works as an interface to databroker and bluesky, provding additional functionality while still 
 allowing users to access databroker's ``BlueskyCatalog`` and ``BlueskyRun`` objects. In its current form, ``xrd-image-util`` 
 is tailored for data gathering at APS beamline 6-ID-B.
+
+Documentation
+-------------
+
+.. toctree::
+    :glob:
+    :maxdepth: 2
+
+    api
