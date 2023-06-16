@@ -2,6 +2,10 @@
 API
 ===
 
+.. currentmodule:: xrdimageutil
+
+.. autosummary::
+
 .. toctree::
     :glob:
     :maxdepth: 1
