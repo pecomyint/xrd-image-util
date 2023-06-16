@@ -3,7 +3,7 @@ name: Test
 
 on: [push, pull_request]
 
-  Can be triggered manually through the GitHub Actions section of the repository
+  # Can be triggered manually through the GitHub Actions section of the repository
   workflow_dispatch:
     inputs:
       deploy:
