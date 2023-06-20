@@ -6,9 +6,9 @@
 import os
 import pathlib
 import sys
-sys.path.insert(0, os.path.abspath("../../"))
-#sys.path.append(str(pathlib.Path(__file__).parent.parent.parent))
 
+sys.path.insert(0, str(pathlib.Path().absolute().parent.parent))
+import xrdimageutil
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
