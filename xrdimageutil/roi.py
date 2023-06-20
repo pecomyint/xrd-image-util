@@ -547,3 +547,24 @@ class LineROI:
             raise ValueError("Invalid dimension list.")
 
         return output_coords
+
+
+class PlaneROI:
+
+    def __init__(self, dims: list=None) -> None:
+        pass
+
+    def set_plane(self, point_1, point_2, point_3) -> None:
+        ...
+
+    def set_calculation(self, output) -> None:
+        ...
+
+    def apply(self, data, coords) -> None:
+        ...
+
+    def apply_to_scan(self, scan, data_type) -> None:
+        ...
+
+    def get_output(self) -> dict:
+        ...
