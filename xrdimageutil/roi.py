@@ -450,20 +450,20 @@ class LineROI:
     def _get_smoothed_data(self, data, pixels) -> np.ndarray:
         smoothing_radius = self.calculation["smoothing_radius"]
 
-        if smoothing_radius > 3:
+        if smoothing_radius > 10:
             raise ValueError("Too large of a smoothing radius")
         
-        smoothing_radius = 2
         smoothed_data = []
 
+        offsets = np.arange(-smoothing_radius, smoothing_radius + 1)
+        offsets_grid = np.meshgrid(offsets, offsets, offsets)
+        offsets_array = np.stack(offsets_grid, axis=-1).reshape(-1, 3)
+
+        pixels_to_average = np.repeat(pixels, offsets_array.shape[0], axis=0) + np.tile(offsets_array, (pixels.shape[0], 1))
+        pixels_to_average = np.reshape(pixels_to_average, (pixels.shape[0], -1, 3))
+        
         for i, px in enumerate(pixels):
-            pixels_to_average = []
-            for x_offset in range(-smoothing_radius, smoothing_radius + 1):
-                for y_offset in range(-smoothing_radius, smoothing_radius + 1):
-                    for z_offset in range(-smoothing_radius, smoothing_radius + 1):
-                        pixels_to_average.append(px + [x_offset, y_offset, z_offset])
-            
-            valid_pixels = self._get_valid_pixels(np.array(pixels_to_average), data)
+            valid_pixels = self._get_valid_pixels(pixels_to_average[i], data)
             smoothed_data_point = np.mean(data[valid_pixels[:, 0], valid_pixels[:, 1], valid_pixels[:, 2]])
             smoothed_data.append(smoothed_data_point)
             
@@ -537,5 +537,3 @@ class LineROI:
             raise ValueError("Invalid dimension list.")
 
         return output_coords
-
-    
