@@ -7,7 +7,7 @@ import os
 import pathlib
 import sys
 
-sys.path.insert(0, str(pathlib.Path().absolute().parent.parent))
+sys.path.insert(0, str(pathlib.Path().absolute().parent.parent.parent))
 import xrdimageutil
 
 # -- Project information -----------------------------------------------------
