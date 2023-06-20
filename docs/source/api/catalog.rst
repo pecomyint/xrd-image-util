@@ -2,12 +2,9 @@
 Catalog
 =======
 
-:mod:`xrdimageutil.Catalog`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: xrdimageutil.Catalog
-
 .. autosummary::
+
+    ~xrdimageutil.structures.Catalog
 
 Attributes
 ^^^^^^^^^^
