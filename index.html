@@ -42,7 +42,7 @@
     <link rel="canonical" href="/xrd-image-util/index.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="API" href="api/index.html" />
+    <link rel="next" title="Tutorials" href="tutorials/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -124,6 +124,13 @@
   </p>
   <ul class="bd-navbar-elements navbar-nav">
     
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="tutorials/index.html">
+                        Tutorials
+                      </a>
+                    </li>
+                
+
                     <li class="nav-item">
                       <a class="nav-link nav-internal" href="api/index.html">
                         API
@@ -220,6 +227,13 @@ document.write(`
   <ul class="bd-navbar-elements navbar-nav">
     
                     <li class="nav-item">
+                      <a class="nav-link nav-internal" href="tutorials/index.html">
+                        Tutorials
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
                       <a class="nav-link nav-internal" href="api/index.html">
                         API
                       </a>
@@ -294,10 +308,53 @@ document.write(`
 This project works as an interface to databroker and bluesky, provding additional functionality while still
 allowing users to access databroker’s <code class="docutils literal notranslate"><span class="pre">BlueskyCatalog</span></code> and <code class="docutils literal notranslate"><span class="pre">BlueskyRun</span></code> objects. In its current form, <code class="docutils literal notranslate"><span class="pre">xrd-image-util</span></code>
 is tailored for data gathering at APS beamline 6-ID-B.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">xrdimageutil</span> <span class="k">as</span> <span class="nn">xiu</span>
+
+<span class="n">catalog</span> <span class="o">=</span> <span class="n">xiu</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="s2">&quot;test-catalog&quot;</span><span class="p">)</span>
+
+<span class="n">scan_70</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get_scan</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">70</span><span class="p">)</span>
+<span class="n">scan_70</span><span class="o">.</span><span class="n">grid_data</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">70</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">70</span><span class="p">))</span>
+
+<span class="n">scan_70</span><span class="o">.</span><span class="n">view_image_data</span><span class="p">()</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/image_data_gui_1.png"><img alt="_images/image_data_gui_1.png" class="align-center" src="_images/image_data_gui_1.png" style="width: 75%;" /></a>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This project is currently under development.
+Please report any issues or bugs <a class="reference external" href="https://github.com/henryjsmith12/xrd-image-util/issues">here</a>.</p>
+</div>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this heading">#</a></h2>
+<p>This project requires an unpacked databroker catalog to be used. Instructions for how to accomplish
+this can be found in <a class="reference external" href="https://blueskyproject.io/databroker-pack/usage.html#option-1-unpacking-in-place">the Bluesky documentation</a>.
+Below is an example of unpacking <cite>xrd-image-util</cite>’s sample data catalog.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">databroker-unpack inplace data/singh test-catalog</span>
+</pre></div>
+</div>
+<p><cite>xrd-image-util</cite> requires Python 3.8 or newer (conda installations are preferred).</p>
+</section>
+<section id="initial-steps">
+<h2>Initial Steps<a class="headerlink" href="#initial-steps" title="Permalink to this heading">#</a></h2>
+<p>Install the Python package with the shell command below:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">pip install xrd-image-util</span>
+</pre></div>
+</div>
+<p>To import the package inline, use this Python line:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">xrdimageutil</span> <span class="k">as</span> <span class="nn">xiu</span>
+</pre></div>
+</div>
+</section>
 <section id="documentation">
 <h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/index.html">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/getting_started.html">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/viewing_image_data.html">Viewing Image Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/using_rois.html">Using ROI’s</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/catalog.html">Catalog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/scan.html">Scan</a></li>
@@ -322,11 +379,11 @@ is tailored for data gathering at APS beamline 6-ID-B.</p>
     <div class="footer-article-item"><!-- Previous / next buttons -->
 <div class="prev-next-area">
     <a class="right-next"
-       href="api/index.html"
+       href="tutorials/index.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">API</p>
+        <p class="prev-next-title">Tutorials</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

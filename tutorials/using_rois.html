@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>API &#8212; xrd-image-util  documentation</title>
+    <title>Using ROI’s &#8212; xrd-image-util  documentation</title>
   
   
   
@@ -38,12 +38,12 @@
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/sphinx_highlight.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'api/index';</script>
-    <link rel="canonical" href="/xrd-image-util/api/index.html" />
+    <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/using_rois';</script>
+    <link rel="canonical" href="/xrd-image-util/tutorials/using_rois.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Catalog" href="catalog.html" />
-    <link rel="prev" title="Using ROI’s" href="../tutorials/using_rois.html" />
+    <link rel="next" title="API" href="../api/index.html" />
+    <link rel="prev" title="Viewing Image Data" href="viewing_image_data.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -125,15 +125,15 @@
   </p>
   <ul class="bd-navbar-elements navbar-nav">
     
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../tutorials/index.html">
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="index.html">
                         Tutorials
                       </a>
                     </li>
                 
 
-                    <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="#">
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../api/index.html">
                         API
                       </a>
                     </li>
@@ -231,15 +231,15 @@ document.write(`
   </p>
   <ul class="bd-navbar-elements navbar-nav">
     
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../tutorials/index.html">
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="index.html">
                         Tutorials
                       </a>
                     </li>
                 
 
-                    <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="#">
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../api/index.html">
                         API
                       </a>
                     </li>
@@ -288,11 +288,10 @@ document.write(`
         <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="catalog.html">Catalog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scan.html">Scan</a></li>
-<li class="toctree-l1"><a class="reference internal" href="rectroi.html">RectROI</a></li>
-<li class="toctree-l1"><a class="reference internal" href="lineroi.html">LineROI</a></li>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="viewing_image_data.html">Viewing Image Data</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Using ROI’s</a></li>
 </ul>
 </div>
 </nav></div>
@@ -330,7 +329,10 @@ document.write(`
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
-    <li class="breadcrumb-item active" aria-current="page">API</li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Tutorials</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Using ROI’s</li>
   </ul>
 </nav>
 </div>
@@ -347,15 +349,57 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article" role="main">
                   
-  <section id="api">
-<h1>API<a class="headerlink" href="#api" title="Permalink to this heading">#</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="catalog.html">Catalog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scan.html">Scan</a></li>
-<li class="toctree-l1"><a class="reference internal" href="rectroi.html">RectROI</a></li>
-<li class="toctree-l1"><a class="reference internal" href="lineroi.html">LineROI</a></li>
-</ul>
+  <section id="using-roi-s">
+<h1>Using ROI’s<a class="headerlink" href="#using-roi-s" title="Permalink to this heading">#</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">xrd-image-util</span></code> also provides ROI’s to retrieve information from subsections of a 3D dataset.
+Currently, the only ROI class available is <code class="docutils literal notranslate"><span class="pre">xiu.roi.RectROI</span></code>. The general workflow for an ROI
+goes as follows:</p>
+<ol class="arabic simple">
+<li><p>Creating the ROI</p></li>
+<li><p>Setting coordinate bounds for the ROI</p></li>
+<li><p>Setting the output calculations for the ROI</p></li>
+<li><p>Applying the ROI to a 3D dataset</p></li>
+<li><p>Retreiving the output data and coordinates</p></li>
+</ol>
+<p>A useful characteristic of <code class="docutils literal notranslate"><span class="pre">xrd-image-util</span></code>’s ROI’s is that they are data-independent, meaning
+that you can apply the same ROI to a series of 3D images. Here is a simple example of creating a rectangular ROI,
+applying it to a set of <code class="docutils literal notranslate"><span class="pre">Scan</span></code> objects, and storing the output:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Getting a list of scans to analyze</span>
+<span class="n">catalog</span> <span class="o">=</span> <span class="n">xiu</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="s2">&quot;test-catalog&quot;</span><span class="p">)</span>
+<span class="n">scans</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get_scans</span><span class="p">([</span><span class="mi">68</span><span class="p">,</span> <span class="mi">69</span><span class="p">,</span> <span class="mi">70</span><span class="p">])</span>
+
+<span class="c1"># Instantiating the rectangular ROI</span>
+<span class="n">roi</span> <span class="o">=</span> <span class="n">xiu</span><span class="o">.</span><span class="n">roi</span><span class="o">.</span><span class="n">RectROI</span><span class="p">()</span>
+
+<span class="c1"># Bounding the region</span>
+<span class="n">roi</span><span class="o">.</span><span class="n">set_bounds</span><span class="p">(</span>
+    <span class="n">bounds</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;H&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.9</span><span class="p">),</span>
+        <span class="s2">&quot;K&quot;</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="s2">&quot;L&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">3.4</span><span class="p">,</span> <span class="mf">3.45</span><span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+
+<span class="c1"># Setting the output value</span>
+<span class="c1"># In this example, the data is being averaged across all &#39;K&#39; values.</span>
+<span class="c1"># The output arrays will be 2D with axis labels &#39;H&#39; and &#39;L&#39;.</span>
+<span class="n">roi</span><span class="o">.</span><span class="n">set_calculation</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="s2">&quot;average&quot;</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;K&quot;</span><span class="p">])</span>
+
+<span class="n">scan_data</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">scan</span> <span class="ow">in</span> <span class="n">scans</span><span class="p">:</span>
+
+    <span class="c1"># Gridding scan image data</span>
+    <span class="n">scan</span><span class="o">.</span><span class="n">grid_data</span><span class="p">((</span><span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span>
+
+    <span class="c1"># Applying ROI to scan</span>
+    <span class="n">roi</span><span class="o">.</span><span class="n">apply_to_scan</span><span class="p">(</span><span class="n">scan</span><span class="o">=</span><span class="n">scan</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="s2">&quot;gridded&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Adding output to list</span>
+    <span class="n">scan_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">get_output</span><span class="p">())</span>
+
+<span class="nb">print</span><span class="p">([</span><span class="n">s</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">scan_data</span><span class="p">])</span>
+<span class="c1"># Output: [(21, 21), (21, 21), (21, 21)]</span>
+</pre></div>
 </div>
 </section>
 
@@ -371,20 +415,20 @@ document.write(`
     <div class="footer-article-item"><!-- Previous / next buttons -->
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../tutorials/using_rois.html"
+       href="viewing_image_data.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Using ROI’s</p>
+        <p class="prev-next-title">Viewing Image Data</p>
       </div>
     </a>
     <a class="right-next"
-       href="catalog.html"
+       href="../api/index.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Catalog</p>
+        <p class="prev-next-title">API</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -402,7 +446,7 @@ document.write(`
 
   <div class="sidebar-secondary-item">
   <div class="tocsection sourcelink">
-    <a href="../_sources/api/index.rst.txt">
+    <a href="../_sources/tutorials/using_rois.rst.txt">
       <i class="fa-solid fa-file-lines"></i> Show Source
     </a>
   </div>
