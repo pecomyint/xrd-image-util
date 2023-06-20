@@ -253,7 +253,7 @@ class LineROI:
             self.endpoints["A"][dim] = dim_endpoint_A
             self.endpoints["B"][dim] = dim_endpoint_B
 
-    def set_calculation(self, output: str, dims: list, smoothing_radius=0) -> None:
+    def set_calculation(self, output: str, dims: list, smoothing_radius=0, smoothing_shape="cube") -> None:
         """ Sets the calculation type for the region of interest.
         
         This is not necessarily a dataset-specific function -- the selected 
@@ -272,7 +272,8 @@ class LineROI:
         self.calculation = {
             "output": output,
             "dims": dims,
-            "smoothing_radius": smoothing_radius
+            "smoothing_radius": smoothing_radius,
+            "smoothing_shape": smoothing_shape
         }
 
     def apply(self, data, coords) -> None:
@@ -449,6 +450,7 @@ class LineROI:
 
     def _get_smoothed_data(self, data, pixels) -> np.ndarray:
         smoothing_radius = self.calculation["smoothing_radius"]
+        smoothing_shape = self.calculation["smoothing_shape"]
 
         if smoothing_radius > 10:
             raise ValueError("Too large of a smoothing radius")
@@ -459,6 +461,9 @@ class LineROI:
         offsets_grid = np.meshgrid(offsets, offsets, offsets)
         offsets_array = np.stack(offsets_grid, axis=-1).reshape(-1, 3)
 
+        if smoothing_shape == "sphere":
+            offsets_array = self._get_spherical_smoothing_offsets(offsets_array, smoothing_radius)
+
         pixels_to_average = np.repeat(pixels, offsets_array.shape[0], axis=0) + np.tile(offsets_array, (pixels.shape[0], 1))
         pixels_to_average = np.reshape(pixels_to_average, (pixels.shape[0], -1, 3))
         
@@ -468,6 +473,11 @@ class LineROI:
             smoothed_data.append(smoothed_data_point)
             
         return np.array(np.array(smoothed_data))
+
+    def _get_spherical_smoothing_offsets(self, offsets_array, smoothing_radius) -> np.ndarray:
+        distances = np.linalg.norm(offsets_array, axis=1)
+        valid_offsets = offsets_array[distances <= smoothing_radius]
+        return valid_offsets
 
     def _get_output_coords_from_pixels(self, pixels: np.ndarray, coords: dict) -> dict:
         

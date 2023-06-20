@@ -783,6 +783,7 @@ class GraphicalLineROIController(QtWidgets.QWidget):
     dim_output_chkbxs = None
     smoothing_radius_lbl = None
     smoothing_radius_sbx = None
+    smoothing_shape_cbx = None
     output_image_tool = None
     export_output_btn = None
     export_output_cbx = None
@@ -834,6 +835,8 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         self.smoothing_radius_sbx.setMinimum(0)
         self.smoothing_radius_sbx.setMaximum(10)
         self.smoothing_radius_sbx.setValue(0)
+        self.smoothing_shape_cbx = QtWidgets.QComboBox()
+        self.smoothing_shape_cbx.addItems(["cube", "sphere"])
 
         self.output_image_tool = ROIImageTool(graphical_roi=self.graphical_line_roi, view=pg.PlotItem())
         self.export_output_btn = QtWidgets.QPushButton("Export")
@@ -865,8 +868,9 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         self.layout.addWidget(self.dim_output_chkbxs[0], 6, 4, 1, 2)
         self.layout.addWidget(self.dim_output_chkbxs[1], 6, 6, 1, 2)
         self.layout.addWidget(self.dim_output_chkbxs[2], 6, 8, 1, 2)
-        self.layout.addWidget(self.smoothing_radius_lbl, 7, 4, 1, 3)
-        self.layout.addWidget(self.smoothing_radius_sbx, 7, 7, 1, 3)
+        self.layout.addWidget(self.smoothing_radius_lbl, 7, 1, 1, 3)
+        self.layout.addWidget(self.smoothing_radius_sbx, 7, 4, 1, 3)
+        self.layout.addWidget(self.smoothing_shape_cbx, 7, 7, 1, 3)
         self.layout.addWidget(self.output_image_tool, 8, 0, 3, 10)
         self.layout.addWidget(self.export_output_cbx, 11, 0, 1, 3)
         self.layout.addWidget(self.export_output_btn, 11, 3, 1, 7)
@@ -889,6 +893,7 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         self.export_output_cbx.currentIndexChanged.connect(self._validate_export)
         self.export_output_btn.clicked.connect(self._export_output)
         self.smoothing_radius_sbx.valueChanged.connect(self._get_output)
+        self.smoothing_shape_cbx.currentIndexChanged.connect(self._get_output)
 
         self._center()
         self._get_output()
@@ -1001,6 +1006,7 @@ class GraphicalLineROIController(QtWidgets.QWidget):
             self.export_output_cbx.hide()
             self.smoothing_radius_lbl.hide()
             self.smoothing_radius_sbx.hide()
+            self.smoothing_shape_cbx.hide()
             return False
         elif num_checked == 0 and self.output_type_cbx.currentText() in ["average", "max"]:
             self.output_image_tool.hide()
@@ -1008,6 +1014,7 @@ class GraphicalLineROIController(QtWidgets.QWidget):
             self.export_output_cbx.hide()
             self.smoothing_radius_lbl.hide()
             self.smoothing_radius_sbx.hide()
+            self.smoothing_shape_cbx.hide()
             return False
         elif num_checked == 1:
             self.output_image_tool.show()
@@ -1015,6 +1022,7 @@ class GraphicalLineROIController(QtWidgets.QWidget):
             self.export_output_cbx.show()
             self.smoothing_radius_lbl.hide()
             self.smoothing_radius_sbx.hide()
+            self.smoothing_shape_cbx.hide()
             return True
         else:
             self.output_image_tool.show()
@@ -1022,6 +1030,7 @@ class GraphicalLineROIController(QtWidgets.QWidget):
             self.export_output_cbx.show()
             self.smoothing_radius_lbl.show()
             self.smoothing_radius_sbx.show()
+            self.smoothing_shape_cbx.show()
             return True
 
     def _get_output(self) -> None:
@@ -1044,9 +1053,12 @@ class GraphicalLineROIController(QtWidgets.QWidget):
             smoothing_radius = self.smoothing_radius_sbx.value()
         else:
             smoothing_radius = 0
+
+        smoothing_shape = self.smoothing_shape_cbx.currentText()
+
         
         self.line_roi.set_endpoints(self.endpoints["A"], self.endpoints["B"])
-        self.line_roi.set_calculation(output=output_type, dims=dims, smoothing_radius=smoothing_radius)
+        self.line_roi.set_calculation(output=output_type, dims=dims, smoothing_radius=smoothing_radius, smoothing_shape=smoothing_shape)
         self.line_roi.apply(data=self.image_data_widget.data, coords=self.image_data_widget.coords)
         output = self.line_roi.get_output()
 
