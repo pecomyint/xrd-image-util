@@ -64,4 +64,6 @@ Documentation
     :glob:
     :maxdepth: 2
 
+    tutorials/index
     api/index
+

@@ -4,10 +4,6 @@ API
 
 .. currentmodule:: xrdimageutil
 
-.. autosummary::
-
-    Catalog
-
 .. toctree::
     :glob:
     :maxdepth: 1
