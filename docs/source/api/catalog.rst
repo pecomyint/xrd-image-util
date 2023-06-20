@@ -2,9 +2,8 @@
 Catalog
 =======
 
-.. autosummary::
-
-    ~xrdimageutil.structures.Catalog
+.. automodule:: xrdimageutil.structures.Catalog
+    :members:
 
 Attributes
 ^^^^^^^^^^
