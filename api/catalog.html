@@ -352,27 +352,23 @@ document.write(`
                   
   <section id="catalog">
 <h1>Catalog<a class="headerlink" href="#catalog" title="Permalink to this heading">#</a></h1>
-<table class="autosummary longtable table autosummary">
-<tbody>
-</tbody>
-</table>
 <section id="attributes">
 <h2>Attributes<a class="headerlink" href="#attributes" title="Permalink to this heading">#</a></h2>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="local_name">
-<span class="sig-name descname"><span class="pre">local_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#local_name" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="xrdimageutil.structures.local_name">
+<span class="sig-prename descclassname"><span class="pre">xrdimageutil.structures.</span></span><span class="sig-name descname"><span class="pre">local_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#xrdimageutil.structures.local_name" title="Permalink to this definition">#</a></dt>
 <dd><p>Name given to unpacked databroker catalog.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="bluesky_catalog">
-<span class="sig-name descname"><span class="pre">bluesky_catalog</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">databroker.Catalog</span></em><a class="headerlink" href="#bluesky_catalog" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="xrdimageutil.structures.bluesky_catalog">
+<span class="sig-prename descclassname"><span class="pre">xrdimageutil.structures.</span></span><span class="sig-name descname"><span class="pre">bluesky_catalog</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">databroker.Catalog</span></em><a class="headerlink" href="#xrdimageutil.structures.bluesky_catalog" title="Permalink to this definition">#</a></dt>
 <dd><p>Bluesky catalog with run data. See dataroker documentation for more information.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="scan_uid_dict">
-<span class="sig-name descname"><span class="pre">scan_uid_dict</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dictionary</span></em><a class="headerlink" href="#scan_uid_dict" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="xrdimageutil.structures.scan_uid_dict">
+<span class="sig-prename descclassname"><span class="pre">xrdimageutil.structures.</span></span><span class="sig-name descname"><span class="pre">scan_uid_dict</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dictionary</span></em><a class="headerlink" href="#xrdimageutil.structures.scan_uid_dict" title="Permalink to this definition">#</a></dt>
 <dd><p>Dictionary that holds a <code class="docutils literal notranslate"><span class="pre">xrdimageutil.Scan</span></code> object for every run in a catalog. The
 scans are accessible by their UID’s.</p>
 </dd></dl>
@@ -381,31 +377,31 @@ scans are accessible by their UID’s.</p>
 <section id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this heading">#</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#init__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="xrdimageutil.structures.__init__">
+<span class="sig-prename descclassname"><span class="pre">xrdimageutil.structures.</span></span><span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#xrdimageutil.structures.__init__" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="search">
-<span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proposal_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#search" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="xrdimageutil.structures.search">
+<span class="sig-prename descclassname"><span class="pre">xrdimageutil.structures.</span></span><span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proposal_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#xrdimageutil.structures.search" title="Permalink to this definition">#</a></dt>
 <dd><p>Returns a list of scan UID’s that match the provided criteria.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="list_scans">
-<span class="sig-name descname"><span class="pre">list_scans</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#list_scans" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="xrdimageutil.structures.list_scans">
+<span class="sig-prename descclassname"><span class="pre">xrdimageutil.structures.</span></span><span class="sig-name descname"><span class="pre">list_scans</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#xrdimageutil.structures.list_scans" title="Permalink to this definition">#</a></dt>
 <dd><p>Prints a formatted table of all scans in a catalog.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="get_scan">
-<span class="sig-name descname"><span class="pre">get_scan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_scan" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="xrdimageutil.structures.get_scan">
+<span class="sig-prename descclassname"><span class="pre">xrdimageutil.structures.</span></span><span class="sig-name descname"><span class="pre">get_scan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#xrdimageutil.structures.get_scan" title="Permalink to this definition">#</a></dt>
 <dd><p>Returns <code class="docutils literal notranslate"><span class="pre">xrdimageutil.Scan</span></code> objects that match the provided scan ID or UID.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="get_scans">
-<span class="sig-name descname"><span class="pre">get_scans</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_scans" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="xrdimageutil.structures.get_scans">
+<span class="sig-prename descclassname"><span class="pre">xrdimageutil.structures.</span></span><span class="sig-name descname"><span class="pre">get_scans</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#xrdimageutil.structures.get_scans" title="Permalink to this definition">#</a></dt>
 <dd><p>Returns <code class="docutils literal notranslate"><span class="pre">xrdimageutil.Scan</span></code> objects that match the provided list of scan ID’s or UID’s.</p>
 </dd></dl>
 
@@ -460,17 +456,17 @@ scans are accessible by their UID’s.</p>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#local_name"><code class="docutils literal notranslate"><span class="pre">local_name</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#bluesky_catalog"><code class="docutils literal notranslate"><span class="pre">bluesky_catalog</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scan_uid_dict"><code class="docutils literal notranslate"><span class="pre">scan_uid_dict</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.structures.local_name"><code class="docutils literal notranslate"><span class="pre">local_name</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.structures.bluesky_catalog"><code class="docutils literal notranslate"><span class="pre">bluesky_catalog</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.structures.scan_uid_dict"><code class="docutils literal notranslate"><span class="pre">scan_uid_dict</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#init__"><code class="docutils literal notranslate"><span class="pre">__init__()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#search"><code class="docutils literal notranslate"><span class="pre">search()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#list_scans"><code class="docutils literal notranslate"><span class="pre">list_scans()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#get_scan"><code class="docutils literal notranslate"><span class="pre">get_scan()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#get_scans"><code class="docutils literal notranslate"><span class="pre">get_scans()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.structures.__init__"><code class="docutils literal notranslate"><span class="pre">__init__()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.structures.search"><code class="docutils literal notranslate"><span class="pre">search()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.structures.list_scans"><code class="docutils literal notranslate"><span class="pre">list_scans()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.structures.get_scan"><code class="docutils literal notranslate"><span class="pre">get_scan()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#xrdimageutil.structures.get_scans"><code class="docutils literal notranslate"><span class="pre">get_scans()</span></code></a></li>
 </ul>
 </li>
 </ul>
