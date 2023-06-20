@@ -1,5 +1,12 @@
-"""Copyright (c) UChicago Argonne, LLC. All rights reserved.
-See LICENSE file.
+"""
+Internal structures for xrd-image-util
+++++++++++++++++++++++++++++++++++++++
+
+.. autosummary::
+
+   ~Catalog
+   ~Scan
+
 """
 
 import databroker
@@ -13,7 +20,21 @@ from xrdimageutil.gui import image_data_widget
 
 
 class Catalog:
-    """Houses functionality to filter and return xrdimageutil.Scan objects."""
+    """
+    An interface for databroker's BlueskyCatalog class.
+    
+    .. index:: Catalog
+    
+    Provides users the ability to access raw Bluesky runs and 
+    filter/retrieve particular Scan objects.
+
+    .. autosummary::
+
+       ~search
+       ~list_scans
+       ~get_scan
+       ~get_scans
+    """
     
     local_name = None
     bluesky_catalog = None # Bluesky dictionary-like catalog
