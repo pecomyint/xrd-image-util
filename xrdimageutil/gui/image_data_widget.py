@@ -111,6 +111,7 @@ class ImageDataWidget(DockArea):
         self.moveDock(self.image_tool_controller_dock, "bottom", self.image_tool_dock)
         self.addDock(self.graphical_rect_roi_docks[0], "above", self.graphical_rect_roi_docks[1])
 
+
 class ImageTool(pg.ImageView):
     """A customized pyqtgraph ImageView widget."""
     
@@ -828,10 +829,10 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         self.output_type_cbx.addItems(["values", "average", "max"])
         self.dim_output_chkbxs = [QtWidgets.QCheckBox(dim) for dim in dims]
 
-        self.smoothing_radius_lbl = QtWidgets.QLabel("Smoothing Radius (px):")
+        self.smoothing_radius_lbl = QtWidgets.QLabel("Smoothing (px):")
         self.smoothing_radius_sbx = QtWidgets.QSpinBox()
         self.smoothing_radius_sbx.setMinimum(0)
-        self.smoothing_radius_sbx.setMaximum(5)
+        self.smoothing_radius_sbx.setMaximum(10)
         self.smoothing_radius_sbx.setValue(0)
 
         self.output_image_tool = ROIImageTool(graphical_roi=self.graphical_line_roi, view=pg.PlotItem())
@@ -864,8 +865,8 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         self.layout.addWidget(self.dim_output_chkbxs[0], 6, 4, 1, 2)
         self.layout.addWidget(self.dim_output_chkbxs[1], 6, 6, 1, 2)
         self.layout.addWidget(self.dim_output_chkbxs[2], 6, 8, 1, 2)
-        self.layout.addWidget(self.smoothing_radius_lbl, 7, 0, 1, 4)
-        self.layout.addWidget(self.smoothing_radius_sbx, 7, 4, 1, 2)
+        self.layout.addWidget(self.smoothing_radius_lbl, 7, 4, 1, 3)
+        self.layout.addWidget(self.smoothing_radius_sbx, 7, 7, 1, 3)
         self.layout.addWidget(self.output_image_tool, 8, 0, 3, 10)
         self.layout.addWidget(self.export_output_cbx, 11, 0, 1, 3)
         self.layout.addWidget(self.export_output_btn, 11, 3, 1, 7)
@@ -875,6 +876,7 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         for i in range(self.layout.rowCount()):
             self.layout.setRowStretch(i, 10)
         self.layout.setRowStretch(2, 1)
+        self.layout.setRowStretch(7, 1)
 
         self.visibiity_chkbx.stateChanged.connect(self._toggle_visibility)
         self.color_btn.sigColorChanged.connect(self._change_color)
@@ -886,6 +888,7 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         self.output_type_cbx.currentIndexChanged.connect(self._get_output)
         self.export_output_cbx.currentIndexChanged.connect(self._validate_export)
         self.export_output_btn.clicked.connect(self._export_output)
+        self.smoothing_radius_sbx.valueChanged.connect(self._get_output)
 
         self._center()
         self._get_output()
@@ -1036,9 +1039,14 @@ class GraphicalLineROIController(QtWidgets.QWidget):
             if chkbx.isChecked():
                 dims.append(chkbx.text())
         output_type = self.output_type_cbx.currentText()
+
+        if self.smoothing_radius_sbx.isVisible():
+            smoothing_radius = self.smoothing_radius_sbx.value()
+        else:
+            smoothing_radius = 0
         
         self.line_roi.set_endpoints(self.endpoints["A"], self.endpoints["B"])
-        self.line_roi.set_calculation(output=output_type, dims=dims)
+        self.line_roi.set_calculation(output=output_type, dims=dims, smoothing_radius=smoothing_radius)
         self.line_roi.apply(data=self.image_data_widget.data, coords=self.image_data_widget.coords)
         output = self.line_roi.get_output()
 
