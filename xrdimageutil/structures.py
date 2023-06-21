@@ -28,6 +28,20 @@ class Catalog:
     Provides users the ability to access raw Bluesky runs and 
     filter/retrieve particular Scan objects.
 
+    ATTRIBUTES
+
+    local_name
+        *str* :
+        The given local name for the target databroker catalog.
+
+    bluesky_catalog
+        *object* :
+        Dictionary-like intake catalog that stores raw experimental runs.
+
+    scan_uid_dict
+        *dict* :
+        Dictionary mapping run UID's to their associated ``xrdimageutil.structures.Scan`` object.
+
     .. autosummary::
 
        ~search
@@ -37,8 +51,8 @@ class Catalog:
     """
     
     local_name = None
-    bluesky_catalog = None # Bluesky dictionary-like catalog
-    scan_uid_dict = None # Dictionary of scans in catalog with UID as key
+    bluesky_catalog = None
+    scan_uid_dict = None
 
     def __init__(self, local_name) -> None:
 
@@ -50,14 +64,32 @@ class Catalog:
 
         # Creates a Scan object for every run in the catalog
         # Adds Scans to a dictionary
-        self.scan_uid_dict = dict(
-            [(uid, Scan(catalog=self, uid=uid)) for uid in list(self.bluesky_catalog)]
-        )
+        self.scan_uid_dict = dict([(uid, Scan(catalog=self, uid=uid)) for uid in list(self.bluesky_catalog)])
 
     def search(self, sample=None, proposal_id=None, user=None) -> list:
-        """Returns a list of scan UID's from given criteria.
-        
+        """
+        Retieves a list of scan UID's from provided criteria.
+
         This function is a limited extension of databroker's catalog search. 
+
+        PARAMETERS
+        
+        sample
+            *str* :
+            Name of experimental sample.
+
+        proposal_id
+            *str* :
+            Manually provided proposal ID.
+
+        user
+            *str* :
+            Manually provided user name/ID.
+
+        RETURNS
+        
+        *list* :
+            List of scan UID's.
         """
 
         query = {}
@@ -73,9 +105,10 @@ class Catalog:
         return search_results
 
     def list_scans(self) -> None:
-        """Displays basic information about scans within the catalog.
+        """
+        Displays basic information about scans within a catalog.
         
-        Depending on the size of the Catalog, this function may take 
+        Depending on the size of the catalog, this function may take 
         an extended time to run.
         """
 
@@ -91,13 +124,25 @@ class Catalog:
         print(table)
 
     def get_scan(self, id) -> object:
-        """Returns xrdimageutil.Scan object from given identifier.
+        """
+        Returns Scan object from given identifier.
         
         UID's and numerical scan ID's are both viable parameters.
         As for scan ID's, which are not necessarily unique, this 
         function will return the most recent Scan with the ID.
 
-        Negative integers denoting recent scans also are acceptable.
+        Negative integers denoting more recent scans also are acceptable.
+
+        PARAMETERS
+
+        id
+            *str* or *int* :
+            UID or numerical ID associated with experimental run in catalog.
+
+        RETURNS
+
+        *object*
+            Instance of ``xrdimageutil.structures.Scan``.
         """
 
         # UID
@@ -119,9 +164,12 @@ class Catalog:
             raise TypeError(f"Scan ID must be either str or int.")
 
     def get_scans(self, ids: list) -> list:
-        """Returns xrdimageutil.Scan objects from list of given identifiers.
+        """
+        Returns Scan objects from list of given identifiers.
         
-        See xrdimageutil.Catalog.get_scan for more details.
+        .. seealso::
+
+            :func:``xrdimageutil.structures.get_scan``
         """
 
         if type(ids) != list:
@@ -135,22 +183,76 @@ class Catalog:
         return scan_list
 
 class Scan(object):
-    """Houses data from a singular Bluesky run and additional image data."""
+    """
+    An interface for databroker's BlueskyRun class.
 
-    catalog = None # Parent Catalog
-    uid = None # UID for scan; given by bluesky
-
-    bluesky_run = None # Raw Bluesky run for scan
-
-    scan_id = None # Numerical ID -- not always unique
-    sample = None # Experimental sample
-    proposal_id = None # Manually provided Proposal ID
-    user = None # Experimental user
-    motors = None # List of variable motors for scan
+    .. index:: Scan
     
-    rsm = None # Reciprocal space map for every point within a scan
-    raw_data = None # Data and coords for raw 2D detector images
-    gridded_data = None # Data and coords for mapped 3D image
+    Builds on the databroker object by providing users the ability 
+    to visualize area detector data and convert series of area detector
+    images into 3D reciprocal space volumes.
+
+    ATTRIBUTES
+
+    catalog
+        *xrdimageutil.structures.Catalog* :
+        Parent Catalog object.
+
+    uid
+        *str* :
+        Bluesky-generated unique identifier for Scan.
+
+    bluesky_run
+        *object* :
+        Raw Bluesky run for Scan.
+
+    scan_id
+        *int* :
+        Numerical identifer for Scan -- not always unique.
+
+    sample
+        *str* :
+        Experimental sample for Scan.
+
+    proposal_id
+        *str* :
+        User-provided proposal ID for Scan.
+
+    user
+        *str* :
+        User-provided username for Scan.
+
+    motors
+        *list* :
+        List of variable motor names.
+
+    rsm
+        *numpy.ndarray*
+        Reciprocal space map for every point.
+
+    raw_data
+        *dict*
+        2D area detector data, pixel coordinates for every point.
+
+    gridded_data
+        *dict*
+        3D reciprocal space-mapped volume of data and associated HKL coordinates.
+    """
+
+    catalog = None
+    uid = None
+
+    bluesky_run = None
+
+    scan_id = None
+    sample = None
+    proposal_id = None
+    user = None
+    motors = None
+    
+    rsm = None
+    raw_data = None
+    gridded_data = None
 
     def __init__(self, catalog: Catalog, uid: str) -> None:
 
@@ -158,7 +260,9 @@ class Scan(object):
         self.uid = uid
 
     def __getattribute__(self, __name: str):
-        """Lazy loading for class variables."""
+        """
+        Lazy loading for class variables.
+        """
 
         if __name == "bluesky_run":
             if object.__getattribute__(self, __name) is None:
@@ -203,7 +307,14 @@ class Scan(object):
             return object.__getattribute__(self, __name)
         
     def grid_data(self, shape: tuple, bounds: dict=None) -> None:
-        """Creates a gridded 3D image according to coordinates given by a Scan's reciprocal space map."""
+        """
+        Creates a reciprocal space-mapped volume of raw data.
+        
+        Given a target image shape (3D) and HKL bounds, the function defines
+        the ``Catalog.gridded_data`` attribute with a dictionary with the newly
+        generated 3D volume and its associated HKL coordinates,
+
+        """
 
         # Shape validation
         if type(shape) is not tuple:
