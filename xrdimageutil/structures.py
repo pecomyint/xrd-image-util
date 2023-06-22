@@ -311,9 +311,18 @@ class Scan(object):
         Creates a reciprocal space-mapped volume of raw data.
         
         Given a target image shape (3D) and HKL bounds, the function defines
-        the ``Catalog.gridded_data`` attribute with a dictionary with the newly
-        generated 3D volume and its associated HKL coordinates,
+        the ``gridded_data`` attribute with a dictionary containing the newly
+        generated 3D volume and its associated HKL coordinates.
 
+        PARAMETERS
+
+        shape
+            *tuple* :
+            Target shape of the new reciprocal space volume.
+
+        bounds
+            *dict* :
+            HKL bounds for new reciprocal space volume.
         """
 
         # Shape validation
@@ -374,7 +383,9 @@ class Scan(object):
         }
     
     def point_count(self) -> int:
-        """Returns the number of points in a Scan."""
+        """
+        Returns the number of points in run.
+        """
 
         if "primary" not in self.bluesky_run.keys():
             return 0
@@ -384,7 +395,9 @@ class Scan(object):
             return self.bluesky_run.primary.metadata["dims"]["time"]
 
     def view_image_data(self) -> None:
-        """Displays Scan image data in an interactive GUI."""
+        """
+        Displays Scan image data in an interactive GUI.
+        """
         
         self.app = pg.mkQApp()
         self.gui_window = image_data_widget.ScanImageDataGUI(scan=self)
