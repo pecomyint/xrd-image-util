@@ -729,13 +729,18 @@ class GraphicalLineROI(pg.LineSegmentROI):
     color = None
 
     def __init__(self, positions, image_data_widget: ImageDataWidget) -> None:
-        super(GraphicalLineROI, self).__init__(positions, hoverPen=pg.mkPen((255, 0, 255), width=7), handlePen=pg.mkPen((255, 255, 0), width=7), handleHoverPen=pg.mkPen((255, 255, 0), width=7))
+        super(GraphicalLineROI, self).__init__(
+            positions, 
+            hoverPen=pg.mkPen((255, 0, 255), width=7, style=QtCore.Qt.DashLine), 
+            handlePen=pg.mkPen((255, 255, 0), width=7), 
+            handleHoverPen=pg.mkPen((255, 255, 0), width=7)
+        )
 
         self.image_data_widget = image_data_widget
         self.image_data_widget.image_tool.addItem(self)
         self.hide()
         self.color = (0, 255, 0)
-        self.setPen(pg.mkPen(self.color, width=7))
+        self.setPen(pg.mkPen(self.color, width=7, style=QtCore.Qt.DashLine))
 
         self.controller = GraphicalLineROIController(graphical_line_roi=self, image_data_widget=image_data_widget)
 
@@ -745,7 +750,7 @@ class GraphicalLineROI(pg.LineSegmentROI):
     def _set_color(self) -> None:
         
         self.color = self.controller.color_btn.color()
-        self.setPen(pg.mkPen(self.color, width=7))
+        self.setPen(pg.mkPen(self.color, width=7, style=QtCore.Qt.DashLine))
 
     def _set_visibility(self) -> None:
         
@@ -1097,6 +1102,14 @@ class GraphicalLineROIController(QtWidgets.QWidget):
 
             np.savetxt(filename, combined_info, delimiter=",", header=header)
 
+
+class GraphicalPlaneROI:
+    ...
+
+
+class GraphicalPlaneROIController(QtWidgets.QWidget):
+    ...
+    
 
 class ROIImageTool(pg.ImageView):
     
