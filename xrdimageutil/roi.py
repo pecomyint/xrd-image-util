@@ -1,12 +1,42 @@
-"""Copyright (c) UChicago Argonne, LLC. All rights reserved.
-See LICENSE file.
+"""
+Regions of Interest 
++++++++++++++++++++
+
+.. autosummary::
+
+   ~RectROI
+   ~LineROI
+   ~PlaneROI
+
 """
 
 import numpy as np
 from skimage.draw import line_nd
 
 class RectROI:
-    """A rectangular region of interest that can be applied to 3D dataset."""
+    """
+    A rectangular region of interest that can be applied to 3D datasets.
+    
+    Users can define the coordinate bounds for the region, define a
+    calculation to be carried out on the selected region, and then apply the ROI
+    to multple datasets. This tool is scriptable, and the region bounds/calculation 
+    can be modified at any point.
+
+    ATTRIBUTES
+
+    bounds
+        *dict* :
+        Coordinate bounds for the region of interest.
+
+    calculation
+        *dict* :
+        Calculation to be applied. This includes the calculation type
+        (average, max) and dimesions to calculate along.
+
+    output
+        *dict* :
+        Dataset and coordinates associated with applied calculation.
+    """
 
     bounds = None
     calculation = None
@@ -36,7 +66,15 @@ class RectROI:
         }
     
     def set_bounds(self, bounds: dict) -> None:
-        """Sets coordinate bounds for the RectROI."""
+        """
+        Sets coordinate bounds for the RectROI.
+        
+        PARAMETERS
+
+        bounds
+            *dict* :
+            Coordinate bounds for the region of interest.
+        """
         
         if type(bounds) != dict:
             raise ValueError("Invalid bounds provided.")
@@ -60,7 +98,19 @@ class RectROI:
             self.bounds = {dim: bounds[dim] for dim in list(bounds.keys())}
 
     def set_calculation(self, output: str, dims: list) -> None:
-        """Sets the output calculation (average, max) and the dimensions to calculate on."""
+        """
+        Sets the output calculation and the dimensions to calculate on.
+        
+        PARAMETERS
+
+        output
+            *str* :
+            Output type. Either "average" or "max" accepted.
+
+        dims
+            *list* :
+            Dimensions to calculate on.
+        """
 
         if dims is not None:
             if not set(list(self.bounds.keys())).issuperset(set(dims)):
@@ -75,7 +125,9 @@ class RectROI:
         }
     
     def apply(self, data, coords) -> None:
-        """Carries out an ROI's selected calculation (see the 'output_type' attribute) on a dataset."""
+        """
+        Carries out an ROI's selected calculation on a dataset and its respective coordinate system.
+        """
 
         output_dims = self.calculation["dims"]
         output_type = self.calculation["output"]
@@ -185,6 +237,7 @@ class RectROI:
         
         return self.output
 
+
 class LineROI:
     """A line segment region of interest that can be applied to a 3D dataset."""
 
@@ -205,8 +258,7 @@ class LineROI:
                     "x": None,
                     "y": None,
                     "z": None
-                },
-                    
+                }     
             }
         else:
             if len(dims) != 3:
@@ -219,7 +271,8 @@ class LineROI:
         self.calculation = {
             "output_data": None,
             "dims": None,
-            "smoothing_radius": 0
+            "smoothing_radius": 0,
+            "smoothing_shape": "cube"
         }
 
         self.output = {
@@ -551,20 +604,252 @@ class LineROI:
 
 class PlaneROI:
 
+    points = None
+    calculation = None
+    output = None
+
     def __init__(self, dims: list=None) -> None:
-        pass
+        if dims is None:
+            self.points = {
+                "A": {"x": None, "y": None, "z": None},
+                "B": {"x": None, "y": None, "z": None},
+                "C": {"x": None, "y": None, "z": None}     
+            }
+        else:
+            if len(dims) != 3:
+                raise ValueError("Invalid dims provided.")
+            self.points = {
+                "A": dict((dim, None) for dim in dims),
+                "B": dict((dim, None) for dim in dims),
+                "C": dict((dim, None) for dim in dims)
+            }
 
-    def set_plane(self, point_1, point_2, point_3) -> None:
-        ...
+        self.calculation = {"output_data": None, "dims": None}
+        self.output = {"data": None, "coords": None}
 
-    def set_calculation(self, output) -> None:
-        ...
+    def set_plane(self, point_A, point_B, point_C) -> None:
 
+        # Ensuring that the function parameters are valid dictionaries
+        if type(point_A) != dict or type(point_B) != dict or type(point_C) != dict:
+            raise ValueError("Invalid points provided.")
+        if len(list(point_A.keys())) != 3 or len(list(point_B.keys())) != 3 or len(list(point_C.keys())) != 3:
+            raise ValueError("Invalid points provided.")
+        if list(point_A.keys()) != list(point_B.keys()):
+            raise ValueError("Invalid points provided.")
+        
+        self.points["A"] = dict((dim, None) for dim in list(point_A.keys()))
+        self.points["B"] = dict((dim, None) for dim in list(point_B.keys()))
+        self.points["C"] = dict((dim, None) for dim in list(point_C.keys()))
+
+        for dim in list(point_A.keys()):
+            dim_point_A, dim_point_B, dim_point_C = point_A[dim], point_B[dim], point_C[dim]
+
+            if type(dim_point_A) is None:
+                self.endpoints["A"][dim] == None
+
+            if type(dim_point_B) is None:
+                self.endpoints["B"][dim] == None
+
+            if type(dim_point_C) is None:
+                self.points["C"][dim] == None
+
+            self.points["A"][dim] = dim_point_A
+            self.points["B"][dim] = dim_point_B
+            self.points["C"][dim] = dim_point_C
+
+    def set_calculation(self, output="values") -> None:
+
+        if output not in ["values"]:
+            raise ValueError("Invalid output type provided.")
+        
+        self.calculation["output"] = output
+            
     def apply(self, data, coords) -> None:
-        ...
+        output_data, output_coords = self._get_values(data=data, coords=coords)
+
+        self.output["data"] = output_data
+        self.output["coords"] = output_coords
 
     def apply_to_scan(self, scan, data_type) -> None:
-        ...
+        """Applies the selected calculation to a scan dataset."""
+
+        if data_type == "raw":
+            data = scan.raw_data["data"]
+            coords = scan.raw_data["coords"]
+        elif data_type == "gridded":
+            data = scan.gridded_data["data"]
+            coords = scan.gridded_data["coords"]
+        else:
+            raise("Invalid data type provided.")
+        
+        self.apply(data, coords)
 
     def get_output(self) -> dict:
-        ...
+        return self.output
+    
+    def _get_values(self, data, coords) -> tuple:
+        """Returns output data and coordinates."""
+        
+        # Retrieves pixel indicies for plane
+        plane_pixels = self._get_plane_pixels(data, coords)
+
+        # Retrieves output data for plane
+        output_data = self._get_data_from_plane_pixels(plane_pixels=plane_pixels, data=data)
+
+        # Retrieves output coordinates for plane
+        output_coords = self._get_output_coords_from_plane_pixels(plane_pixels=plane_pixels, coords=coords)
+
+        return (output_data, output_coords)
+    
+    def _get_plane_pixels(self, data, coords) -> np.ndarray:
+        """Returns pixel indicies that correspond to plane."""
+        
+        coords = coords.copy()
+
+        # Retrieves pixel indicies that correspond to given coordinates
+        point_A_pixels = self._get_point_pixel_indicies(point=self.points["A"], coords=coords)
+        point_B_pixels = self._get_point_pixel_indicies(point=self.points["B"], coords=coords)
+        point_C_pixels = self._get_point_pixel_indicies(point=self.points["C"], coords=coords)
+
+        # Converts pixel indicies to 3x3 numpy array
+        point_pixels = np.array([point_A_pixels, point_B_pixels, point_C_pixels])
+        (xA, yA, zA) = point_pixels[0]
+        (xB, yB, zB) = point_pixels[1]
+        (xC, yC, zC) = point_pixels[2]
+
+        diffs = np.abs(np.array([
+            [xB-xC, xA-xC, xA-xB],
+            [yB-yC, yA-yC, yA-yB],
+            [zB-zC, zA-zC, zA-zB]
+        ]))
+
+        # Order of points
+        point_order = np.argsort(np.sum(diffs, axis=1))
+        point_1, point_2, point_3 = point_pixels[point_order]
+        
+        # Vectors u and v for finding the normal vector n
+        u = np.array([point_2[0] - point_1[0], point_2[1] - point_1[1], point_2[2] - point_1[2]])
+        v = np.array([point_3[0] - point_1[0], point_3[1] - point_1[1], point_3[2] - point_1[2]])
+        n = np.cross(u, v)
+        a, b, c = n
+        d = -(a * point_1[0] + b * point_1[1] + c * point_1[2])
+
+        # Order for dimension with the largest overall pixel difference
+        # The reason for tracking this is to determine which dimensions
+        # will be best suited for being the primary x and y axes for the
+        # output data, which is a 2D image.
+        dim_order = np.argsort(np.sum(diffs, axis=0))[::-1]
+    
+        x_range = np.arange(
+            np.amin(point_pixels[:, dim_order[0]]), 
+            np.amax(point_pixels[:, dim_order[0]]) + 1
+        )
+        y_range = np.arange(
+            np.amin(point_pixels[:, dim_order[1]]), 
+            np.amax(point_pixels[:, dim_order[1]]) + 1
+        )
+
+        # Creates the plane of pixel indicies
+        X, Y = np.meshgrid(x_range, y_range)
+        Z = -(a * X + b * Y + d) / c
+        plane_pixels = np.array([X, Y, Z], dtype=np.int64).T
+        
+        return plane_pixels
+
+    def _get_data_from_plane_pixels(self, plane_pixels, data) -> np.ndarray:
+        """Returns the data points that correspond to a given plane of indicies."""
+
+        # Flattens plane for masking purposes
+        flat_plane_pixels = plane_pixels.reshape(-1, plane_pixels.shape[-1])
+
+        # Mask to omit invalid indicies
+        flat_mask = np.any(
+            (flat_plane_pixels < 0) | (flat_plane_pixels >= data.shape),
+            axis=1
+        )
+
+        # Pulls data from given indicies, invalid indicies yield value of 0
+        flat_data_plane = []
+        for i, m in enumerate(flat_mask):
+            if m:
+                flat_data_plane.append(0)
+            else:
+                flat_data_plane.append(data[
+                    flat_plane_pixels[i, 0], 
+                    flat_plane_pixels[i, 1], 
+                    flat_plane_pixels[i, 2]]
+                )
+
+        data_plane = np.array(flat_data_plane).reshape((
+            plane_pixels.shape[0], 
+            plane_pixels.shape[1]
+        ))
+
+        return data_plane
+    
+    def _get_output_coords_from_plane_pixels(self, plane_pixels, coords) -> dict:
+        
+        output_coords = {}
+        dim_list = list(self.points["A"].keys())
+        coords = coords.copy()
+        x_pixels = plane_pixels[0, :, :].T
+        y_pixels = plane_pixels[:, 0, :].T
+
+        x_output_coords_label = []
+        y_output_coords_label = []
+        
+        x_coords = []
+        y_coords = []
+
+        for dim, x_px, y_px in zip(dim_list, x_pixels, y_pixels):
+            dim_coords = coords[dim]
+            dim_delta = (dim_coords[-1] - dim_coords[0]) / len(dim_coords)
+            if x_px[0] != x_px[-1]:
+                x_output_coords_label.append(dim)
+                x_dim_coords = [dim_delta * i for i in x_px]
+                x_coords.append(x_dim_coords)
+            if y_px[0] != y_px[-1]:
+                y_output_coords_label.append(dim)
+                y_dim_coords = [dim_delta * i for i in y_px]
+                y_coords.append(y_dim_coords)
+
+        x_output_coords_label = ",".join(x_output_coords_label)
+        y_output_coords_label = ",".join(y_output_coords_label)
+
+        x_coords = np.array(x_coords).T
+        y_coords = np.array(y_coords).T
+
+        output_coords = {
+            x_output_coords_label: x_coords,
+            y_output_coords_label: y_coords
+        }
+
+        return output_coords
+
+    def _get_point_pixel_indicies(self, coords: dict, point: dict) -> list:
+        """Returns the pixel indicies that correspond with an endpoint."""
+
+        point_pixel_idxs = [] # Will hold pixel indicies
+
+        dim_list = list(coords.keys()) # Ordered list of dimension labels (e.g. ["H", "K", "L"])
+
+        # Loops through all three dimensions
+        for dim in dim_list:
+
+            dim_coords = coords[dim] # Full coordinates for given dimension
+            dim_point_coord = point[dim] # Coordinate of point for given dimension
+            dim_point_pixel_idx = None # Will hold pixel index for given dimension
+
+            # Denotes width of pixels for a given dimension
+            pixel_size = (dim_coords[-1] - dim_coords[0]) / len(dim_coords)
+
+            # Checks if endpoint was specified
+            if dim_point_coord is None:
+                dim_point_pixel_idx = 0
+            else:
+                dim_point_pixel_idx = int((dim_point_coord - dim_coords[0]) / pixel_size)
+
+            point_pixel_idxs.append(dim_point_pixel_idx)
+
+        return point_pixel_idxs
+    
