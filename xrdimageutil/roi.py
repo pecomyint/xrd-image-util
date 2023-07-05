@@ -604,59 +604,53 @@ class LineROI:
 
 class PlaneROI:
 
-    points = None
+    plane = None
     calculation = None
     output = None
 
     def __init__(self, dims: list=None) -> None:
         if dims is None:
-            self.points = {
-                "A": {"x": None, "y": None, "z": None},
-                "B": {"x": None, "y": None, "z": None},
-                "C": {"x": None, "y": None, "z": None}     
+            self.plane = {
+                "point": {"x": None, "y": None, "z": None},
+                "normal": {"x": 1, "y": 1, "z": 1},
             }
         else:
             if len(dims) != 3:
                 raise ValueError("Invalid dims provided.")
             self.points = {
-                "A": dict((dim, None) for dim in dims),
-                "B": dict((dim, None) for dim in dims),
-                "C": dict((dim, None) for dim in dims)
+                "point": dict((dim, None) for dim in dims),
+                "normal": dict((dim, 0) for dim in dims),
             }
 
         self.calculation = {"output_data": None, "dims": None}
         self.output = {"data": None, "coords": None}
 
-    def set_plane(self, point_A, point_B, point_C) -> None:
+    def set_plane(self, point, normal) -> None:
 
         # Ensuring that the function parameters are valid dictionaries
-        if type(point_A) != dict or type(point_B) != dict or type(point_C) != dict:
+        if type(point) != dict or type(normal) != dict:
             raise ValueError("Invalid points provided.")
-        if len(list(point_A.keys())) != 3 or len(list(point_B.keys())) != 3 or len(list(point_C.keys())) != 3:
+        if len(list(point.keys())) != 3 or len(list(normal.keys())) != 3:
             raise ValueError("Invalid points provided.")
-        if list(point_A.keys()) != list(point_B.keys()):
+        if list(point.keys()) != list(normal.keys()):
             raise ValueError("Invalid points provided.")
         
-        self.points["A"] = dict((dim, None) for dim in list(point_A.keys()))
-        self.points["B"] = dict((dim, None) for dim in list(point_B.keys()))
-        self.points["C"] = dict((dim, None) for dim in list(point_C.keys()))
+        self.plane["point"] = dict((dim, None) for dim in list(point.keys()))
+        self.plane["normal"] = dict((dim, 0) for dim in list(normal.keys()))
+        
+        for dim in list(point.keys()):
+            dim_point = point[dim]
+            dim_normal = normal[dim]
 
-        for dim in list(point_A.keys()):
-            dim_point_A, dim_point_B, dim_point_C = point_A[dim], point_B[dim], point_C[dim]
+            if type(dim_point) is None:
+                self.plane["point"][dim] == None
 
-            if type(dim_point_A) is None:
-                self.endpoints["A"][dim] == None
+            if type(dim_normal) is None:
+                self.plane["normal"][dim] == 0
 
-            if type(dim_point_B) is None:
-                self.endpoints["B"][dim] == None
-
-            if type(dim_point_C) is None:
-                self.points["C"][dim] == None
-
-            self.points["A"][dim] = dim_point_A
-            self.points["B"][dim] = dim_point_B
-            self.points["C"][dim] = dim_point_C
-
+            self.plane["point"][dim] = dim_point
+            self.plane["normal"][dim] = dim_normal
+            
     def set_calculation(self, output="values") -> None:
 
         if output not in ["values"]:
@@ -707,47 +701,40 @@ class PlaneROI:
         coords = coords.copy()
 
         # Retrieves pixel indicies that correspond to given coordinates
-        point_A_pixels = self._get_point_pixel_indicies(point=self.points["A"], coords=coords)
-        point_B_pixels = self._get_point_pixel_indicies(point=self.points["B"], coords=coords)
-        point_C_pixels = self._get_point_pixel_indicies(point=self.points["C"], coords=coords)
+        point_pixel = self._get_point_pixel_indicies(point=self.plane["point"], coords=coords)
 
-        # Converts pixel indicies to 3x3 numpy array
-        point_pixels = np.array([point_A_pixels, point_B_pixels, point_C_pixels])
-        (xA, yA, zA) = point_pixels[0]
-        (xB, yB, zB) = point_pixels[1]
-        (xC, yC, zC) = point_pixels[2]
+        normal = list(self.plane["normal"].values())
+        a, b, c = normal
+        d = -(a * point_pixel[0] + b * point_pixel[1] + c * point_pixel[2])
 
-        diffs = np.abs(np.array([
-            [xB-xC, xA-xC, xA-xB],
-            [yB-yC, yA-yC, yA-yB],
-            [zB-zC, zA-zC, zA-zB]
-        ]))
+        # Determines dimension order for output plane
+        x_at_y0_z0 = self._solve_for_plane(a, b, c, d, y=0, z=0)
+        x_at_y0_z1 = self._solve_for_plane(a, b, c, d, y=0, z=data.shape[2])
+        x_at_y1_z0 = self._solve_for_plane(a, b, c, d, y=data.shape[1], z=0)
+        x_at_y1_z1 = self._solve_for_plane(a, b, c, d, y=data.shape[1], z=data.shape[2])
+        x_max = max([x_at_y0_z0, x_at_y1_z0, x_at_y0_z1, x_at_y1_z1]) 
+        x_min = min([x_at_y0_z0, x_at_y1_z0, x_at_y0_z1, x_at_y1_z1])
 
-        # Order of points
-        point_order = np.argsort(np.sum(diffs, axis=1))
-        point_1, point_2, point_3 = point_pixels[point_order]
+        y_at_x0_z0 = self._solve_for_plane(a, b, c, d, x=0, z=0)
+        y_at_x0_z1 = self._solve_for_plane(a, b, c, d, x=0, z=data.shape[2])
+        y_at_x1_z0 = self._solve_for_plane(a, b, c, d, x=data.shape[0], z=0)
+        y_at_x1_z1 = self._solve_for_plane(a, b, c, d, x=data.shape[0], z=data.shape[2])
+        y_max = max([y_at_x0_z0, y_at_x1_z0, y_at_x0_z1, y_at_x1_z1]) 
+        y_min = min([y_at_x0_z0, y_at_x1_z0, y_at_x0_z1, y_at_x1_z1])
+
+        z_at_x0_y0 = self._solve_for_plane(a, b, c, d, x=0, y=0)
+        z_at_x0_y1 = self._solve_for_plane(a, b, c, d, x=0, y=data.shape[1])
+        z_at_x1_y0 = self._solve_for_plane(a, b, c, d, x=data.shape[0], y=0)
+        z_at_x1_y1 = self._solve_for_plane(a, b, c, d, x=data.shape[0], y=data.shape[1])
+        z_max = max([z_at_x0_y0, z_at_x1_y0, z_at_x0_y1, z_at_x1_y1])
+        z_min = min([z_at_x0_y0, z_at_x1_y0, z_at_x0_y1, z_at_x1_y1])
         
-        # Vectors u and v for finding the normal vector n
-        u = np.array([point_2[0] - point_1[0], point_2[1] - point_1[1], point_2[2] - point_1[2]])
-        v = np.array([point_3[0] - point_1[0], point_3[1] - point_1[1], point_3[2] - point_1[2]])
-        n = np.cross(u, v)
-        a, b, c = n
-        d = -(a * point_1[0] + b * point_1[1] + c * point_1[2])
-
-        # Order for dimension with the largest overall pixel difference
-        # The reason for tracking this is to determine which dimensions
-        # will be best suited for being the primary x and y axes for the
-        # output data, which is a 2D image.
-        dim_order = np.argsort(np.sum(diffs, axis=0))[::-1]
-    
-        x_range = np.arange(
-            np.amin(point_pixels[:, dim_order[0]]), 
-            np.amax(point_pixels[:, dim_order[0]]) + 1
-        )
-        y_range = np.arange(
-            np.amin(point_pixels[:, dim_order[1]]), 
-            np.amax(point_pixels[:, dim_order[1]]) + 1
-        )
+        dim_bounds = np.array([[x_min, y_min, z_min], [x_max, y_max, z_max]])
+        dim_order = np.argsort(dim_bounds[1] - dim_bounds[0])
+        
+        # Determine axes for output plane
+        x_range = np.arange(0, data.shape[dim_order[0]])
+        y_range = np.arange(0, data.shape[dim_order[1]])
 
         # Creates the plane of pixel indicies
         X, Y = np.meshgrid(x_range, y_range)
@@ -790,7 +777,7 @@ class PlaneROI:
     def _get_output_coords_from_plane_pixels(self, plane_pixels, coords) -> dict:
         
         output_coords = {}
-        dim_list = list(self.points["A"].keys())
+        dim_list = list(self.plane["point"].keys())
         coords = coords.copy()
         x_pixels = plane_pixels[0, :, :].T
         y_pixels = plane_pixels[:, 0, :].T
@@ -853,3 +840,14 @@ class PlaneROI:
 
         return point_pixel_idxs
     
+    def _solve_for_plane(self, a, b, c, d, x=None, y=None, z=None) -> float:
+
+        if x is None:
+            x = (-d - b*y - c*z) / a
+            return x
+        if y is None:
+            y = (-d - a*x - c*z) / b
+            return y
+        if z is None:
+            z = (-d - a*x - b*y) / c
+            return z
