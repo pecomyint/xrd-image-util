@@ -2,6 +2,7 @@
 See LICENSE file.
 """
 
+import math
 import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
@@ -99,6 +100,8 @@ class ImageDataWidget(DockArea):
             Dock(name="Line ROI #1", size=(5, 5), widget=self.graphical_line_rois[0].controller, hideTitle=False),
             Dock(name="Line ROI #2", size=(5, 5), widget=self.graphical_line_rois[1].controller, hideTitle=False)
         ]
+
+        self.graphical_plane_roi = GraphicalPlaneROI(positions=((0, 0), (1, 1)), image_data_widget=self)
 
         # Organizes dock area
         self.addDock(self.image_tool_dock)
@@ -1103,12 +1106,74 @@ class GraphicalLineROIController(QtWidgets.QWidget):
             np.savetxt(filename, combined_info, delimiter=",", header=header)
 
 
-class GraphicalPlaneROI:
-    ...
+class GraphicalPlaneROI(pg.LineSegmentROI):
+    
+    image_data_widget = None
+    controller = None
+    color = None
 
+    def __init__(self, positions, image_data_widget: ImageDataWidget):
+        super(GraphicalPlaneROI, self).__init__(
+            positions, 
+            hoverPen=pg.mkPen((255, 0, 255), width=7, style=QtCore.Qt.DashLine), 
+            handlePen=pg.mkPen((255, 255, 0), width=7), 
+            handleHoverPen=pg.mkPen((255, 255, 0), width=7)
+        )
+
+        self.color = (0, 255, 0)
+        self.setPen(pg.mkPen(self.color, width=7, style=QtCore.Qt.DashLine))
+        self.plane_line = pg.InfiniteLine(pos=(0, 0), angle=0)
+
+        self.image_data_widget = image_data_widget
+        self.image_data_widget.image_tool.addItem(self)
+        self.image_data_widget.image_tool.addItem(self.plane_line)
+        self.show()
+        self.plane_line.show()
+
+    def _set_color(self) -> None:
+        ...
+
+    def _set_visibility(self) -> None:
+        ...
+
+    def paint(self, p, *args):
+        """Overrides pg.LineSegmentROI.paint function."""
+
+        p.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+        
+        plane_point_1 = self.endpoints[0].pos()
+        plane_point_2 = self.endpoints[1].pos()
+
+        dx = plane_point_2.x() - plane_point_1.x()
+        dy = plane_point_2.y() - plane_point_1.y()
+
+        perp_angle = math.degrees(math.atan(-dx / dy))
+
+        p.setPen(pg.mkPen(self.color, width=3, style=QtCore.Qt.DotLine))
+        p.drawLine(plane_point_1, plane_point_2)
+        
+        self.plane_line.setPos(plane_point_1)
+        self.plane_line.setAngle(perp_angle)
+        self.plane_line.setPen(pg.mkPen(self.color, width=7, style=QtCore.Qt.DashLine))
+
+    
 
 class GraphicalPlaneROIController(QtWidgets.QWidget):
-    ...
+    
+    def __init__(self) -> None:
+        ...
+    
+    def _set_plane_from_graphical_plane_roi(self) -> None:
+        ...
+
+    def _update_graphical_plane_roi(self) -> None:
+        ...
+
+    def _set_plane_from_spinboxes(self) -> None:
+        ...
+
+    def _update_spinboxes(self) -> None:
+        ...
     
 
 class ROIImageTool(pg.ImageView):
