@@ -1115,26 +1115,38 @@ class GraphicalPlaneROI(pg.LineSegmentROI):
     def __init__(self, positions, image_data_widget: ImageDataWidget):
         super(GraphicalPlaneROI, self).__init__(
             positions, 
-            hoverPen=pg.mkPen((255, 0, 255), width=7, style=QtCore.Qt.DashLine), 
+            hoverPen=pg.mkPen((255, 0, 255), width=3, style=QtCore.Qt.DotLine), 
             handlePen=pg.mkPen((255, 255, 0), width=7), 
             handleHoverPen=pg.mkPen((255, 255, 0), width=7)
         )
 
-        self.color = (0, 255, 0)
-        self.setPen(pg.mkPen(self.color, width=7, style=QtCore.Qt.DashLine))
-        self.plane_line = pg.InfiniteLine(pos=(0, 0), angle=0)
-
         self.image_data_widget = image_data_widget
         self.image_data_widget.image_tool.addItem(self)
         self.image_data_widget.image_tool.addItem(self.plane_line)
-        self.show()
-        self.plane_line.show()
+
+        self.color = (0, 255, 0)
+        self.setPen(pg.mkPen(self.color, width=3, style=QtCore.Qt.DotLine))
+        self.plane_line = pg.InfiniteLine(pos=(0, 0), angle=0)
+        self.hide()
+        self.plane_line.hide()
+        
+        self.controller = GraphicalLineROIController(graphical_plane_roi=self, image_data_widget=image_data_widget)
+
+        self.controller.signal_visibility_changed.connect(self._set_visibility)
+        self.controller.signal_color_changed.connect(self._set_color)
 
     def _set_color(self) -> None:
-        ...
+        self.color = self.controller.color_btn.color()
+        self.setPen(pg.mkPen(self.color, width=3, style=QtCore.Qt.DotLine))
+        self.plane_line.setPen(pg.mkPen(self.color, width=7, style=QtCore.Qt.DashLine))
 
-    def _set_visibility(self) -> None:
-        ...
+    def _set_visibility(self) -> None:    
+        if self.controller.visibiity_chkbx.isChecked():
+            self.show()
+            self.plane_line.show()
+        else:
+            self.hide()
+            self.plane_line.hide()
 
     def paint(self, p, *args):
         """Overrides pg.LineSegmentROI.paint function."""
@@ -1161,6 +1173,29 @@ class GraphicalPlaneROI(pg.LineSegmentROI):
   
 
 class GraphicalPlaneROIController(QtWidgets.QWidget):
+    
+    # Visual ROI
+    graphical_plane_roi = None
+
+    # Computational ROI
+    plane_roi = None
+
+    plane = None # Dict with plane definition
+
+    # PyQt Signals
+    signal_visibility_changed = QtCore.pyqtSignal()
+    signal_color_changed = QtCore.pyqtSignal()
+
+    # PyQt Components
+    visibiity_chkbx = None
+    reset_btn = None
+    color_btn = None
+
+    dim_lbls = None
+    dim_point_sbxs = None
+    dim_normal_sbxs = None
+
+    layout = None
     
     def __init__(self) -> None:
         ...
