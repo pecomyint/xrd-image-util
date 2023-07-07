@@ -1151,12 +1151,14 @@ class GraphicalPlaneROI(pg.LineSegmentROI):
 
         p.setPen(pg.mkPen(self.color, width=3, style=QtCore.Qt.DotLine))
         p.drawLine(plane_point_1, plane_point_2)
+
+        h_1 = self.getSceneHandlePositions()[0]
+        plane_line_pos = self.mapSceneToParent(h_1[1])
         
-        self.plane_line.setPos(plane_point_1)
+        self.plane_line.setPos(plane_line_pos)
         self.plane_line.setAngle(perp_angle)
         self.plane_line.setPen(pg.mkPen(self.color, width=7, style=QtCore.Qt.DashLine))
-
-    
+  
 
 class GraphicalPlaneROIController(QtWidgets.QWidget):
     
