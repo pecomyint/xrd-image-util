@@ -617,7 +617,7 @@ class PlaneROI:
         else:
             if len(dims) != 3:
                 raise ValueError("Invalid dims provided.")
-            self.points = {
+            self.plane = {
                 "point": dict((dim, None) for dim in dims),
                 "normal": dict((dim, 0) for dim in dims),
             }

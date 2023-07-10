@@ -9,7 +9,7 @@ import pyqtgraph as pg
 from pyqtgraph.dockarea import Dock, DockArea
 
 from xrdimageutil import utils
-from xrdimageutil.roi import LineROI, RectROI
+from xrdimageutil.roi import LineROI, PlaneROI, RectROI
 
 
 class ScanImageDataGUI(QtWidgets.QWidget):
@@ -81,39 +81,24 @@ class ImageDataWidget(DockArea):
         self.image_tool_controller = self.image_tool.controller
         self.image_tool_controller_dock = Dock(name="ImageToolController", size=(10, 2), widget=self.image_tool_controller, hideTitle=True)
         
-        # GraphicalRectROIs
-        self.graphical_rect_rois = [
-            GraphicalRectROI((0, 0), (1, 1), image_data_widget=self), 
-            GraphicalRectROI((0, 0), (1, 1), image_data_widget=self)
-        ]
-        self.graphical_rect_roi_docks = [
-            Dock(name="Box ROI #1", size=(5, 5), widget=self.graphical_rect_rois[0].controller, hideTitle=False),
-            Dock(name="Box ROI #2", size=(5, 5), widget=self.graphical_rect_rois[1].controller, hideTitle=False)
-        ]
+        self.graphical_rect_roi = GraphicalRectROI((0, 0), (1, 1), image_data_widget=self)
+        self.graphical_rect_roi_dock = Dock(name="Box ROI", size=(5, 5), widget=self.graphical_rect_roi.controller, hideTitle=False)
 
-        # GraphicalLineROIs
-        self.graphical_line_rois = [
-            GraphicalLineROI(positions=((0, 0), (1, 1)), image_data_widget=self), 
-            GraphicalLineROI(positions=((0, 0), (1, 1)), image_data_widget=self)
-        ]
-        self.graphical_line_roi_docks = [
-            Dock(name="Line ROI #1", size=(5, 5), widget=self.graphical_line_rois[0].controller, hideTitle=False),
-            Dock(name="Line ROI #2", size=(5, 5), widget=self.graphical_line_rois[1].controller, hideTitle=False)
-        ]
+        self.graphical_line_roi = GraphicalLineROI(positions=((0, 0), (1, 1)), image_data_widget=self)
+        self.graphical_line_roi_dock = Dock(name="Line ROI", size=(5, 5), widget=self.graphical_line_roi.controller, hideTitle=False)
 
         self.graphical_plane_roi = GraphicalPlaneROI(positions=((0, 0), (1, 1)), image_data_widget=self)
+        self.graphical_plane_roi_dock = Dock(name="Plane ROI", size=(5, 5), widget=self.graphical_plane_roi.controller, hideTitle=False)
 
         # Organizes dock area
         self.addDock(self.image_tool_dock)
         self.addDock(self.image_tool_controller_dock)
-        self.addDock(self.graphical_rect_roi_docks[0], "right", self.image_tool_dock)
-        self.addDock(self.graphical_rect_roi_docks[1], "below", self.graphical_rect_roi_docks[0])
-        self.addDock(self.graphical_line_roi_docks[0], "below", self.graphical_rect_roi_docks[1])
-        self.addDock(self.graphical_line_roi_docks[1], "below", self.graphical_line_roi_docks[0])
-        self.moveDock(self.image_tool_controller_dock, "left", self.graphical_rect_roi_docks[1])
+        self.addDock(self.graphical_rect_roi_dock, "right", self.image_tool_dock)
+        self.addDock(self.graphical_line_roi_dock, "below", self.graphical_rect_roi_dock)
+        self.addDock(self.graphical_plane_roi_dock, "below", self.graphical_line_roi_dock)
+        self.moveDock(self.image_tool_controller_dock, "left", self.graphical_rect_roi_dock)
         self.moveDock(self.image_tool_controller_dock, "bottom", self.image_tool_dock)
-        self.addDock(self.graphical_rect_roi_docks[0], "above", self.graphical_rect_roi_docks[1])
-
+        
 
 class ImageTool(pg.ImageView):
     """A customized pyqtgraph ImageView widget."""
@@ -954,7 +939,6 @@ class GraphicalLineROIController(QtWidgets.QWidget):
     def _update_spinboxes(self) -> None:
         """Applies endpoint changes to spinboxes."""
         
-        
         for dim, A_sbx, B_sbx in zip(list(self.endpoints["A"].keys()), self.dim_A_sbxs, self.dim_B_sbxs):
             A_sbx.blockSignals(True)
             B_sbx.blockSignals(True)
@@ -1122,15 +1106,16 @@ class GraphicalPlaneROI(pg.LineSegmentROI):
 
         self.image_data_widget = image_data_widget
         self.image_data_widget.image_tool.addItem(self)
-        self.image_data_widget.image_tool.addItem(self.plane_line)
-
+        
         self.color = (0, 255, 0)
         self.setPen(pg.mkPen(self.color, width=3, style=QtCore.Qt.DotLine))
-        self.plane_line = pg.InfiniteLine(pos=(0, 0), angle=0)
         self.hide()
+
+        self.plane_line = pg.InfiniteLine(pos=(0, 0), angle=0)
+        self.image_data_widget.image_tool.addItem(self.plane_line)
         self.plane_line.hide()
         
-        self.controller = GraphicalLineROIController(graphical_plane_roi=self, image_data_widget=image_data_widget)
+        self.controller = GraphicalPlaneROIController(graphical_plane_roi=self, image_data_widget=image_data_widget)
 
         self.controller.signal_visibility_changed.connect(self._set_visibility)
         self.controller.signal_color_changed.connect(self._set_color)
@@ -1159,7 +1144,13 @@ class GraphicalPlaneROI(pg.LineSegmentROI):
         dx = plane_point_2.x() - plane_point_1.x()
         dy = plane_point_2.y() - plane_point_1.y()
 
-        perp_angle = math.degrees(math.atan(-dx / dy))
+        if dy != 0:
+            perp_angle = math.degrees(math.atan(-dx / dy))
+        else:
+            if dx >= 0:
+                perp_angle = 90
+            else:
+                perp_angle = 270
 
         p.setPen(pg.mkPen(self.color, width=3, style=QtCore.Qt.DotLine))
         p.drawLine(plane_point_1, plane_point_2)
@@ -1195,23 +1186,167 @@ class GraphicalPlaneROIController(QtWidgets.QWidget):
     dim_point_sbxs = None
     dim_normal_sbxs = None
 
+    output_image_tool = None
+
     layout = None
     
-    def __init__(self) -> None:
-        ...
+    def __init__(self, graphical_plane_roi, image_data_widget) -> None:
+        super(GraphicalPlaneROIController, self).__init__()
+
+        self.graphical_plane_roi = graphical_plane_roi
+        self.image_data_widget = image_data_widget
+
+        self.plane_roi = PlaneROI(dims=list(self.image_data_widget.coords.keys()))
+        self.plane = self.plane_roi.plane
+        
+        self.visibiity_chkbx = QtWidgets.QCheckBox("Show")
+        self.reset_btn = QtWidgets.QPushButton("Reset Plane")
+        self.color_btn = pg.ColorButton(color=(0, 255, 0))
+
+        dims = list(self.image_data_widget.coords.keys())
+        self.point_lbl = QtWidgets.QLabel("Point")
+        self.point_lbl.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
+        self.normal_lbl = QtWidgets.QLabel("Normal")
+        self.normal_lbl.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
+        self.dim_lbls = [QtWidgets.QLabel(dim) for dim in dims]
+        self.dim_point_sbxs = [QtWidgets.QDoubleSpinBox() for dim in dims]
+        self.dim_normal_sbxs = [QtWidgets.QDoubleSpinBox() for dim in dims]
+        
+        for s, dim in zip(self.dim_point_sbxs, dims):
+            dim_coords = self.image_data_widget.coords[dim]
+            s.setDecimals(5)
+            s.setSingleStep(abs(dim_coords[-1] - dim_coords[0]) / len(dim_coords))
+            s.setRange(-1000, 1000)
+            s.valueChanged.connect(self._set_plane_from_spinboxes)
+
+        for s, dim in zip(self.dim_normal_sbxs, dims):
+            dim_coords = self.image_data_widget.coords[dim]
+            s.setDecimals(5)
+            s.setSingleStep(1)
+            s.setRange(-1000, 1000)
+            s.valueChanged.connect(self._set_plane_from_spinboxes)
+
+        self.output_image_tool = ROIImageTool(graphical_roi=self.graphical_plane_roi, view=pg.PlotItem())
+
+        self.layout = QtWidgets.QGridLayout()
+        self.setLayout(self.layout)
+        self.layout.addWidget(self.visibiity_chkbx, 0, 0, 1, 2)
+        self.layout.addWidget(self.reset_btn, 0, 2, 1, 8)
+        self.layout.addWidget(self.color_btn, 1, 0, 1, 10)
+        self.layout.addWidget(self.point_lbl, 2, 1, 1, 4)
+        self.layout.addWidget(self.normal_lbl, 2, 5, 1, 4)
+        self.layout.addWidget(self.dim_lbls[0], 3, 0, 1, 1)
+        self.layout.addWidget(self.dim_lbls[1], 4, 0, 1, 1)
+        self.layout.addWidget(self.dim_lbls[2], 5, 0, 1, 1)
+        self.layout.addWidget(self.dim_point_sbxs[0], 3, 1, 1, 4)
+        self.layout.addWidget(self.dim_point_sbxs[1], 4, 1, 1, 4)
+        self.layout.addWidget(self.dim_point_sbxs[2], 5, 1, 1, 4)
+        self.layout.addWidget(self.dim_normal_sbxs[0], 3, 5, 1, 4)
+        self.layout.addWidget(self.dim_normal_sbxs[1], 4, 5, 1, 4)
+        self.layout.addWidget(self.dim_normal_sbxs[2], 5, 5, 1, 4)
+        self.layout.addWidget(self.output_image_tool, 6, 0, 5, 10)
+
+        for i in range(self.layout.columnCount()):
+            self.layout.setColumnStretch(i, 10)
+        for i in range(self.layout.rowCount()):
+            self.layout.setRowStretch(i, 10)
+        self.layout.setRowStretch(2, 1)
+
+        self.visibiity_chkbx.stateChanged.connect(self._toggle_visibility)
+        self.color_btn.sigColorChanged.connect(self._change_color)
+        self.reset_btn.clicked.connect(self._center)
+        self.image_data_widget.image_tool.controller.signal_data_transposed.connect(self._update_graphical_plane_roi)
+        self.image_data_widget.image_tool.controller.signal_data_transposed.connect(self.image_data_widget.image_tool.autoRange)
+        self.image_data_widget.image_tool.controller.signal_colormap_changed.connect(self._get_output)
+        self.graphical_plane_roi.sigRegionChanged.connect(self._set_plane_from_graphical_plane_roi)
+
+        self._center()
+        self._get_output()
     
     def _set_plane_from_graphical_plane_roi(self) -> None:
-        ...
+
+        t_coords = self.image_data_widget.image_tool.controller.t_coords
+
+        point_handle, normal_point_handle = self.graphical_plane_roi.getSceneHandlePositions()
+        point_pos = self.graphical_plane_roi.mapSceneToParent(point_handle[1])
+        normal_point_pos = self.graphical_plane_roi.mapSceneToParent(normal_point_handle[1])
+
+        x_1, y_1 = point_pos.x(), point_pos.y()
+        x_2, y_2 = normal_point_pos.x(), normal_point_pos.y()
+
+        x_dim, y_dim = list(t_coords.keys())[1], list(t_coords.keys())[2]
+
+        self.plane["point"][x_dim] = x_1
+        self.plane["point"][y_dim] = y_1
+        self.plane["normal"][x_dim] = x_2 - x_1
+        self.plane["normal"][y_dim] = y_2 - y_1
+
+        self._update_spinboxes()
+        self._get_output()
 
     def _update_graphical_plane_roi(self) -> None:
-        ...
+
+        x_1, y_1, x_2, y_2 = None, None, None, None
+
+        t_coords = self.image_data_widget.image_tool.controller.t_coords
+        x_dim, y_dim = list(t_coords.keys())[1], list(t_coords.keys())[2]
+
+        x_1, y_1 = self.plane["point"][x_dim], self.plane["point"][y_dim]
+        x_2, y_2 = self.plane["normal"][x_dim] + x_1, self.plane["normal"][y_dim] + y_1
+
+        self.graphical_plane_roi.blockSignals(True)
+        self.graphical_plane_roi.movePoint(self.graphical_plane_roi.getHandles()[0], (x_1, y_1))
+        self.graphical_plane_roi.movePoint(self.graphical_plane_roi.getHandles()[1], (x_2, y_2))
+        self.graphical_plane_roi.blockSignals(False)
 
     def _set_plane_from_spinboxes(self) -> None:
-        ...
+
+        for dim, point_sbx, normal_sbx in zip(list(self.plane["point"].keys()), self.dim_point_sbxs, self.dim_normal_sbxs):
+            self.plane["point"][dim] = point_sbx.value()
+            self.plane["normal"][dim] = normal_sbx.value()
+
+        self._update_graphical_plane_roi()
+        self._get_output()
 
     def _update_spinboxes(self) -> None:
-        ...
+
+        for dim, point_sbx, normal_sbx in zip(list(self.plane["point"].keys()), self.dim_point_sbxs, self.dim_normal_sbxs):
+            point_sbx.blockSignals(True)
+            normal_sbx.blockSignals(True)
+            dim_point = self.plane["point"][dim]
+            dim_normal = self.plane["normal"][dim]
+            point_sbx.setValue(dim_point)
+            normal_sbx.setValue(dim_normal)
+            point_sbx.blockSignals(False)
+            normal_sbx.blockSignals(False)
+
+    def _center(self) -> None:
+        coords = self.image_data_widget.coords
+        for dim in list(coords.keys()):
+            dim_coords = coords[dim]
+            self.plane["point"].update({dim: dim_coords[0]})
+            self.plane["normal"].update({dim: 1})
+
+        self._update_spinboxes()
+        self._update_graphical_plane_roi()
+        self._get_output()
+        self.image_data_widget.image_tool.autoRange()
+
+    def _change_color(self) -> None:
+        self.signal_color_changed.emit()
     
+    def _toggle_visibility(self) -> None:
+        self.signal_visibility_changed.emit()
+        self._get_output()
+
+    def _get_output(self) -> None:
+        self.plane_roi.set_plane(self.plane["point"], self.plane["normal"])
+        self.plane_roi.set_calculation()
+        self.plane_roi.apply(data=self.image_data_widget.data, coords=self.image_data_widget.coords)
+        output = self.plane_roi.get_output()
+
+        self.output_image_tool._plot(output["data"], None)
+
 
 class ROIImageTool(pg.ImageView):
     
@@ -1384,13 +1519,6 @@ class ROIImageTool(pg.ImageView):
     def _plot_2D_data(self, data, coords=None) -> None:
         self.view.invertY(True)
 
-        scale, pos = None, None
-        if self.plot is not None:
-            self.plot.clear()
-        self.getImageItem().show()
-
-        self.colorbar.show()
-        
         x_coords, y_coords = list(coords.values())[0], list(coords.values())[1]
 
         if type(y_coords[0]) == np.ndarray:
@@ -1415,7 +1543,7 @@ class ROIImageTool(pg.ImageView):
                 x_axis_coords = x_coords
                 y_axis_1_coords = y_coords[:, 0]
                 y_axis_2_coords = y_coords[:, 1]
-
+        
                 if x_axis_coords[0] > x_axis_coords[-1]:
                     self.view.invertX(True)
                 else:
@@ -1438,7 +1566,7 @@ class ROIImageTool(pg.ImageView):
                 pos = [x_axis_coords[0], y_axis_1_coords[0]]
 
                 self.plot_2.setYRange(y_axis_2_coords[0], y_axis_2_coords[-1])
-        
+            
         else:
             self.x_axis_2.hide()
             self.x_axis_3.hide()
@@ -1462,6 +1590,7 @@ class ROIImageTool(pg.ImageView):
         self._set_colormap()
 
         self.view.autoRange()
+        x_coords = list(coords.values())[0]
 
     def _set_colormap(self) -> None:
         name = self.image_data_widget.image_tool.controller.colormap_cbx.currentText()
