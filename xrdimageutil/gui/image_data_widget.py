@@ -1345,7 +1345,7 @@ class GraphicalPlaneROIController(QtWidgets.QWidget):
         self.plane_roi.apply(data=self.image_data_widget.data, coords=self.image_data_widget.coords)
         output = self.plane_roi.get_output()
 
-        self.output_image_tool._plot(output["data"], None)
+        self.output_image_tool._plot(output["data"], output["coords"])
 
 
 class ROIImageTool(pg.ImageView):
@@ -1373,12 +1373,12 @@ class ROIImageTool(pg.ImageView):
         self.ui.menuBtn.hide()
         self.getView().setAspectLocked(False)
         self.getView().ctrlMenu = None
-
         self.view.invertY(True)
         self.view.enableAutoRange(True)
 
         self.plot = self.view.plot(pen=pg.mkPen((255, 255, 255), width=2))
 
+        # ViewBox for second x-axis and second y-axis
         self.plot_2 = pg.ViewBox()
         self.x_axis_2 = pg.AxisItem("bottom")
         self.getView().layout.addItem(self.x_axis_2, 4, 1)
@@ -1392,6 +1392,7 @@ class ROIImageTool(pg.ImageView):
         self.y_axis_2.setZValue(-10000)
         self.y_axis_2.setLabel("y_2")
 
+        # ViewBox for third x-axis
         self.plot_3 = pg.ViewBox()
         self.x_axis_3 = pg.AxisItem("bottom")
         self.getView().layout.addItem(self.x_axis_3, 5, 1)
@@ -1413,184 +1414,228 @@ class ROIImageTool(pg.ImageView):
         self.colorbar.hide()
 
     def _plot(self, data, coords) -> None:
+        
+        x_coords, y_coords = None, None
 
-        if data.ndim < 2:
-            self._plot_1D_data(data, coords)
+        if len(list(coords.values())) == 1:
+            x_coords, y_coords = list(coords.values())[0], None
+        elif len(list(coords.values())) == 2:
+            x_coords, y_coords = list(coords.values())[0], list(coords.values())[1]
         else:
-            self._plot_2D_data(data, coords)
+            raise ValueError("Invalid coordinates provided.")
+        
+        x_axis_labels = list(coords.keys())[0].split(",")
+        if y_coords is not None:
+            y_axis_labels = list(coords.keys())[1].split(",")
+        else:
+            y_axis_labels = None
 
-    def _plot_1D_data(self, data, coords=None) -> None:
+        self._toggle_axis_visibility(x_coords, y_coords)
+        self._set_axis_labels(x_axis_labels, y_axis_labels)
+        self._set_axis_ranges(x_coords, y_coords)
+        self._set_axis_inversion_statuses(x_coords, x_axis_labels)
 
-        # Preliminary steps
+        print(data.shape, coords.keys())
+        if data.ndim == 1:
+            self._plot_1d_data(data, x_coords)
+        elif data.ndim == 2:
+            print("HEre")
+            self._plot_2d_data(data, x_coords, y_coords)
+        else:
+            raise ValueError("Invalid data provided.")
+
+    def _toggle_axis_visibility(self, x_coords, y_coords) -> None:
+        if type(x_coords[0]) != np.ndarray:
+            self.x_axis_2.hide()
+            self.x_axis_3.hide()
+        elif x_coords[0].shape[-1] == 2:
+            self.x_axis_2.show()
+            self.x_axis_3.hide()
+        else:
+            self.x_axis_2.show()
+            self.x_axis_3.show()
+
+        if y_coords is None:
+            self.y_axis_2.hide()
+        elif type(y_coords[0]) != np.ndarray:
+            self.y_axis_2.hide()
+        else:
+            self.y_axis_2.show()
+
+    def _set_axis_labels(self, x_labels, y_labels) -> None:
+        if len(x_labels) == 1:
+            self.view.setLabel("bottom", x_labels[0])
+            self.x_axis_2.setLabel("")
+            self.x_axis_3.setLabel("")
+        elif len(x_labels) == 2:
+            self.view.setLabel("bottom", x_labels[0])
+            self.x_axis_2.setLabel(x_labels[1])
+            self.x_axis_3.setLabel("")
+        else:
+            self.view.setLabel("bottom", x_labels[0])
+            self.x_axis_2.setLabel(x_labels[1])
+            self.x_axis_3.setLabel(x_labels[2])
+
+        if y_labels is None:
+            self.view.setLabel("left", "")
+            self.y_axis_2.setLabel("")
+        elif len(y_labels) == 1:
+            self.view.setLabel("left", y_labels[0])
+            self.y_axis_2.setLabel("")
+        else:
+            self.view.setLabel("left", y_labels[0])
+            self.y_axis_2.setLabel(y_labels[1])
+
+    def _set_axis_ranges(self, x_coords, y_coords) -> None:
+        if type(x_coords[0]) != np.ndarray:
+            self.getView().setXRange(x_coords[0], x_coords[-1])
+        elif x_coords[0].shape[-1] == 2:
+            x_axis_coords_1 = x_coords[:, 0]
+            x_axis_coords_2 = x_coords[:, 1]
+            self.getView().setXRange(x_axis_coords_1[0], x_axis_coords_1[-1])
+            self.plot_2.setXRange(x_axis_coords_2[0], x_axis_coords_2[-1])
+        else:
+            x_axis_coords_1 = x_coords[:, 0]
+            x_axis_coords_2 = x_coords[:, 1]
+            x_axis_coords_3 = x_coords[:, 2]
+            self.getView().setXRange(x_axis_coords_1[0], x_axis_coords_1[-1])
+            self.plot_2.setXRange(x_axis_coords_2[0], x_axis_coords_2[-1])
+            self.plot_3.setXRange(x_axis_coords_3[0], x_axis_coords_3[-1])
+
+        if y_coords is None:
+            pass
+        elif type(y_coords[0]) != np.ndarray:
+            self.getView().setYRange(y_coords[0], y_coords[-1])
+        else:
+            y_axis_coords_1 = y_coords[:, 0]
+            y_axis_coords_2 = y_coords[:, 1]
+            self.getView().setYRange(y_axis_coords_1[0], y_axis_coords_1[-1])
+            self.plot_2.setYRange(y_axis_coords_2[0], y_axis_coords_2[-1])
+
+    def _set_axis_inversion_statuses(self, x_coords, x_labels) -> None:
+        if type(x_coords[0]) != np.ndarray:
+            if x_coords[0] > x_coords[-1]:
+                self.view.getAxis("bottom").setStyle(showValues=True)
+                self.view.invertX(True)
+            elif x_coords[0] < x_coords[-1]:
+                self.view.getAxis("bottom").setStyle(showValues=True)
+                self.view.invertX(False)
+            else:
+                self.view.getAxis("bottom").setStyle(showValues=False)
+                self.view.invertX(False)
+                self.view.getAxis("bottom").setLabel(f"{x_labels[0]} = {round(x_coords[0], 5)}")
+
+        elif x_coords[0].shape[-1] == 2:
+            x_axis_coords_1 = x_coords[:, 0]
+            x_axis_coords_2 = x_coords[:, 1]
+
+            if x_axis_coords_1[0] > x_axis_coords_1[-1]:
+                self.view.getAxis("bottom").setStyle(showValues=True)
+                self.view.invertX(True)
+            elif x_axis_coords_1[0] < x_axis_coords_1[-1]:
+                self.view.getAxis("bottom").setStyle(showValues=True)
+                self.view.invertX(False)
+            else:
+                self.view.getAxis("bottom").setStyle(showValues=False)
+                self.view.invertX(False)
+                self.view.getAxis("bottom").setLabel(f"{x_labels[0]} = {round(x_axis_coords_1[0], 5)}")
+
+            if x_axis_coords_2[0] > x_axis_coords_2[-1]:
+                self.x_axis_2.setStyle(showValues=True)
+                self.plot_2.invertX(True)
+            elif x_axis_coords_2[0] < x_axis_coords_2[-1]:
+                self.x_axis_2.setStyle(showValues=True)
+                self.plot_2.invertX(False)
+            else:
+                self.x_axis_2.setStyle(showValues=False)
+                self.plot_2.invertX(False)
+                self.x_axis_2.setLabel(f"{x_labels[1]} = {round(x_axis_coords_2[0], 5)}")
+            
+        else:
+            x_axis_coords_1 = x_coords[:, 0]
+            x_axis_coords_2 = x_coords[:, 1]
+            x_axis_coords_3 = x_coords[:, 2]
+
+            if x_axis_coords_1[0] > x_axis_coords_1[-1]:
+                self.view.getAxis("bottom").setStyle(showValues=True)
+                self.view.invertX(True)
+            elif x_axis_coords_1[0] < x_axis_coords_1[-1]:
+                self.view.getAxis("bottom").setStyle(showValues=True)
+                self.view.invertX(False)
+            else:
+                self.view.getAxis("bottom").setStyle(showValues=False)
+                self.view.invertX(False)
+                self.view.getAxis("bottom").setLabel(f"{x_labels[0]} = {round(x_axis_coords_1[0], 5)}")
+
+            if x_axis_coords_2[0] > x_axis_coords_2[-1]:
+                self.x_axis_2.setStyle(showValues=True)
+                self.plot_2.invertX(True)
+            elif x_axis_coords_2[0] < x_axis_coords_2[-1]:
+                self.x_axis_2.setStyle(showValues=True)
+                self.plot_2.invertX(False)
+            else:
+                self.x_axis_2.setStyle(showValues=False)
+                self.plot_2.invertX(False)
+                self.x_axis_2.setLabel(f"{x_labels[1]} = {round(x_axis_coords_2[0], 5)}")
+
+            if x_axis_coords_3[0] > x_axis_coords_3[-1]:
+                self.x_axis_3.setStyle(showValues=True)
+                self.plot_3.invertX(True)
+            elif x_axis_coords_3[0] < x_axis_coords_3[-1]:
+                self.x_axis_3.setStyle(showValues=True)
+                self.plot_3.invertX(False)
+            else:
+                self.x_axis_3.setStyle(showValues=False)
+                self.plot_3.invertX(False)
+                self.x_axis_3.setLabel(f"{x_labels[2]} = {round(x_axis_coords_3[0], 5)}")
+
+    def _plot_1d_data(self, data, x_coords) -> None:
         self.view.invertY(False)
         self.getImageItem().hide()
         self.clear()
         self.colorbar.hide()
-        
-        # Coordinates and labels for plot
-        x_coords = list(coords.values())[0]
- 
-        if type(x_coords[0]) == np.ndarray:
-            if x_coords.shape[-1] == 3:
 
-                self.x_axis_2.show()
-                self.x_axis_3.show()
-                self.y_axis_2.hide()
-
-                self.view.setMouseEnabled(False, False)
-                self.plot_2.setMouseEnabled(False, False)
-                self.plot_3.setMouseEnabled(False, False)
-                
-                # Labels
-                axis_labels = list(coords.keys())[0].split(",")
-                axis_1_label = axis_labels[0]
-                axis_2_label = axis_labels[1]
-                axis_3_label = axis_labels[2]
-                self.view.setLabel("bottom", axis_1_label)
-                self.view.setLabel("left", "")
-                self.x_axis_2.setLabel(axis_2_label)
-                self.x_axis_3.setLabel(axis_3_label)
-
-                # Coords
-                axis_1_coords = x_coords[:, 0]
-                axis_2_coords = x_coords[:, 1]
-                axis_3_coords = x_coords[:, 2]
-
-                if axis_1_coords[0] > axis_1_coords[-1]:
-                    self.view.getAxis("bottom").setStyle(showValues=True)
-                    self.view.invertX(True)
-                elif axis_1_coords[0] < axis_1_coords[-1]:
-                    self.view.getAxis("bottom").setStyle(showValues=True)
-                    self.view.invertX(False)
-                else:
-                    self.view.getAxis("bottom").setStyle(showValues=False)
-                    self.view.invertX(False)
-                    self.view.getAxis("bottom").setLabel(f"{axis_1_label} = {round(axis_1_coords[0], 5)}")
-
-                if axis_2_coords[0] > axis_2_coords[-1]:
-                    self.x_axis_2.setStyle(showValues=True)
-                    self.plot_2.invertX(True)
-                elif axis_2_coords[0] < axis_2_coords[-1]:
-                    self.x_axis_2.setStyle(showValues=True)
-                    self.plot_2.invertX(False)
-                else:
-                    self.x_axis_2.setStyle(showValues=False)
-                    self.plot_2.invertX(False)
-                    self.x_axis_2.setLabel(f"{axis_2_label} = {round(axis_2_coords[0], 5)}")
-
-                if axis_3_coords[0] > axis_3_coords[-1]:
-                    self.x_axis_3.setStyle(showValues=True)
-                    self.plot_3.invertX(True)
-                elif axis_3_coords[0] < axis_3_coords[-1]:
-                    self.x_axis_3.setStyle(showValues=True)
-                    self.plot_3.invertX(False)
-                else:
-                    self.x_axis_3.setStyle(showValues=False)
-                    self.plot_3.invertX(False)
-                    self.x_axis_3.setLabel(f"{axis_3_label} = {round(axis_3_coords[0], 5)}")
-
-                if axis_1_coords[0] != axis_1_coords[-1]:
-                    self.plot.setData(np.linspace(axis_1_coords[0], axis_1_coords[-1], data.shape[0], endpoint=False), data)
-                elif axis_2_coords[0] != axis_2_coords[-1]:
-                    self.plot.setData(np.linspace(axis_2_coords[0], axis_2_coords[-1], data.shape[0], endpoint=False), data)
-                else:
-                    self.plot.setData(np.linspace(axis_3_coords[0], axis_3_coords[-1], data.shape[0], endpoint=False), data)
-
-                self.getView().setXRange(axis_1_coords[0], axis_1_coords[-1])
-                self.plot_2.setXRange(axis_2_coords[0], axis_2_coords[-1])
-                self.plot_3.setXRange(axis_3_coords[0], axis_3_coords[-1])
-
-        else:
-            self.x_axis_2.hide()
-            self.x_axis_3.hide()
-            self.y_axis_2.hide()
-            self.view.setMouseEnabled(True, True)
-            self.plot_2.setMouseEnabled(True, True)
-            self.plot_3.setMouseEnabled(True, True)
-
-            self.view.setLabel("bottom", list(coords.keys())[0])
-            self.view.setLabel("left", "")
-            
+        if type(x_coords[0]) != np.ndarray:
             self.plot.setData(x_coords, data)
-
-        # Resets view in plot to display full 1D curve
-        self.view.autoRange()
-
-    def _plot_2D_data(self, data, coords=None) -> None:
-        self.view.invertY(True)
-
-        x_coords, y_coords = list(coords.values())[0], list(coords.values())[1]
-
-        if type(y_coords[0]) == np.ndarray:
-            if y_coords.shape[-1] == 2:
-                self.x_axis_2.hide()
-                self.x_axis_3.hide()
-                self.y_axis_2.show()
-
-                self.view.setMouseEnabled(False, False)
-                self.plot_2.setMouseEnabled(False, False)
-                self.plot_3.setMouseEnabled(False, False)
-
-                y_axis_labels = list(coords.keys())[1].split(",")
-                y_axis_1_label = y_axis_labels[0]
-                y_axis_2_label = y_axis_labels[1]
-
-                self.view.setLabel("bottom", list(coords.keys())[0])
-                self.view.setLabel("left", y_axis_1_label)
-                self.y_axis_2.setLabel(y_axis_2_label)
-
-                # Coords
-                x_axis_coords = x_coords
-                y_axis_1_coords = y_coords[:, 0]
-                y_axis_2_coords = y_coords[:, 1]
-        
-                if x_axis_coords[0] > x_axis_coords[-1]:
-                    self.view.invertX(True)
-                else:
-                    self.view.invertX(False)
-
-                if y_axis_1_coords[0] > y_axis_1_coords[-1]:
-                    self.view.invertY(False)
-                else:
-                    self.view.invertY(True)
-
-                if y_axis_2_coords[0] > y_axis_2_coords[-1]:
-                    self.plot_2.invertY(False)
-                else:
-                    self.plot_2.invertY(True)
-
-                scale = (
-                    abs(x_axis_coords[-1] - x_axis_coords[0]) / data.shape[0],
-                    abs(y_axis_1_coords[-1] - y_axis_1_coords[0]) / data.shape[1]
-                )
-                pos = [x_axis_coords[0], y_axis_1_coords[0]]
-
-                self.plot_2.setYRange(y_axis_2_coords[0], y_axis_2_coords[-1])
-            
+        elif x_coords[0].shape[-1] == 2:
+            x_axis_coords_1 = x_coords[:, 0]
+            x_axis_coords_2 = x_coords[:, 1]
+            if x_axis_coords_1[0] != x_axis_coords_1[-1]:
+                self.plot.setData(np.linspace(x_axis_coords_1[0], x_axis_coords_1[-1], data.shape[0], endpoint=False), data)
+            else:
+                self.plot.setData(np.linspace(x_axis_coords_2[0], x_axis_coords_2[-1], data.shape[0], endpoint=False), data)
         else:
-            self.x_axis_2.hide()
-            self.x_axis_3.hide()
-            self.y_axis_2.hide()
+            x_axis_coords_1 = x_coords[:, 0]
+            x_axis_coords_2 = x_coords[:, 1]
+            x_axis_coords_3 = x_coords[:, 2]
+            if x_axis_coords_1[0] != x_axis_coords_1[-1]:
+                self.plot.setData(np.linspace(x_axis_coords_1[0], x_axis_coords_1[-1], data.shape[0], endpoint=False), data)
+            elif x_axis_coords_2[0] != x_axis_coords_2[-1]:
+                self.plot.setData(np.linspace(x_axis_coords_2[0], x_axis_coords_2[-1], data.shape[0], endpoint=False), data)
+            else:
+                self.plot.setData(np.linspace(x_axis_coords_3[0], x_axis_coords_3[-1], data.shape[0], endpoint=False), data)
+    
+    def _plot_2d_data(self, data, x_coords, y_coords) -> None:
+        self.view.invertY(True)
+        self.getImageItem().show()
+        self.colorbar.show()
+        self.plot.clear()
 
-            self.view.setLabel("bottom", list(coords.keys())[0])
-            self.view.setLabel("left", list(coords.keys())[1])
-            scale = (
-                coords[list(coords.keys())[0]][1] - coords[list(coords.keys())[0]][0],
-                coords[list(coords.keys())[1]][1] - coords[list(coords.keys())[1]][0]
-            )
-            pos = [coords[list(coords.keys())[0]][0], coords[list(coords.keys())[1]][0]]
+        if type(x_coords[0]) != np.ndarray:
+            x_axis_coords_1 = x_coords
+        else:
+            x_axis_coords_1 = x_coords[:, 0]
+        
+        if type(y_coords[0]) != np.ndarray:
+            y_axis_coords_1 = y_coords
+        else:
+            y_axis_coords_1 = y_coords[:, 0]
 
-        # Sets image
-        self.setImage(
-            img=data,
-            scale=scale,
-            pos=pos,
-            autoRange=True
-        )
+        scale = (x_axis_coords_1[1] - x_axis_coords_1[0], y_axis_coords_1[1] - y_axis_coords_1[0])
+        pos = [x_axis_coords_1[0], y_axis_coords_1[0]]
+        self.setImage(img=data, scale=scale, pos=pos, autoRange=True)
         self._set_colormap()
-
         self.view.autoRange()
-        x_coords = list(coords.values())[0]
 
     def _set_colormap(self) -> None:
         name = self.image_data_widget.image_tool.controller.colormap_cbx.currentText()
