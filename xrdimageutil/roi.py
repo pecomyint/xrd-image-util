@@ -687,13 +687,19 @@ class PlaneROI:
         # Retrieves pixel indicies for plane
         plane_pixels = self._get_plane_pixels(data, coords)
 
+        if plane_pixels is None:
+            return (None, None)
+
         # Retrieves output data for plane
         output_data = self._get_data_from_plane_pixels(plane_pixels=plane_pixels, data=data)
 
         # Retrieves output coordinates for plane
         output_coords = self._get_output_coords_from_plane_pixels(plane_pixels=plane_pixels, coords=coords)
 
-        return (output_data, output_coords)
+        if output_coords is None:
+            return (None, None)
+        else:
+            return (output_data, output_coords)
     
     def _get_plane_pixels(self, data, coords) -> np.ndarray:
         """Returns pixel indicies that correspond to plane."""
@@ -702,39 +708,61 @@ class PlaneROI:
 
         # Retrieves pixel indicies that correspond to given coordinates
         point_pixel = self._get_point_pixel_indicies(point=self.plane["point"], coords=coords)
-
         normal = list(self.plane["normal"].values())
         a, b, c = normal
         d = -(a * point_pixel[0] + b * point_pixel[1] + c * point_pixel[2])
 
-        # Determines dimension order for output plane
-        x_at_y0_z0 = self._solve_for_plane(a, b, c, d, y=0, z=0)
-        x_at_y0_z1 = self._solve_for_plane(a, b, c, d, y=0, z=data.shape[2])
-        x_at_y1_z0 = self._solve_for_plane(a, b, c, d, y=data.shape[1], z=0)
-        x_at_y1_z1 = self._solve_for_plane(a, b, c, d, y=data.shape[1], z=data.shape[2])
-        x_max = max([x_at_y0_z0, x_at_y1_z0, x_at_y0_z1, x_at_y1_z1]) 
-        x_min = min([x_at_y0_z0, x_at_y1_z0, x_at_y0_z1, x_at_y1_z1])
-
-        y_at_x0_z0 = self._solve_for_plane(a, b, c, d, x=0, z=0)
-        y_at_x0_z1 = self._solve_for_plane(a, b, c, d, x=0, z=data.shape[2])
-        y_at_x1_z0 = self._solve_for_plane(a, b, c, d, x=data.shape[0], z=0)
-        y_at_x1_z1 = self._solve_for_plane(a, b, c, d, x=data.shape[0], z=data.shape[2])
-        y_max = max([y_at_x0_z0, y_at_x1_z0, y_at_x0_z1, y_at_x1_z1]) 
-        y_min = min([y_at_x0_z0, y_at_x1_z0, y_at_x0_z1, y_at_x1_z1])
-
-        z_at_x0_y0 = self._solve_for_plane(a, b, c, d, x=0, y=0)
-        z_at_x0_y1 = self._solve_for_plane(a, b, c, d, x=0, y=data.shape[1])
-        z_at_x1_y0 = self._solve_for_plane(a, b, c, d, x=data.shape[0], y=0)
-        z_at_x1_y1 = self._solve_for_plane(a, b, c, d, x=data.shape[0], y=data.shape[1])
-        z_max = max([z_at_x0_y0, z_at_x1_y0, z_at_x0_y1, z_at_x1_y1])
-        z_min = min([z_at_x0_y0, z_at_x1_y0, z_at_x0_y1, z_at_x1_y1])
+        # d = -(a * x + b * y + c * z)
         
-        dim_bounds = np.array([[x_min, y_min, z_min], [x_max, y_max, z_max]])
+        x1, y1, z1 = data.shape
+
+        edge_points = []
+        for x in [None, 0, x1]:
+
+            for y in [None, 0, y1]:
+
+                for z in [None, 0, z1]:
+
+                    if x is None and not (y is None or z is None):
+                        x_ = self._solve_for_plane(a, b, c, d, x=x, y=y, z=z)
+                        y_ = y
+                        z_ = z
+                        if (x_ >= 0 and x_ <= x1) and (y_ >= 0 and y_ <= y1) and (z_ >= 0 and z_ <= z1):
+                            edge_points.append([x_, y_, z_])
+                    elif y is None and not (x is None or z is None):
+                        x_ = x
+                        y_ = self._solve_for_plane(a, b, c, d, x=x, y=y, z=z)
+                        z_ = z
+                        if (x_ >= 0 and x_ <= x1) and (y_ >= 0 and y_ <= y1) and (z_ >= 0 and z_ <= z1):
+                            edge_points.append([x_, y_, z_])
+                    elif z is None and not (x is None or y is None):
+                        x_ = x
+                        y_ = y
+                        z_ = self._solve_for_plane(a, b, c, d, x=x, y=y, z=z)
+                        if (x_ >= 0 and x_ <= x1) and (y_ >= 0 and y_ <= y1) and (z_ >= 0 and z_ <= z1):
+                            edge_points.append([x_, y_, z_])
+                    else:
+                        pass  
+                                     
+                    
+        edge_points = np.array(edge_points).T
+
+        if 0 in edge_points.shape:
+            return None
+        
+        x_min, x_max = np.amin(edge_points[0]), np.amax(edge_points[0])
+        y_min, y_max = np.amin(edge_points[1]), np.amax(edge_points[1])
+        z_min, z_max = np.amin(edge_points[2]), np.amax(edge_points[2])
+
+        dim_bounds = np.array([[x_min, y_min, z_min], [x_max, y_max, z_max]]).astype(np.int64)
         dim_order = np.argsort(dim_bounds[1] - dim_bounds[0])
-        
+
+        x_dim = dim_order[0]
+        y_dim = dim_order[1]
+
         # Determine axes for output plane
-        x_range = np.arange(0, data.shape[dim_order[0]])
-        y_range = np.arange(0, data.shape[dim_order[1]])
+        x_range = np.arange(dim_bounds[0][x_dim], dim_bounds[1][x_dim])
+        y_range = np.arange(dim_bounds[0][y_dim], dim_bounds[1][y_dim])
 
         # Creates the plane of pixel indicies
         X, Y = np.meshgrid(x_range, y_range)
@@ -776,9 +804,13 @@ class PlaneROI:
     
     def _get_output_coords_from_plane_pixels(self, plane_pixels, coords) -> dict:
         
+        if 0 in plane_pixels.shape:
+            return None
+        
         output_coords = {}
         dim_list = list(self.plane["point"].keys())
         coords = coords.copy()
+        
         x_pixels = plane_pixels[0, :, :].T
         y_pixels = plane_pixels[:, 0, :].T
 
@@ -843,11 +875,17 @@ class PlaneROI:
     def _solve_for_plane(self, a, b, c, d, x=None, y=None, z=None) -> float:
 
         if x is None:
+            if a == 0:
+                a = 0.000001
             x = (-d - b*y - c*z) / a
             return x
         if y is None:
+            if b == 0:
+                b = 0.000001
             y = (-d - a*x - c*z) / b
             return y
         if z is None:
+            if c == 0:
+                c = 0.000001
             z = (-d - a*x - b*y) / c
             return z

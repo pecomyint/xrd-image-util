@@ -1415,6 +1415,9 @@ class ROIImageTool(pg.ImageView):
 
     def _plot(self, data, coords) -> None:
         
+        if data is None or coords is None:
+            return
+        
         x_coords, y_coords = None, None
 
         if len(list(coords.values())) == 1:
@@ -1506,6 +1509,9 @@ class ROIImageTool(pg.ImageView):
             pass
         elif type(y_coords[0]) != np.ndarray:
             self.getView().setYRange(y_coords[0], y_coords[-1])
+        elif y_coords[0].shape[-1] == 1:
+            y_axis_coords_1 = y_coords[:, 0]
+            self.getView().setYRange(y_axis_coords_1[0], y_axis_coords_1[-1])
         else:
             y_axis_coords_1 = y_coords[:, 0]
             y_axis_coords_2 = y_coords[:, 1]
