@@ -5,7 +5,7 @@ See LICENSE file.
 import numpy as np
 import pyqtgraph as pg
 
-from xrdimageutil.gui import image_data_widget
+from xrdimageutil.gui.image_data_widget import ImageDataWidget
 
 def view_image_data(data: np.ndarray, coords: dict=None) -> None:
     """Displays 3D numpy data in an interactive GUI window."""
@@ -37,7 +37,7 @@ def view_image_data(data: np.ndarray, coords: dict=None) -> None:
             
 
     app = pg.mkQApp()
-    gui_window = image_data_widget.ImageDataWidget(data, coords)
+    gui_window = ImageDataWidget(data, coords)
     gui_window.raise_()
     gui_window.show()
     gui_window.raise_()
