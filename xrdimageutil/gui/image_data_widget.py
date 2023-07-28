@@ -87,15 +87,15 @@ class ImageDataWidget(DockArea):
         self.graphical_line_roi = GraphicalLineROI(positions=((0, 0), (1, 1)), image_data_widget=self)
         self.graphical_line_roi_dock = Dock(name="Line ROI", size=(5, 5), widget=self.graphical_line_roi.controller, hideTitle=False)
 
-        self.graphical_plane_roi = GraphicalPlaneROI(positions=((0, 0), (1, 1)), image_data_widget=self)
-        self.graphical_plane_roi_dock = Dock(name="Plane ROI", size=(5, 5), widget=self.graphical_plane_roi.controller, hideTitle=False)
+        # self.graphical_plane_roi = GraphicalPlaneROI(positions=((0, 0), (1, 1)), image_data_widget=self)
+        # self.graphical_plane_roi_dock = Dock(name="Plane ROI", size=(5, 5), widget=self.graphical_plane_roi.controller, hideTitle=False)
 
         # Organizes dock area
         self.addDock(self.image_tool_dock)
         self.addDock(self.image_tool_controller_dock)
         self.addDock(self.graphical_rect_roi_dock, "right", self.image_tool_dock)
         self.addDock(self.graphical_line_roi_dock, "below", self.graphical_rect_roi_dock)
-        self.addDock(self.graphical_plane_roi_dock, "below", self.graphical_line_roi_dock)
+        #self.addDock(self.graphical_plane_roi_dock, "below", self.graphical_line_roi_dock)
         self.moveDock(self.image_tool_controller_dock, "left", self.graphical_rect_roi_dock)
         self.moveDock(self.image_tool_controller_dock, "bottom", self.image_tool_dock)
         
@@ -1089,7 +1089,7 @@ class GraphicalLineROIController(QtWidgets.QWidget):
 
             np.savetxt(filename, combined_info, delimiter=",", header=header)
 
-
+'''
 class GraphicalPlaneROI(pg.LineSegmentROI):
     
     image_data_widget = None
@@ -1347,6 +1347,7 @@ class GraphicalPlaneROIController(QtWidgets.QWidget):
 
         self.output_image_tool._plot(output["data"], output["coords"])
 
+'''
 
 class ROIImageTool(pg.ImageView):
     
@@ -1435,8 +1436,8 @@ class ROIImageTool(pg.ImageView):
         
         self._toggle_axis_visibility(x_labels, y_labels) # Determines which axes are in view
         self._set_axis_labels(x_labels, y_labels) # Determines axis labels
-        self._set_axis_ranges(x_labels, y_labels, x_coords, y_coords) # Determines min/max for each axis
-        self._set_axis_inversion_statuses(x_coords, x_labels)
+        #self._set_axis_ranges(x_labels, y_labels, x_coords, y_coords) # Determines min/max for each axis
+        #self._set_axis_inversion_statuses(x_coords, x_labels)
 
         if data.ndim == 1:
             self._plot_1d_data(data, x_coords)
@@ -1639,7 +1640,7 @@ class ROIImageTool(pg.ImageView):
         self.colorbar.show()
         self.plot.clear()
 
-        if type(x_coords[0]) != np.ndarray:
+        '''if type(x_coords[0]) != np.ndarray:
             x_axis_coords_1 = x_coords
         else:
             x_axis_coords_1 = x_coords[:, 0]
@@ -1650,7 +1651,11 @@ class ROIImageTool(pg.ImageView):
             y_axis_coords_1 = y_coords[:, 0]
 
         scale = (x_axis_coords_1[1] - x_axis_coords_1[0], y_axis_coords_1[1] - y_axis_coords_1[0])
-        pos = [x_axis_coords_1[0], y_axis_coords_1[0]]
+        pos = [x_axis_coords_1[0], y_axis_coords_1[0]]'''
+
+        scale = None
+        pos = None
+
         self.setImage(img=data, scale=scale, pos=pos, autoRange=True)
         self._set_colormap()
         self.view.autoRange()
