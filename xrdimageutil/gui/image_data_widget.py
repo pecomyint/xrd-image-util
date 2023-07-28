@@ -239,7 +239,7 @@ class ImageToolController(QtWidgets.QWidget):
         self.colormap_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.colormap_cbx = QtWidgets.QComboBox()
         self.colormap_cbx.addItems(pg.colormap.listMaps(source="matplotlib"))
-        self.colormap_cbx.setCurrentText("turbo")
+        self.colormap_cbx.setCurrentText("hot")
         self.colormap_scale_lbl = QtWidgets.QLabel("CMap Scale:")
         self.colormap_scale_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.colormap_scale_cbx = QtWidgets.QComboBox()
@@ -354,13 +354,16 @@ class GraphicalRectROI(pg.RectROI):
     color = None
 
     def __init__(self, pos, size, image_data_widget: ImageDataWidget) -> None:
-        super(GraphicalRectROI, self).__init__(pos, size, hoverPen=pg.mkPen((255, 0, 255), width=7), handlePen=pg.mkPen((255, 255, 0), width=7), handleHoverPen=pg.mkPen((255, 255, 0), width=7))
+        super(GraphicalRectROI, self).__init__(pos, size, 
+                                               hoverPen=pg.mkPen((255, 255, 0), width=10), 
+                                               handlePen=pg.mkPen((255, 255, 0)), 
+                                               handleHoverPen=pg.mkPen((255, 255, 0), width=10))
 
         self.image_data_widget = image_data_widget
         self.image_data_widget.image_tool.addItem(self)
         self.hide()
         self.color = (0, 255, 0)
-        self.setPen(pg.mkPen(self.color, width=7))
+        self.setPen(pg.mkPen(self.color, width=10))
         self.addScaleHandle((0, 0), (1, 1), index=0)
         self.addScaleHandle((1, 1), (0, 0), index=1)
         self.addScaleHandle((0, 1), (1, 0), index=2)
@@ -374,7 +377,7 @@ class GraphicalRectROI(pg.RectROI):
     def _set_color(self) -> None:
         
         self.color = self.controller.color_btn.color()
-        self.setPen(pg.mkPen(self.color, width=7))
+        self.setPen(pg.mkPen(self.color, width=10))
 
     def _set_visibility(self) -> None:
         
@@ -438,10 +441,9 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         self.dim_max_sbxs = [QtWidgets.QDoubleSpinBox() for dim in list(self.bounds.keys())]
         self.dim_reset_btns = [QtWidgets.QPushButton("Reset") for dim in list(self.bounds.keys())]
         for sbx in self.dim_min_sbxs + self.dim_max_sbxs:
-            sbx.setDecimals(5)
             sbx.setSingleStep(0.5)
             sbx.setRange(-1000, 1000)
-            sbx.setDecimals(3)
+            sbx.setDecimals(5)
             sbx.valueChanged.connect(self._set_bounds_from_spinboxes)
             
         for btn in self.dim_reset_btns:
@@ -593,7 +595,6 @@ class GraphicalRectROIController(QtWidgets.QWidget):
         self._get_output()
     
     def _validate_bounds(self) -> None:
-
         for dim in list(self.bounds.keys()):
             dim_coords = self.image_data_widget.coords[dim]
             dim_bounds = self.bounds[dim]
@@ -719,16 +720,16 @@ class GraphicalLineROI(pg.LineSegmentROI):
     def __init__(self, positions, image_data_widget: ImageDataWidget) -> None:
         super(GraphicalLineROI, self).__init__(
             positions, 
-            hoverPen=pg.mkPen((255, 0, 255), width=7, style=QtCore.Qt.DashLine), 
-            handlePen=pg.mkPen((255, 255, 0), width=7), 
-            handleHoverPen=pg.mkPen((255, 255, 0), width=7)
+            hoverPen=pg.mkPen((255, 255, 0), width=10, style=QtCore.Qt.DashLine), 
+            handlePen=pg.mkPen((255, 255, 0), width=10), 
+            handleHoverPen=pg.mkPen((255, 255, 0), width=10)
         )
 
         self.image_data_widget = image_data_widget
         self.image_data_widget.image_tool.addItem(self)
         self.hide()
         self.color = (0, 255, 0)
-        self.setPen(pg.mkPen(self.color, width=7, style=QtCore.Qt.DashLine))
+        self.setPen(pg.mkPen(self.color, width=10, style=QtCore.Qt.DashLine))
 
         self.controller = GraphicalLineROIController(graphical_line_roi=self, image_data_widget=image_data_widget)
 
@@ -738,7 +739,7 @@ class GraphicalLineROI(pg.LineSegmentROI):
     def _set_color(self) -> None:
         
         self.color = self.controller.color_btn.color()
-        self.setPen(pg.mkPen(self.color, width=7, style=QtCore.Qt.DashLine))
+        self.setPen(pg.mkPen(self.color, width=10, style=QtCore.Qt.DashLine))
 
     def _set_visibility(self) -> None:
         
@@ -857,16 +858,16 @@ class GraphicalLineROIController(QtWidgets.QWidget):
         self.layout.addWidget(self.dim_reset_btns[0], 3, 7, 1, 3)
         self.layout.addWidget(self.dim_reset_btns[1], 4, 7, 1, 3)
         self.layout.addWidget(self.dim_reset_btns[2], 5, 7, 1, 3)
-        self.layout.addWidget(self.output_type_cbx, 6, 0, 1, 4)
-        self.layout.addWidget(self.dim_output_chkbxs[0], 6, 4, 1, 2)
-        self.layout.addWidget(self.dim_output_chkbxs[1], 6, 6, 1, 2)
-        self.layout.addWidget(self.dim_output_chkbxs[2], 6, 8, 1, 2)
-        self.layout.addWidget(self.smoothing_radius_lbl, 7, 1, 1, 3)
-        self.layout.addWidget(self.smoothing_radius_sbx, 7, 4, 1, 3)
-        self.layout.addWidget(self.smoothing_shape_cbx, 7, 7, 1, 3)
-        self.layout.addWidget(self.output_image_tool, 8, 0, 3, 10)
-        self.layout.addWidget(self.export_output_cbx, 11, 0, 1, 3)
-        self.layout.addWidget(self.export_output_btn, 11, 3, 1, 7)
+        # self.layout.addWidget(self.output_type_cbx, 6, 0, 1, 4)
+        # self.layout.addWidget(self.dim_output_chkbxs[0], 6, 4, 1, 2)
+        # self.layout.addWidget(self.dim_output_chkbxs[1], 6, 6, 1, 2)
+        # self.layout.addWidget(self.dim_output_chkbxs[2], 6, 8, 1, 2)
+        self.layout.addWidget(self.smoothing_radius_lbl, 6, 1, 1, 3)
+        self.layout.addWidget(self.smoothing_radius_sbx, 6, 4, 1, 3)
+        self.layout.addWidget(self.smoothing_shape_cbx, 6, 7, 1, 3)
+        self.layout.addWidget(self.output_image_tool, 7, 0, 3, 10)
+        self.layout.addWidget(self.export_output_cbx, 10, 0, 1, 3)
+        self.layout.addWidget(self.export_output_btn, 10, 3, 1, 7)
 
         for i in range(self.layout.columnCount()):
             self.layout.setColumnStretch(i, 10)
@@ -1088,6 +1089,7 @@ class GraphicalLineROIController(QtWidgets.QWidget):
                 header = list(output["coords"].keys())[0] + ",Value"
 
             np.savetxt(filename, combined_info, delimiter=",", header=header)
+
 
 '''
 class GraphicalPlaneROI(pg.LineSegmentROI):
@@ -1436,8 +1438,8 @@ class ROIImageTool(pg.ImageView):
         
         self._toggle_axis_visibility(x_labels, y_labels) # Determines which axes are in view
         self._set_axis_labels(x_labels, y_labels) # Determines axis labels
-        #self._set_axis_ranges(x_labels, y_labels, x_coords, y_coords) # Determines min/max for each axis
-        #self._set_axis_inversion_statuses(x_coords, x_labels)
+        self._set_axis_ranges(x_labels, y_labels, x_coords, y_coords) # Determines min/max for each axis
+        self._set_axis_inversion_statuses(x_coords, x_labels)
 
         if data.ndim == 1:
             self._plot_1d_data(data, x_coords)
@@ -1640,7 +1642,7 @@ class ROIImageTool(pg.ImageView):
         self.colorbar.show()
         self.plot.clear()
 
-        '''if type(x_coords[0]) != np.ndarray:
+        if type(x_coords[0]) != np.ndarray:
             x_axis_coords_1 = x_coords
         else:
             x_axis_coords_1 = x_coords[:, 0]
@@ -1651,10 +1653,7 @@ class ROIImageTool(pg.ImageView):
             y_axis_coords_1 = y_coords[:, 0]
 
         scale = (x_axis_coords_1[1] - x_axis_coords_1[0], y_axis_coords_1[1] - y_axis_coords_1[0])
-        pos = [x_axis_coords_1[0], y_axis_coords_1[0]]'''
-
-        scale = None
-        pos = None
+        pos = [x_axis_coords_1[0], y_axis_coords_1[0]]
 
         self.setImage(img=data, scale=scale, pos=pos, autoRange=True)
         self._set_colormap()
