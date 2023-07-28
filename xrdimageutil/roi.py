@@ -685,7 +685,7 @@ class PlaneROI:
         """Returns output data and coordinates."""
         
         # Retrieves pixel indicies for plane
-        plane_pixels = self._get_plane_pixels(data, coords)
+        plane_pixels, dim_order = self._get_plane_pixels(data, coords)
 
         if plane_pixels is None:
             return (None, None)
@@ -694,7 +694,7 @@ class PlaneROI:
         output_data = self._get_data_from_plane_pixels(plane_pixels=plane_pixels, data=data)
 
         # Retrieves output coordinates for plane
-        output_coords = self._get_output_coords_from_plane_pixels(plane_pixels=plane_pixels, coords=coords)
+        output_coords = self._get_output_coords_from_plane_pixels(plane_pixels=plane_pixels, coords=coords, dim_order=dim_order)
 
         if output_coords is None:
             return (None, None)
@@ -703,73 +703,107 @@ class PlaneROI:
     
     def _get_plane_pixels(self, data, coords) -> np.ndarray:
         """Returns pixel indicies that correspond to plane."""
-        
+
         coords = coords.copy()
 
-        # Retrieves pixel indicies that correspond to given coordinates
+        # Defining the 2D plane with a point and normal direction
         point_pixel = self._get_point_pixel_indicies(point=self.plane["point"], coords=coords)
         normal = list(self.plane["normal"].values())
         a, b, c = normal
         d = -(a * point_pixel[0] + b * point_pixel[1] + c * point_pixel[2])
 
-        # d = -(a * x + b * y + c * z)
+        # Calculates the indicies where the plane and edges of the dataset intersect
         
-        x1, y1, z1 = data.shape
+        edge_intersection_points = []
+        x_0, y_0, z_0 = 0, 0, 0
+        x_1, y_1, z_1 = data.shape
 
-        edge_points = []
-        for x in [None, 0, x1]:
+        for x in [None, x_0, x_1]:
+            for y in [None, y_0, y_1]:
+                for z in [None, z_0, z_1]:
 
-            for y in [None, 0, y1]:
+                    # Checks for 0's in the normal vector
+                    if a == 0:
+                        x = point_pixel[0]
+                    if b == 0:
+                        y = point_pixel[1]
+                    if c == 0:
+                        z = point_pixel[2]
 
-                for z in [None, 0, z1]:
-
-                    if x is None and not (y is None or z is None):
-                        x_ = self._solve_for_plane(a, b, c, d, x=x, y=y, z=z)
-                        y_ = y
-                        z_ = z
-                        if (x_ >= 0 and x_ <= x1) and (y_ >= 0 and y_ <= y1) and (z_ >= 0 and z_ <= z1):
-                            edge_points.append([x_, y_, z_])
-                    elif y is None and not (x is None or z is None):
-                        x_ = x
-                        y_ = self._solve_for_plane(a, b, c, d, x=x, y=y, z=z)
-                        z_ = z
-                        if (x_ >= 0 and x_ <= x1) and (y_ >= 0 and y_ <= y1) and (z_ >= 0 and z_ <= z1):
-                            edge_points.append([x_, y_, z_])
-                    elif z is None and not (x is None or y is None):
-                        x_ = x
-                        y_ = y
-                        z_ = self._solve_for_plane(a, b, c, d, x=x, y=y, z=z)
-                        if (x_ >= 0 and x_ <= x1) and (y_ >= 0 and y_ <= y1) and (z_ >= 0 and z_ <= z1):
-                            edge_points.append([x_, y_, z_])
+                    # Only one of x, y, or z is allowed to be "None" at a single 
+                    # time --- that represents the variable being solved for.
+                    if (
+                        (x is None and y is None) or 
+                        (x is None and z is None) or 
+                        (y is None and z is None)
+                    ):
+                        pass
                     else:
-                        pass  
-                                     
-                    
-        edge_points = np.array(edge_points).T
+                        if x is None:
+                            edge_x = self._solve_for_plane(a, b, c, d, x=x, y=y, z=z)
+                            edge_y = y
+                            edge_z = z
+                        elif y is None:
+                            edge_x = x
+                            edge_y = self._solve_for_plane(a, b, c, d, x=x, y=y, z=z)
+                            edge_z = z
+                        elif z is None:
+                            edge_x = x
+                            edge_y = y
+                            edge_z = self._solve_for_plane(a, b, c, d, x=x, y=y, z=z)
 
-        if 0 in edge_points.shape:
-            return None
+                        if (
+                            (edge_x >= x_0 and edge_x <= x_1) and
+                            (edge_y >= y_0 and edge_y <= y_1) and
+                            (edge_z >= z_0 and edge_z <= z_1)
+                        ):
+                            edge_intersection_points.append([edge_x, edge_y, edge_z])
+
+        edge_intersection_points_T = np.array(edge_intersection_points).T
+        if 0 in edge_intersection_points_T.shape:
+            return None, None
         
-        x_min, x_max = np.amin(edge_points[0]), np.amax(edge_points[0])
-        y_min, y_max = np.amin(edge_points[1]), np.amax(edge_points[1])
-        z_min, z_max = np.amin(edge_points[2]), np.amax(edge_points[2])
+        # Minimum and maximum coordinate for each dimension
+        # These values exist within the bounds of the dataset
+        x_min, x_max = np.amin(edge_intersection_points_T[0]), np.amax(edge_intersection_points_T[0])
+        y_min, y_max = np.amin(edge_intersection_points_T[1]), np.amax(edge_intersection_points_T[1])
+        z_min, z_max = np.amin(edge_intersection_points_T[2]), np.amax(edge_intersection_points_T[2])
 
+        # Determines coordinate bounds of output data
         dim_bounds = np.array([[x_min, y_min, z_min], [x_max, y_max, z_max]]).astype(np.int64)
         dim_order = np.argsort(dim_bounds[1] - dim_bounds[0])
 
-        x_dim = dim_order[0]
-        y_dim = dim_order[1]
-
         # Determine axes for output plane
-        x_range = np.arange(dim_bounds[0][x_dim], dim_bounds[1][x_dim])
-        y_range = np.arange(dim_bounds[0][y_dim], dim_bounds[1][y_dim])
+        x_axis_dim = dim_order[0]
+        y_axis_dim = dim_order[1]
+        x_axis_range = np.arange(dim_bounds[0][x_axis_dim], dim_bounds[1][x_axis_dim])
+        y_axis_range = np.arange(dim_bounds[0][y_axis_dim], dim_bounds[1][y_axis_dim])
 
         # Creates the plane of pixel indicies
-        X, Y = np.meshgrid(x_range, y_range)
-        Z = -(a * X + b * Y + d) / c
+        if x_axis_dim == 0:
+            if y_axis_dim == 1:
+                X, Y = np.meshgrid(x_axis_range, y_axis_range)
+                Z = -(a * X + b * Y + d) / c
+            elif y_axis_dim == 2:
+                X, Z = np.meshgrid(x_axis_range, y_axis_range)
+                Y = -(a * X + c * Z + d) / b
+        elif x_axis_dim == 1:
+            if y_axis_dim == 0:
+                Y, X = np.meshgrid(x_axis_range, y_axis_range)
+                Z = -(a * X + b * Y + d) / c
+            elif y_axis_dim == 2:
+                Y, Z = np.meshgrid(x_axis_range, y_axis_range)
+                X = -(b * Y + c * Z + d) / a
+        elif x_axis_dim == 2:
+            if y_axis_dim == 0:
+                Z, X = np.meshgrid(x_axis_range, y_axis_range)
+                Y = -(a * X + c * Z + d) / b
+            elif y_axis_dim == 1:
+                Z, Y = np.meshgrid(x_axis_range, y_axis_range)
+                X = -(b * Y + c * Z + d) / a
+
         plane_pixels = np.array([X, Y, Z], dtype=np.int64).T
-        
-        return plane_pixels
+        return plane_pixels, dim_order
 
     def _get_data_from_plane_pixels(self, plane_pixels, data) -> np.ndarray:
         """Returns the data points that correspond to a given plane of indicies."""
@@ -800,9 +834,11 @@ class PlaneROI:
             plane_pixels.shape[1]
         ))
 
+        data_plane = np.fliplr(data_plane)
+
         return data_plane
     
-    def _get_output_coords_from_plane_pixels(self, plane_pixels, coords) -> dict:
+    def _get_output_coords_from_plane_pixels(self, plane_pixels, coords, dim_order) -> dict:
         
         if 0 in plane_pixels.shape:
             return None
@@ -811,8 +847,34 @@ class PlaneROI:
         dim_list = list(self.plane["point"].keys())
         coords = coords.copy()
         
-        x_pixels = plane_pixels[0, :, :].T
-        y_pixels = plane_pixels[:, 0, :].T
+        primary_x_axis_dim = dim_order[0]
+        primary_y_axis_dim = dim_order[1]
+        secondary_axis_dim = dim_order[2]
+
+        # Determines the pixels that correspond to the axes of the output image
+        if primary_x_axis_dim == 0:
+            if primary_y_axis_dim == 1:
+                # Defines the pixels for the coordinates across the x-axis of the output image
+                x_axis_pixels = plane_pixels[0, :, :].T
+                # Defines the pixels for the coordinates across the y-axis of the output image
+                y_axis_pixels = plane_pixels[:, 0, :].T
+            elif primary_y_axis_dim == 2:
+                x_axis_pixels = plane_pixels[0, :, :].T
+                y_axis_pixels = plane_pixels[:, :, 0].T
+        elif primary_x_axis_dim == 1:
+            if primary_y_axis_dim == 0:
+                x_axis_pixels = plane_pixels[:, 0, :].T
+                y_axis_pixels = plane_pixels[0, :, :].T
+            elif primary_y_axis_dim == 2:
+                x_axis_pixels = plane_pixels[:, 0, :].T
+                y_axis_pixels = plane_pixels[:, :, 0].T
+        elif primary_x_axis_dim == 2:
+            if primary_y_axis_dim == 0:
+                x_axis_pixels = plane_pixels[:, :, 0].T
+                y_axis_pixels = plane_pixels[0, :, :].T
+            elif primary_y_axis_dim == 1:
+                x_axis_pixels = plane_pixels[:, :, 0].T
+                y_axis_pixels = plane_pixels[:, 0, :].T
 
         x_output_coords_label = []
         y_output_coords_label = []
@@ -820,16 +882,40 @@ class PlaneROI:
         x_coords = []
         y_coords = []
 
-        for dim, x_px, y_px in zip(dim_list, x_pixels, y_pixels):
+        for i in dim_order:
+            dim, dim_x_px, dim_y_px = dim_list[i], x_axis_pixels[i], y_axis_pixels[i]
             dim_coords = coords[dim]
-            dim_delta = (dim_coords[-1] - dim_coords[0]) / len(dim_coords)
-            if x_px[0] != x_px[-1]:
+            dim_delta = dim_coords[1] - dim_coords[0]
+
+            if dim_x_px[0] < dim_x_px[-1]:
+
+                if dim_x_px[0] >= 0 and dim_x_px[-1] < len(dim_coords):
+                    x_dim_coords = [dim_coords[px] for px in dim_x_px]
+                else:
+                    print(dim, dim_x_px[0], dim_x_px[-1], len(dim_coords))  
+                
+                
+                    
+            elif dim_x_px[0] > dim_x_px[-1]:
+                ...
+            else:
+                pass
+
+
+
+            
+            print(dim, dim_x_px[0], dim_x_px[-1], len(dim_coords))
+            print(dim, dim_y_px[0], dim_y_px[-1], len(dim_coords))
+
+
+            if dim_x_px[0] != dim_x_px[-1]:
                 x_output_coords_label.append(dim)
-                x_dim_coords = [dim_delta * i for i in x_px]
+                x_dim_coords = [dim_delta * i for i in dim_x_px]
                 x_coords.append(x_dim_coords)
-            if y_px[0] != y_px[-1]:
+            
+            if dim_y_px[0] != dim_y_px[-1]:
                 y_output_coords_label.append(dim)
-                y_dim_coords = [dim_delta * i for i in y_px]
+                y_dim_coords = [dim_delta * i for i in dim_y_px]
                 y_coords.append(y_dim_coords)
 
         x_output_coords_label = ",".join(x_output_coords_label)
@@ -873,17 +959,19 @@ class PlaneROI:
         return point_pixel_idxs
     
     def _solve_for_plane(self, a, b, c, d, x=None, y=None, z=None) -> float:
-
+        
         if x is None:
             if a == 0:
                 a = 0.000001
             x = (-d - b*y - c*z) / a
             return x
+        
         if y is None:
             if b == 0:
                 b = 0.000001
             y = (-d - a*x - c*z) / b
             return y
+        
         if z is None:
             if c == 0:
                 c = 0.000001

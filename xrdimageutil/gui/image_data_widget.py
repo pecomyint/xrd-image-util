@@ -1413,59 +1413,63 @@ class ROIImageTool(pg.ImageView):
         self.colorbar.setImageItem(img=self.getImageItem(), insert_in=self.getView())
         self.colorbar.hide()
 
-    def _plot(self, data, coords) -> None:
+    def _plot(self, data: np.ndarray, coords: dict) -> None:
+        """Displays 1D or 2D data with respective axes and color mapping."""
         
         if data is None or coords is None:
             return
         
-        x_coords, y_coords = None, None
-
+        # Parses output coordinates
         if len(list(coords.values())) == 1:
-            x_coords, y_coords = list(coords.values())[0], None
+            x_labels = list(coords.keys())[0].split(",")
+            x_coords = list(coords.values())[0]
+            y_labels = None
+            y_coords = None
         elif len(list(coords.values())) == 2:
-            x_coords, y_coords = list(coords.values())[0], list(coords.values())[1]
+            x_labels = list(coords.keys())[0].split(",")
+            x_coords = list(coords.values())[0]
+            y_labels = list(coords.keys())[1].split(",")
+            y_coords = list(coords.values())[1]    
         else:
             raise ValueError("Invalid coordinates provided.")
         
-        x_axis_labels = list(coords.keys())[0].split(",")
-        if y_coords is not None:
-            y_axis_labels = list(coords.keys())[1].split(",")
-        else:
-            y_axis_labels = None
+        self._toggle_axis_visibility(x_labels, y_labels) # Determines which axes are in view
+        self._set_axis_labels(x_labels, y_labels) # Determines axis labels
+        self._set_axis_ranges(x_labels, y_labels, x_coords, y_coords) # Determines min/max for each axis
+        self._set_axis_inversion_statuses(x_coords, x_labels)
 
-        self._toggle_axis_visibility(x_coords, y_coords)
-        self._set_axis_labels(x_axis_labels, y_axis_labels)
-        self._set_axis_ranges(x_coords, y_coords)
-        self._set_axis_inversion_statuses(x_coords, x_axis_labels)
-
-        print(data.shape, coords.keys())
         if data.ndim == 1:
             self._plot_1d_data(data, x_coords)
         elif data.ndim == 2:
-            print("HEre")
             self._plot_2d_data(data, x_coords, y_coords)
         else:
             raise ValueError("Invalid data provided.")
 
-    def _toggle_axis_visibility(self, x_coords, y_coords) -> None:
-        if type(x_coords[0]) != np.ndarray:
+    def _toggle_axis_visibility(self, x_labels, y_labels) -> None:
+        """Hides/shows respective axes based on output coordinates."""
+
+        # x-axes
+        if len(x_labels) == 1:
             self.x_axis_2.hide()
             self.x_axis_3.hide()
-        elif x_coords[0].shape[-1] == 2:
+        elif len(x_labels) == 2:
             self.x_axis_2.show()
             self.x_axis_3.hide()
-        else:
+        elif len(x_labels) == 3:
             self.x_axis_2.show()
             self.x_axis_3.show()
 
-        if y_coords is None:
+        # y-axes
+        if y_labels is None:
             self.y_axis_2.hide()
-        elif type(y_coords[0]) != np.ndarray:
+        elif len(y_labels) == 1:
             self.y_axis_2.hide()
-        else:
+        elif len(y_labels) == 2:
             self.y_axis_2.show()
 
     def _set_axis_labels(self, x_labels, y_labels) -> None:
+        """Sets labels for axes within view."""
+
         if len(x_labels) == 1:
             self.view.setLabel("bottom", x_labels[0])
             self.x_axis_2.setLabel("")
@@ -1489,15 +1493,25 @@ class ROIImageTool(pg.ImageView):
             self.view.setLabel("left", y_labels[0])
             self.y_axis_2.setLabel(y_labels[1])
 
-    def _set_axis_ranges(self, x_coords, y_coords) -> None:
-        if type(x_coords[0]) != np.ndarray:
+    def _set_axis_ranges(self, x_labels, y_labels, x_coords, y_coords) -> None:
+        """Sets value ranges for each axis within view."""
+
+        num_x = len(x_labels)
+        if y_labels is None:
+            num_y = 0
+        else:
+            num_y = len(y_labels)
+
+        if len(x_labels) == 1:
             self.getView().setXRange(x_coords[0], x_coords[-1])
-        elif x_coords[0].shape[-1] == 2:
+        elif len(x_labels) == 2:
+            
             x_axis_coords_1 = x_coords[:, 0]
             x_axis_coords_2 = x_coords[:, 1]
+
             self.getView().setXRange(x_axis_coords_1[0], x_axis_coords_1[-1])
             self.plot_2.setXRange(x_axis_coords_2[0], x_axis_coords_2[-1])
-        else:
+        elif len(x_labels) == 3:
             x_axis_coords_1 = x_coords[:, 0]
             x_axis_coords_2 = x_coords[:, 1]
             x_axis_coords_3 = x_coords[:, 2]
@@ -1505,14 +1519,12 @@ class ROIImageTool(pg.ImageView):
             self.plot_2.setXRange(x_axis_coords_2[0], x_axis_coords_2[-1])
             self.plot_3.setXRange(x_axis_coords_3[0], x_axis_coords_3[-1])
 
+
         if y_coords is None:
             pass
-        elif type(y_coords[0]) != np.ndarray:
+        elif len(y_labels) == 1:
             self.getView().setYRange(y_coords[0], y_coords[-1])
-        elif y_coords[0].shape[-1] == 1:
-            y_axis_coords_1 = y_coords[:, 0]
-            self.getView().setYRange(y_axis_coords_1[0], y_axis_coords_1[-1])
-        else:
+        elif len(x_labels) == 2:
             y_axis_coords_1 = y_coords[:, 0]
             y_axis_coords_2 = y_coords[:, 1]
             self.getView().setYRange(y_axis_coords_1[0], y_axis_coords_1[-1])
