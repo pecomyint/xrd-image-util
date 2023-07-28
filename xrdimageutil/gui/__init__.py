@@ -5,10 +5,10 @@ See LICENSE file.
 import numpy as np
 import pyqtgraph as pg
 
-from xrdimageutil.gui.image_data_widget import ImageDataWidget
-
 def view_image_data(data: np.ndarray, coords: dict=None) -> None:
     """Displays 3D numpy data in an interactive GUI window."""
+    
+    from xrdimageutil.gui.image_data_widget import ImageDataWidget
     
     # Data validation
     if type(data) != np.ndarray:
