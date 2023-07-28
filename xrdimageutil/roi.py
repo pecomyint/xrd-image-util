@@ -10,6 +10,7 @@ Regions of Interest
 
 """
 
+import math
 import numpy as np
 from skimage.draw import line_nd
 
@@ -709,11 +710,11 @@ class PlaneROI:
         # Defining the 2D plane with a point and normal direction
         point_pixel = self._get_point_pixel_indicies(point=self.plane["point"], coords=coords)
         normal = list(self.plane["normal"].values())
-        a, b, c = normal
+
+        a, b, c = self._get_unit_vector(normal)
         d = -(a * point_pixel[0] + b * point_pixel[1] + c * point_pixel[2])
 
         # Calculates the indicies where the plane and edges of the dataset intersect
-        
         edge_intersection_points = []
         x_0, y_0, z_0 = 0, 0, 0
         x_1, y_1, z_1 = data.shape
@@ -803,6 +804,7 @@ class PlaneROI:
                 X = -(b * Y + c * Z + d) / a
 
         plane_pixels = np.array([X, Y, Z], dtype=np.int64).T
+        
         return plane_pixels, dim_order
 
     def _get_data_from_plane_pixels(self, plane_pixels, data) -> np.ndarray:
@@ -810,6 +812,8 @@ class PlaneROI:
 
         # Flattens plane for masking purposes
         flat_plane_pixels = plane_pixels.reshape(-1, plane_pixels.shape[-1])
+
+        print(plane_pixels.shape)
 
         # Mask to omit invalid indicies
         flat_mask = np.any(
@@ -834,6 +838,8 @@ class PlaneROI:
             plane_pixels.shape[1]
         ))
 
+        print(data_plane.shape)
+        print()
         data_plane = np.fliplr(data_plane)
 
         return data_plane
@@ -893,20 +899,11 @@ class PlaneROI:
                     x_dim_coords = [dim_coords[px] for px in dim_x_px]
                 else:
                     print(dim, dim_x_px[0], dim_x_px[-1], len(dim_coords))  
-                
-                
                     
             elif dim_x_px[0] > dim_x_px[-1]:
                 ...
             else:
                 pass
-
-
-
-            
-            print(dim, dim_x_px[0], dim_x_px[-1], len(dim_coords))
-            print(dim, dim_y_px[0], dim_y_px[-1], len(dim_coords))
-
 
             if dim_x_px[0] != dim_x_px[-1]:
                 x_output_coords_label.append(dim)
@@ -977,3 +974,12 @@ class PlaneROI:
                 c = 0.000001
             z = (-d - a*x - b*y) / c
             return z
+        
+    def _get_unit_vector(self, v) -> list:
+        magnitude = math.sqrt(
+            sum(component**2 for component in v)
+        )
+
+        unit_vector = [(component / magnitude) for component in v]
+
+        return unit_vector
