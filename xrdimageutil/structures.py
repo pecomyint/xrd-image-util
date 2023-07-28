@@ -16,7 +16,7 @@ import pyqtgraph as pg
 import xrayutilities as xu
 
 from xrdimageutil import utils
-from xrdimageutil.gui import image_data_widget
+from xrdimageutil.gui.image_data_widget import ScanImageDataGUI
 
 
 class Catalog:
@@ -400,7 +400,7 @@ class Scan(object):
         """
         
         self.app = pg.mkQApp()
-        self.gui_window = image_data_widget.ScanImageDataGUI(scan=self)
+        self.gui_window = ScanImageDataGUI(scan=self)
         self.gui_window.raise_()
         self.gui_window.show()
         self.gui_window.raise_()
