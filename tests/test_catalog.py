@@ -40,3 +40,4 @@ class TestCatalog:
         scan_with_uid = catalog.get_scan(scan_uid)
 
         assert scan_with_id == scan_with_uid
+print('test')

@@ -398,7 +398,7 @@ class Scan(object):
         Displays Scan image data in an interactive GUI.
         """
 
-        from xrdimageutil.gui.image_data_widget import ScanImageDataGUI
+        from xrdimageutil.image_data_widget import ScanImageDataGUI
         
         self.app = pg.mkQApp()
         self.gui_window = ScanImageDataGUI(scan=self)
@@ -406,3 +406,4 @@ class Scan(object):
         self.gui_window.show()
         self.gui_window.raise_()
         self.app.exec_()
+print('test')

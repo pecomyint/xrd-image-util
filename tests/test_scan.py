@@ -24,3 +24,4 @@ class TestScan:
             assert False
         except KeyError:
             assert True
+print('test')         

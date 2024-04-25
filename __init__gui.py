@@ -8,7 +8,7 @@ import pyqtgraph as pg
 def view_image_data(data: np.ndarray, coords: dict=None) -> None:
     """Displays 3D numpy data in an interactive GUI window."""
     
-    from xrdimageutil.gui.image_data_widget import ImageDataWidget
+    from xrdimageutil.image_data_widget import ImageDataWidget
     
     # Data validation
     if type(data) != np.ndarray:
@@ -42,3 +42,4 @@ def view_image_data(data: np.ndarray, coords: dict=None) -> None:
     gui_window.show()
     gui_window.raise_()
     app.exec_()
+print('test')
